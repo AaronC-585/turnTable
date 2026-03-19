@@ -21,4 +21,6 @@
     <string name="configure_search_url">Set a search URL in Settings first.</string>
     <string name="search_preset">Search preset</string>
     <string name="search_preset_custom">Custom</string>
+    <string name="open_in_browser">Open links in</string>
+    <string name="browser_default">Default browser</string>
 </resources>

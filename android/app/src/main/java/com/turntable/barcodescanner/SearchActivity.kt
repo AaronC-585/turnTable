@@ -35,8 +35,25 @@ class SearchActivity : AppCompatActivity() {
         when (prefs.method) {
             SearchPrefs.METHOD_GET -> {
                 val fullUrl = buildGetUrl(url, barcode, notes, category)
-                startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fullUrl)))
-                finish()
+                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fullUrl)).apply {
+                    prefs.browserPackage?.let { pkg -> setPackage(pkg) }
+                }
+                try {
+                    startActivity(intent)
+                    finish()
+                } catch (e: Exception) {
+                    if (prefs.browserPackage != null) {
+                        intent.setPackage(null)
+                        try {
+                            startActivity(intent)
+                            finish()
+                        } catch (_: Exception) {
+                            Toast.makeText(this, "Could not open link", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Could not open link", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
             SearchPrefs.METHOD_POST -> {
                 doPost(url, barcode, notes, category, prefs)

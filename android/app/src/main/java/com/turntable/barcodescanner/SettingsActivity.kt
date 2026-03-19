@@ -1,5 +1,8 @@
 package com.turntable.barcodescanner
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -8,10 +11,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivitySettingsBinding
 
+data class BrowserEntry(val label: String, val packageName: String?)
+
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private val presets = SearchPresets.all
+    private var browserEntries: List<BrowserEntry> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,15 +67,42 @@ class SettingsActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
+        browserEntries = getInstalledBrowsers()
+        binding.spinnerBrowser.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            browserEntries.map { it.label }
+        )
+        val savedPackage = prefs.browserPackage
+        val browserIndex = when {
+            savedPackage == null -> 0
+            else -> browserEntries.indexOfFirst { it.packageName == savedPackage }.takeIf { it >= 0 } ?: 0
+        }
+        binding.spinnerBrowser.setSelection(browserIndex.coerceIn(0, browserEntries.size - 1))
+
         binding.buttonSave.setOnClickListener {
             prefs.searchUrl = binding.editSearchUrl.text?.toString()?.trim()
             prefs.method = methods[binding.spinnerMethod.selectedItemPosition]
             prefs.postContentType = binding.editContentType.text?.toString()?.trim()
             prefs.postBody = binding.editPostBody.text?.toString()?.trim()
             prefs.postHeaders = binding.editPostHeaders.text?.toString()?.trim()
+            val browserPos = binding.spinnerBrowser.selectedItemPosition.coerceIn(0, browserEntries.size - 1)
+            prefs.browserPackage = browserEntries.getOrNull(browserPos)?.packageName
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    private fun getInstalledBrowsers(): List<BrowserEntry> {
+        val list = mutableListOf(BrowserEntry(getString(R.string.browser_default), null))
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://"))
+        val resolveInfos = packageManager.queryIntentActivities(intent, 0)
+        for (ri in resolveInfos) {
+            val label = ri.loadLabel(packageManager).toString()
+            val pkg = ri.activityInfo.packageName
+            list.add(BrowserEntry(label, pkg))
+        }
+        return list
     }
 
     private fun updatePostOptionsVisibility(show: Boolean) {

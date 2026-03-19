@@ -3,7 +3,6 @@ package com.turntable.barcodescanner
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
@@ -32,11 +31,10 @@ class ScannerOverlayView @JvmOverloads constructor(
 
     private val dimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = 0x80000000
+        color = 0x80000000.toInt()
     }
 
     private val frameRect = RectF()
-    private val dimPath = Path()
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -50,12 +48,11 @@ class ScannerOverlayView @JvmOverloads constructor(
         frameRect.set(left, top, left + size, top + size)
         val cornerRadius = size * 0.08f
 
-        // Dimmed area (outside the scan window)
-        dimPath.reset()
-        dimPath.setFillType(Path.FillType.EVEN_ODD)
-        dimPath.addRect(0f, 0f, w, h)
-        dimPath.addRoundRect(frameRect, cornerRadius, cornerRadius, Path.Direction.CW)
-        canvas.drawPath(dimPath, dimPaint)
+        // Dimmed area: four rects around the scan window (top, bottom, left, right)
+        canvas.drawRect(0f, 0f, w, top, dimPaint)
+        canvas.drawRect(0f, top + size, w, h, dimPaint)
+        canvas.drawRect(0f, top, left, top + size, dimPaint)
+        canvas.drawRect(left + size, top, w, top + size, dimPaint)
 
         // Scan window frame
         canvas.drawRoundRect(frameRect, cornerRadius, cornerRadius, framePaint)
