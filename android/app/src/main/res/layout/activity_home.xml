@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1a1a1a"
+    tools:context=".HomeActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#202020">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="@string/home_title"
+            app:titleTextColor="#eeeeee" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/layoutNoKey"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/home_no_api_key_hint"
+                android:textColor="#bbbbbb"
+                android:textSize="16sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonAddApiKey"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/home_enter_api_key" />
+        </LinearLayout>
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone">
+
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/scrollProfile"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true"
+                android:overScrollMode="ifContentScrolls">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="24dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:id="@+id/imageProfile"
+                            android:layout_width="@dimen/home_profile_icon_size"
+                            android:layout_height="@dimen/home_profile_icon_size"
+                            android:contentDescription="@string/home_profile_image_description"
+                            android:scaleType="centerCrop"
+                            android:background="#333333" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/textUsername"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:paddingBottom="8dp"
+                                android:textColor="@color/home_text_primary"
+                                android:textSize="18sp"
+                                android:textStyle="bold"
+                                tools:text="username" />
+
+                            <FrameLayout
+                                android:id="@+id/containerHeaderSection1"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:minHeight="0dp" />
+
+                            <FrameLayout
+                                android:id="@+id/containerHeaderSection2"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:minHeight="0dp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/containerProfileSections"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="12dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="16dp"
+                        android:layout_marginTop="8dp"
+                        android:letterSpacing="0.05"
+                        android:text="@string/home_actions_shortcuts"
+                        android:textAllCaps="true"
+                        android:textColor="@color/home_text_muted"
+                        android:textSize="12sp" />
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:clipToPadding="false"
+                        android:paddingHorizontal="12dp"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/layoutHomeActions"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:id="@+id/homeActionScan"
+                                style="@style/HomeActionColumn"
+                                android:contentDescription="@string/home_content_cd_scan">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/buttonHomeScan"
+                                    style="@style/HomeIconActionButton"
+                                    app:icon="@android:drawable/ic_menu_camera"
+                                    app:iconTint="@color/home_text_primary" />
+
+                                <TextView
+                                    style="@style/HomeActionLabel"
+                                    android:text="@string/scan" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/homeActionHistory"
+                                style="@style/HomeActionColumn"
+                                android:contentDescription="@string/home_content_cd_history">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/buttonHomeHistory"
+                                    style="@style/HomeIconActionButton"
+                                    app:icon="@android:drawable/ic_menu_recent_history"
+                                    app:iconTint="@color/home_text_primary" />
+
+                                <TextView
+                                    style="@style/HomeActionLabel"
+                                    android:text="@string/history" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/homeActionStats"
+                                style="@style/HomeActionColumn"
+                                android:contentDescription="@string/home_content_cd_stats">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/buttonHomeStats"
+                                    style="@style/HomeIconActionButton"
+                                    app:icon="@android:drawable/ic_menu_info_details"
+                                    app:iconTint="@color/home_text_primary" />
+
+                                <TextView
+                                    style="@style/HomeActionLabel"
+                                    android:text="@string/stats" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/homeActionSettings"
+                                style="@style/HomeActionColumn"
+                                android:contentDescription="@string/home_content_cd_settings">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/buttonHomeSettings"
+                                    style="@style/HomeIconActionButton"
+                                    app:icon="@drawable/ic_settings_gear"
+                                    app:iconTint="@color/home_text_primary" />
+
+                                <TextView
+                                    style="@style/HomeActionLabel"
+                                    android:text="@string/settings" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/homeActionRedacted"
+                                style="@style/HomeActionColumn"
+                                android:contentDescription="@string/home_content_cd_redacted">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/buttonHomeRedacted"
+                                    style="@style/HomeIconActionButton"
+                                    app:icon="@android:drawable/ic_menu_compass"
+                                    app:iconTint="@color/home_text_primary" />
+
+                                <TextView
+                                    style="@style/HomeActionLabel"
+                                    android:text="@string/redacted_menu" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </HorizontalScrollView>
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <TextView
+            android:id="@+id/textError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:padding="24dp"
+            android:textColor="#ff8888"
+            android:textSize="15sp"
+            android:visibility="gone" />
+    </FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -36,6 +36,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".HomeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.BarcodeScanner" />
+        <activity
             android:name=".MainActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize"

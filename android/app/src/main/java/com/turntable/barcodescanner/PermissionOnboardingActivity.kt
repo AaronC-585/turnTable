@@ -33,7 +33,7 @@ class PermissionOnboardingActivity : AppCompatActivity() {
 
         binding.buttonContinue.setOnClickListener {
             getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().putBoolean(KEY_ONBOARDING_DONE, true).apply()
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, HomeActivity::class.java))
             finish()
         }
     }

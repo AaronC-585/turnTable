@@ -1,6 +1,6 @@
 # turnTable — 1D Barcode Scanner (Android & iOS, C++)
 
-Native **Android** and **iOS** apps that show the camera and scan **1D barcodes** (Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, Codabar, ITF). The decoding core is shared **C++** (ZXing-cpp), with platform UI and camera on each side. The Android app (turnTable) adds configurable **primary** (music-info APIs, e.g. MusicBrainz/Discogs) and **secondary** (e.g. tracker) search flows, plus an optional in-app **Redacted** JSON API browser when you add your API key in Settings; see **CHANGELOG.md** for features.
+Native **Android** and **iOS** apps that show the camera and scan **1D barcodes** (Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, Codabar, ITF). The decoding core is shared **C++** (ZXing-cpp), with platform UI and camera on each side. The Android app (turnTable) opens a **Home** screen after the splash (Redacted profile/stats or API-key prompt), then configurable **primary** (music-info APIs, e.g. MusicBrainz/Discogs) and **secondary** (e.g. tracker) search flows from the scanner, plus an optional in-app **Redacted** JSON API browser when you add your API key; see **CHANGELOG.md** for features.
 
 ## Structure
 
@@ -16,8 +16,9 @@ Native **Android** and **iOS** apps that show the camera and scan **1D barcodes*
 
 ### Redacted API (optional)
 
-If you use [Redacted](https://redacted.sh), generate an **API key** on the site (with the scopes you need) and paste it under **Settings → Redacted API key**. The app sends it as the `Authorization` header to `https://redacted.sh/ajax.php` (per the site’s JSON API docs).
+If you use [Redacted](https://redacted.sh), generate an **API key** on the site (with the scopes you need) and paste it under **Settings → Redacted API key** (or when prompted on **Home**). The app sends it as the `Authorization` header to `https://redacted.sh/ajax.php` (per the site’s JSON API docs). **User** and **torrents** permissions are required for core Redacted features.
 
+- **Home** shows your avatar and API `userstats` when a key is set; use the toolbar **Scan** camera button for barcode scanning.
 - **Toolbar (⋮) → Redacted** or **Settings → Redacted API browser** opens the **hub** (account, torrent search, top 10, bookmarks, requests, inbox, forums, notifications, wiki, logchecker, edits, etc.).
 - On the **Search** screen, **Search Redacted** appears when a key is set; it opens in-app torrent search and can prefill from the artist/album field.
 

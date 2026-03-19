@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_scan"
+        android:icon="@android:drawable/ic_menu_camera"
+        android:title="@string/scan"
+        android:showAsAction="always" />
+    <item
+        android:id="@+id/action_history"
+        android:icon="@android:drawable/ic_menu_recent_history"
+        android:title="@string/history"
+        android:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_stats"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="@string/stats"
+        android:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_settings"
+        android:icon="@drawable/ic_settings_gear"
+        android:title="@string/settings"
+        android:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_redacted"
+        android:title="@string/redacted_menu"
+        android:showAsAction="never" />
+</menu>

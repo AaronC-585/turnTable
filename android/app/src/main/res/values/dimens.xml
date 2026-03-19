@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ~1 physical inch on typical phone density (160 dp ≈ 1 in at ~160 dpi baseline). -->
+    <dimen name="home_profile_icon_size">160dp</dimen>
+</resources>

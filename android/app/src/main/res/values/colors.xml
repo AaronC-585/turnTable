@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="home_section_header_bg">#3D3D3D</color>
+    <color name="home_card_bg">#2B2B2B</color>
+    <color name="home_text_primary">#EEEEEE</color>
+    <color name="home_text_secondary">#CCCCCC</color>
+    <color name="home_text_muted">#AAAAAA</color>
+    <color name="home_ratio_ok">#81C784</color>
+    <color name="home_ratio_warn">#FFB74D</color>
+    <color name="home_ratio_bad">#E57373</color>
+    <color name="home_token_label">#64B5F6</color>
+    <color name="home_rank_highlight">#FFFFFF</color>
+</resources>
