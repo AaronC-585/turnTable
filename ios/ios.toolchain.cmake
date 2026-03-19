@@ -1,0 +1,18 @@
+# Minimal iOS CMake toolchain. Use with:
+#   cmake -DCMAKE_TOOLCHAIN_FILE=ios/ios.toolchain.cmake -DPLATFORM=OS64 ../cpp
+set(CMAKE_SYSTEM_NAME iOS)
+set(CMAKE_SYSTEM_PROCESSOR arm64)
+if(NOT DEFINED PLATFORM)
+  set(PLATFORM OS64)
+endif()
+if(PLATFORM STREQUAL "OS64")
+  set(CMAKE_OSX_ARCHITECTURES arm64)
+  set(CMAKE_OSX_SYSROOT iphoneos)
+elseif(PLATFORM STREQUAL "SIMULATOR64")
+  set(CMAKE_OSX_ARCHITECTURES x86_64)
+  set(CMAKE_OSX_SYSROOT iphonesimulator)
+elseif(PLATFORM STREQUAL "SIMULATORARM64")
+  set(CMAKE_OSX_ARCHITECTURES arm64)
+  set(CMAKE_OSX_SYSROOT iphonesimulator)
+endif()
+set(CMAKE_OSX_DEPLOYMENT_TARGET "14.0" CACHE STRING "iOS deployment target")
