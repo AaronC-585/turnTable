@@ -1,10 +1,12 @@
 package com.turntable.barcodescanner
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivitySettingsBinding
 
@@ -13,9 +15,16 @@ data class BrowserEntry(val label: String, val packageName: String?)
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
-    private val primaryApis = SearchPresets.primaryMusicInfo
-    private val secondaryPresets = SearchPresets.secondaryTrackers
     private var browserEntries: List<BrowserEntry> = emptyList()
+    private var primaryApis: List<SearchPresets.Preset> = emptyList()
+    private var secondaryPresets: List<SearchPresets.Preset> = emptyList()
+
+    private val editListLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        // Reload spinners after edit.
+        loadListsAndBind()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,34 +35,7 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.checkBeepOnScan.isChecked = prefs.beepOnScan
 
-        binding.spinnerPrimaryApi.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            primaryApis.map { it.name }
-        )
-        val primaryId = prefs.primaryMusicInfoApiId
-        val primaryIndex = primaryApis.indexOfFirst { it.id == primaryId }.takeIf { it >= 0 } ?: 0
-        binding.spinnerPrimaryApi.setSelection(primaryIndex)
-
-        binding.spinnerSecondaryPreset.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            secondaryPresets.map { it.name }
-        )
-        val currentSecondaryUrl = prefs.secondarySearchUrl
-        val secondaryPresetIndex = secondaryPresets.indexOfFirst { it.url == currentSecondaryUrl }.takeIf { it >= 0 } ?: 0
-        binding.spinnerSecondaryPreset.setSelection(secondaryPresetIndex)
-        binding.editSecondaryUrl.setText(currentSecondaryUrl ?: "")
-        binding.spinnerSecondaryPreset.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val preset = secondaryPresets[position]
-                if (preset.id != SearchPresets.CUSTOM_ID) {
-                    binding.editSecondaryUrl.setText(preset.url)
-                }
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-        binding.checkSecondaryAutoMusicBrainz.isChecked = prefs.secondarySearchAutoFromMusicBrainz
+        loadListsAndBind()
 
         binding.editContentType.setText(prefs.postContentType ?: "application/json")
         binding.editPostBody.setText(prefs.postBody ?: """{"code":"%s"}""")
@@ -89,6 +71,20 @@ class SettingsActivity : AppCompatActivity() {
         }
         binding.spinnerSecondaryBrowser.setSelection(secondaryBrowserIndex.coerceIn(0, browserEntries.size - 1))
 
+        binding.buttonEditPrimaryList.setOnClickListener {
+            editListLauncher.launch(
+                Intent(this, EditSearchListActivity::class.java)
+                    .putExtra(EditSearchListActivity.EXTRA_LIST_TYPE, EditSearchListActivity.LIST_PRIMARY)
+            )
+        }
+
+        binding.buttonEditSecondaryList.setOnClickListener {
+            editListLauncher.launch(
+                Intent(this, EditSearchListActivity::class.java)
+                    .putExtra(EditSearchListActivity.EXTRA_LIST_TYPE, EditSearchListActivity.LIST_SECONDARY)
+            )
+        }
+
         binding.buttonSave.setOnClickListener {
             prefs.beepOnScan = binding.checkBeepOnScan.isChecked
             prefs.primaryMusicInfoApiId = primaryApis.getOrNull(binding.spinnerPrimaryApi.selectedItemPosition)?.id
@@ -103,6 +99,42 @@ class SettingsActivity : AppCompatActivity() {
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    private fun loadListsAndBind() {
+        val prefs = SearchPrefs(this)
+
+        primaryApis = SearchPresets.primaryMusicInfo(this)
+        secondaryPresets = SearchPresets.secondaryTrackers(this)
+
+        binding.spinnerPrimaryApi.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            primaryApis.map { it.name }
+        )
+        val primaryId = prefs.primaryMusicInfoApiId
+        val primaryIndex = primaryApis.indexOfFirst { it.id == primaryId }.takeIf { it >= 0 } ?: 0
+        binding.spinnerPrimaryApi.setSelection(primaryIndex)
+
+        binding.spinnerSecondaryPreset.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            secondaryPresets.map { it.name }
+        )
+        val currentSecondaryUrl = prefs.secondarySearchUrl
+        val secondaryPresetIndex = secondaryPresets.indexOfFirst { it.url == currentSecondaryUrl }.takeIf { it >= 0 } ?: 0
+        binding.spinnerSecondaryPreset.setSelection(secondaryPresetIndex)
+        binding.editSecondaryUrl.setText(currentSecondaryUrl ?: "")
+        binding.spinnerSecondaryPreset.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val preset = secondaryPresets[position]
+                if (preset.id != SearchPresets.CUSTOM_ID) {
+                    binding.editSecondaryUrl.setText(preset.url)
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+        binding.checkSecondaryAutoMusicBrainz.isChecked = prefs.secondarySearchAutoFromMusicBrainz
     }
 
     /** Hard-coded list for secondary search: Default + Play Store browsers (Android). On iOS use same list with appStoreUrl. */

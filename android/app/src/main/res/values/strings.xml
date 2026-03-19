@@ -30,7 +30,7 @@
     <string name="secondary_search">Secondary (yadg upload sites)</string>
     <string name="open_secondary_in_browser">Open secondary links in</string>
     <string name="secondary_search_hint">e.g. tracker search by artist/album</string>
-    <string name="secondary_auto_musicbrainz">Auto-fill secondary from barcode (MusicBrainz)</string>
+    <string name="secondary_auto_musicbrainz">Auto-fill secondary from barcode (selected primary API)</string>
     <string name="secondary_search_terms">Artist / Album (for secondary search)</string>
     <string name="secondary_search_terms_hint">Optional; or use auto-fill in Settings</string>
     <string name="secondary_no_artist_title">No release found for barcode; enter artist/album for secondary</string>
@@ -46,4 +46,14 @@
     <string name="permission_status_granted">Granted ✓</string>
     <string name="permission_status_denied">Denied</string>
     <string name="permission_continue">Continue</string>
+    <string name="edit_primary_list">Edit primary list</string>
+    <string name="edit_secondary_list">Edit secondary list</string>
+    <string name="edit_list_title_primary">Edit primary list (CLI)</string>
+    <string name="edit_list_title_secondary">Edit secondary list (CLI)</string>
+    <string name="edit_list_help_primary">One entry per line: id|name\nLines starting with # are comments.</string>
+    <string name="edit_list_help_secondary">One entry per line: id|name|url\nURL must include %s for the search query.\nLines starting with # are comments.</string>
+    <string name="edit_list_save">Save</string>
+    <string name="edit_list_reset">Reset to defaults</string>
+    <string name="edit_list_invalid">Invalid format. Please fix the lines and try again.</string>
+    <string name="cancel">Cancel</string>
 </resources>

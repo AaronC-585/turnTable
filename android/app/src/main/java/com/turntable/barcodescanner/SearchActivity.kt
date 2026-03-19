@@ -42,7 +42,7 @@ class SearchActivity : AppCompatActivity() {
                 val secondaryPkg = prefs.secondaryBrowserPackage
                 val secondaryQuery = binding.editSecondarySearchTerms.text?.toString()?.trim()
                 if (prefs.secondarySearchAutoFromMusicBrainz) {
-                    fetchMusicBrainzAndOpenSecondary(barcode, secondaryUrl, secondaryPkg)
+                    fetchPrimaryInfoAndOpenSecondary(barcode, secondaryUrl, secondaryPkg, prefs)
                 } else if (!secondaryQuery.isNullOrBlank()) {
                     openSecondaryUrl(secondaryUrl, secondaryQuery, secondaryPkg)
                     finish()
@@ -101,18 +101,19 @@ class SearchActivity : AppCompatActivity() {
         openInBrowser(url, pkg) { finish() }
     }
 
-    private fun fetchMusicBrainzAndOpenSecondary(barcode: String, secondaryUrl: String, pkg: String?) {
+    private fun fetchPrimaryInfoAndOpenSecondary(
+        barcode: String,
+        secondaryUrl: String,
+        pkg: String?,
+        prefs: SearchPrefs
+    ) {
+        val apiId = prefs.primaryMusicInfoApiId ?: "musicbrainz"
         Thread {
             val query = try {
-                val apiUrl = "https://musicbrainz.org/ws/2/release/?query=barcode:${java.net.URLEncoder.encode(barcode, "UTF-8")}&fmt=json&limit=1"
-                val conn = URL(apiUrl).openConnection() as java.net.HttpURLConnection
-                conn.requestMethod = "GET"
-                conn.setRequestProperty("User-Agent", "turnTable/1.0 (https://github.com/turntable)")
-                conn.connectTimeout = 10000
-                conn.readTimeout = 10000
-                val json = conn.inputStream.bufferedReader().readText()
-                conn.disconnect()
-                parseMusicBrainzArtistTitle(json)
+                when (apiId) {
+                    "discogs" -> fetchDiscogsArtistTitle(barcode)
+                    else -> fetchMusicBrainzArtistTitle(barcode)
+                }
             } catch (_: Exception) {
                 null
             }
@@ -130,6 +131,31 @@ class SearchActivity : AppCompatActivity() {
                 }
             }
         }.start()
+    }
+
+    private fun fetchMusicBrainzArtistTitle(barcode: String): String? {
+        val apiUrl =
+            "https://musicbrainz.org/ws/2/release/?query=barcode:${java.net.URLEncoder.encode(barcode, "UTF-8")}&fmt=json&limit=1"
+        val conn = URL(apiUrl).openConnection() as java.net.HttpURLConnection
+        conn.requestMethod = "GET"
+        conn.setRequestProperty("User-Agent", "turnTable/1.0 (https://github.com/turntable)")
+        conn.connectTimeout = 10000
+        conn.readTimeout = 10000
+        val json = conn.inputStream.bufferedReader().readText()
+        conn.disconnect()
+        return parseMusicBrainzArtistTitle(json)
+    }
+
+    private fun fetchDiscogsArtistTitle(barcode: String): String? {
+        val apiUrl = "https://api.discogs.com/database/search?barcode=${java.net.URLEncoder.encode(barcode, "UTF-8")}&type=release"
+        val conn = URL(apiUrl).openConnection() as java.net.HttpURLConnection
+        conn.requestMethod = "GET"
+        conn.setRequestProperty("User-Agent", "turnTable/1.0")
+        conn.connectTimeout = 10000
+        conn.readTimeout = 10000
+        val json = conn.inputStream.bufferedReader().readText()
+        conn.disconnect()
+        return parseDiscogsArtistTitle(json)
     }
 
     private fun parseMusicBrainzArtistTitle(json: String): String? {
@@ -150,6 +176,20 @@ class SearchActivity : AppCompatActivity() {
             }
             val artistStr = artist.toString().trim()
             if (artistStr.isBlank() && title.isBlank()) null else "$artistStr - $title"
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun parseDiscogsArtistTitle(json: String): String? {
+        return try {
+            val root = JSONObject(json)
+            val results = root.optJSONArray("results") ?: return null
+            if (results.length() == 0) return null
+            val first = results.getJSONObject(0)
+            val title = first.optString("title", "").trim()
+            if (title.isBlank()) return null
+            title
         } catch (_: Exception) {
             null
         }

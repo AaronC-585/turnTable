@@ -1,0 +1,29 @@
+---
+description: GitHub releases must include the app install file (APK) as an asset
+alwaysApply: true
+---
+
+# Releases: Always Include App Install File
+
+For **any** GitHub release in this project (alpha, beta, release, or other), always attach the app install file as a release asset.
+
+## Rule
+
+- **Include the APK** in every release, regardless of release type (alpha, beta, stable, etc.).
+- The install file is the built Android app: `android/app/build/outputs/apk/debug/app-debug.apk` (debug) or the release APK if doing a signed release build.
+- When creating or updating a release (e.g. with `gh release create` or the GitHub UI), upload this file as a release asset so users can install the app from the release page.
+
+## Workflow
+
+1. Build the APK (e.g. `gradle assembleDebug` or `assembleRelease`).
+2. Create the tag and/or release.
+3. **Attach the APK** to the release (e.g. `gh release create TAG ./path/to/app-debug.apk --title "..." --notes "..."` or `gh release upload TAG ./path/to/app.apk` for an existing release).
+
+Example with GitHub CLI (creating a new release with the APK attached):
+
+```bash
+# After building: android/app/build/outputs/apk/debug/app-debug.apk
+gh release create "alpha-2026-03-19T1220Z" android/app/build/outputs/apk/debug/app-debug.apk --title "Alpha ..." --notes "..." --prerelease
+```
+
+Never publish a release without the app install file attached.

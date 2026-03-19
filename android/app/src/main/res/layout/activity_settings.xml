@@ -36,6 +36,15 @@
             android:background="@android:drawable/btn_dropdown"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/buttonEditPrimaryList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_primary_list"
+            android:textColor="#ffffff"
+            app:backgroundTint="#3a7bd5"
             android:layout_marginBottom="20dp" />
 
         <TextView
@@ -54,6 +63,15 @@
             android:background="@android:drawable/btn_dropdown"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/buttonEditSecondaryList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_secondary_list"
+            android:textColor="#ffffff"
+            app:backgroundTint="#3a7bd5"
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.textfield.TextInputLayout
