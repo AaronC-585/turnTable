@@ -25,4 +25,11 @@
     <string name="browser_default">Default browser</string>
     <string name="browser_open_play_store">Opening Play Store to install %1$s</string>
     <string name="could_not_open_link">Could not open link</string>
+    <string name="primary_search">Primary search (music info by barcode)</string>
+    <string name="secondary_search">Secondary search (optional)</string>
+    <string name="secondary_search_hint">e.g. tracker search by artist/album</string>
+    <string name="secondary_auto_musicbrainz">Auto-fill secondary from barcode (MusicBrainz)</string>
+    <string name="secondary_search_terms">Artist / Album (for secondary search)</string>
+    <string name="secondary_search_terms_hint">Optional; or use auto-fill in Settings</string>
+    <string name="secondary_no_artist_title">No release found for barcode; enter artist/album for secondary</string>
 </resources>

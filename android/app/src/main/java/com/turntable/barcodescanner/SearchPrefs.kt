@@ -33,6 +33,16 @@ class SearchPrefs(context: Context) {
         get() = prefs.getString(KEY_BROWSER_PACKAGE, null)?.takeIf { it.isNotBlank() }
         set(value) = prefs.edit { putString(KEY_BROWSER_PACKAGE, value) }
 
+    /** Secondary search URL (e.g. tracker); optional. Uses artist/title from primary or manual terms. */
+    var secondarySearchUrl: String?
+        get() = prefs.getString(KEY_SECONDARY_URL, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit { putString(KEY_SECONDARY_URL, value) }
+
+    /** If true, fetch release info from MusicBrainz by barcode and use for secondary search. */
+    var secondarySearchAutoFromMusicBrainz: Boolean
+        get() = prefs.getBoolean(KEY_SECONDARY_AUTO_MUSICBRAINZ, false)
+        set(value) = prefs.edit { putBoolean(KEY_SECONDARY_AUTO_MUSICBRAINZ, value) }
+
     companion object {
         const val PREFS_NAME = "search_prefs"
         const val KEY_URL = "search_url"
@@ -41,6 +51,8 @@ class SearchPrefs(context: Context) {
         const val KEY_POST_BODY = "post_body"
         const val KEY_POST_HEADERS = "post_headers"
         const val KEY_BROWSER_PACKAGE = "browser_package"
+        const val KEY_SECONDARY_URL = "secondary_search_url"
+        const val KEY_SECONDARY_AUTO_MUSICBRAINZ = "secondary_auto_musicbrainz"
         const val METHOD_GET = "GET"
         const val METHOD_POST = "POST"
     }

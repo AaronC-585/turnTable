@@ -1,5 +1,7 @@
 package com.turntable.barcodescanner
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -43,6 +45,27 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.editSearchUrl.setText(currentUrl ?: "")
+
+        binding.spinnerSecondaryPreset.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            presets.map { it.name }
+        )
+        val currentSecondaryUrl = prefs.secondarySearchUrl
+        val secondaryPresetIndex = presets.indexOfFirst { it.url == currentSecondaryUrl }.takeIf { it >= 0 } ?: 0
+        binding.spinnerSecondaryPreset.setSelection(secondaryPresetIndex)
+        binding.editSecondaryUrl.setText(currentSecondaryUrl ?: "")
+        binding.spinnerSecondaryPreset.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val preset = presets[position]
+                if (preset.id != SearchPresets.CUSTOM_ID) {
+                    binding.editSecondaryUrl.setText(preset.url)
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+        binding.checkSecondaryAutoMusicBrainz.isChecked = prefs.secondarySearchAutoFromMusicBrainz
+
         binding.editContentType.setText(prefs.postContentType ?: "application/json")
         binding.editPostBody.setText(prefs.postBody ?: """{"code":"%s"}""")
         binding.editPostHeaders.setText(prefs.postHeaders ?: "")
@@ -64,7 +87,7 @@ class SettingsActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        browserEntries = getKnownBrowsersList()
+        browserEntries = getAppsThatHandleWebLinks()
         binding.spinnerBrowser.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
@@ -79,6 +102,8 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.buttonSave.setOnClickListener {
             prefs.searchUrl = binding.editSearchUrl.text?.toString()?.trim()
+            prefs.secondarySearchUrl = binding.editSecondaryUrl.text?.toString()?.trim()
+            prefs.secondarySearchAutoFromMusicBrainz = binding.checkSecondaryAutoMusicBrainz.isChecked
             prefs.method = methods[binding.spinnerMethod.selectedItemPosition]
             prefs.postContentType = binding.editContentType.text?.toString()?.trim()
             prefs.postBody = binding.editPostBody.text?.toString()?.trim()
@@ -90,23 +115,21 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun getKnownBrowsersList(): List<BrowserEntry> {
+    private fun getAppsThatHandleWebLinks(): List<BrowserEntry> {
         val list = mutableListOf(BrowserEntry(getString(R.string.browser_default), null))
-        for (b in KnownBrowsers.all) {
-            val installed = isBrowserInstalled(b.packageName)
-            val label = if (installed) b.name else "${b.name} (not installed)"
-            list.add(BrowserEntry(label, b.packageName))
+        val seen = mutableSetOf<String>()
+        for (uri in listOf("https://", "http://")) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+            val resolveInfos = packageManager.queryIntentActivities(intent, 0)
+            for (ri in resolveInfos) {
+                val pkg = ri.activityInfo.packageName
+                if (seen.add(pkg)) {
+                    val label = ri.loadLabel(packageManager).toString()
+                    list.add(BrowserEntry(label, pkg))
+                }
+            }
         }
         return list
-    }
-
-    private fun isBrowserInstalled(packageName: String): Boolean {
-        return try {
-            packageManager.getPackageInfo(packageName, 0)
-            true
-        } catch (_: Exception) {
-            false
-        }
     }
 
     private fun updatePostOptionsVisibility(show: Boolean) {

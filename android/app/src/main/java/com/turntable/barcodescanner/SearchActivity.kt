@@ -2,9 +2,14 @@ package com.turntable.barcodescanner
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivitySearchBinding
+import org.json.JSONObject
+import java.net.URL
 
 class SearchActivity : AppCompatActivity() {
 
@@ -17,6 +22,9 @@ class SearchActivity : AppCompatActivity() {
 
         val barcode = intent.getStringExtra(EXTRA_BARCODE).orEmpty()
         binding.editBarcode.setText(barcode)
+
+        val hasSecondary = !SearchPrefs(this).secondarySearchUrl.isNullOrBlank()
+        binding.secondarySearchTermsContainer.visibility = if (hasSecondary) View.VISIBLE else View.GONE
 
         binding.buttonSubmit.setOnClickListener { submit(barcode) }
     }
@@ -34,38 +42,126 @@ class SearchActivity : AppCompatActivity() {
 
         when (prefs.method) {
             SearchPrefs.METHOD_GET -> {
-                val fullUrl = buildGetUrl(url, barcode, notes, category)
+                val primaryUrl = buildGetUrl(url, barcode, notes, category)
+                val secondaryUrl = prefs.secondarySearchUrl?.takeIf { it.isNotBlank() }
                 val pkg = prefs.browserPackage
-                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fullUrl)).apply {
-                    pkg?.let { setPackage(it) }
-                }
-                try {
-                    startActivity(intent)
-                    finish()
-                } catch (_: Exception) {
-                    val known = KnownBrowsers.findByPackage(pkg)
-                    if (known != null) {
-                        try {
-                            startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(known.playStoreUrl)))
-                            Toast.makeText(this, getString(R.string.browser_open_play_store, known.name), Toast.LENGTH_SHORT).show()
-                            finish()
-                        } catch (_: Exception) {
-                            Toast.makeText(this, R.string.could_not_open_link, Toast.LENGTH_SHORT).show()
+
+                openInBrowser(primaryUrl, pkg) { primarySuccess ->
+                    if (!primarySuccess) return@openInBrowser
+                    if (secondaryUrl != null) {
+                        val secondaryQuery = binding.editSecondarySearchTerms.text?.toString()?.trim()
+                        val openSecondary: () -> Unit = {
+                            if (prefs.secondarySearchAutoFromMusicBrainz) {
+                                fetchMusicBrainzAndOpenSecondary(barcode, secondaryUrl, pkg)
+                            } else if (!secondaryQuery.isNullOrBlank()) {
+                                openSecondaryUrl(secondaryUrl, secondaryQuery, pkg)
+                            } else {
+                                finish()
+                            }
                         }
+                        Handler(Looper.getMainLooper()).postDelayed(openSecondary, 600)
                     } else {
-                        try {
-                            intent.setPackage(null)
-                            startActivity(intent)
-                            finish()
-                        } catch (_: Exception) {
-                            Toast.makeText(this, R.string.could_not_open_link, Toast.LENGTH_SHORT).show()
-                        }
+                        finish()
                     }
                 }
             }
             SearchPrefs.METHOD_POST -> {
                 doPost(url, barcode, notes, category, prefs)
             }
+        }
+    }
+
+    private fun openInBrowser(url: String, pkg: String?, onDone: (success: Boolean) -> Unit) {
+        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
+            pkg?.let { setPackage(it) }
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        try {
+            startActivity(intent)
+            onDone(true)
+        } catch (_: Exception) {
+            val playStoreUrl = KnownBrowsers.findByPackage(pkg)?.playStoreUrl
+                ?: "https://play.google.com/store/apps/details?id=${pkg?.let { java.net.URLEncoder.encode(it, "UTF-8") } ?: ""}"
+            val displayName = KnownBrowsers.findByPackage(pkg)?.name ?: pkg ?: ""
+            if (!pkg.isNullOrBlank()) {
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(playStoreUrl)))
+                    Toast.makeText(this, getString(R.string.browser_open_play_store, displayName.ifBlank { pkg }), Toast.LENGTH_SHORT).show()
+                    onDone(false)
+                } catch (_: Exception) {
+                    Toast.makeText(this, R.string.could_not_open_link, Toast.LENGTH_SHORT).show()
+                    onDone(false)
+                }
+            } else {
+                try {
+                    intent.setPackage(null)
+                    startActivity(intent)
+                    onDone(true)
+                } catch (_: Exception) {
+                    Toast.makeText(this, R.string.could_not_open_link, Toast.LENGTH_SHORT).show()
+                    onDone(false)
+                }
+            }
+        }
+    }
+
+    private fun openSecondaryUrl(secondaryUrl: String, query: String, pkg: String?) {
+        fun enc(s: String) = java.net.URLEncoder.encode(s, Charsets.UTF_8.name())
+        val url = secondaryUrl.replace("%s", enc(query))
+        openInBrowser(url, pkg) { finish() }
+    }
+
+    private fun fetchMusicBrainzAndOpenSecondary(barcode: String, secondaryUrl: String, pkg: String?) {
+        Thread {
+            val query = try {
+                val apiUrl = "https://musicbrainz.org/ws/2/release/?query=barcode:${java.net.URLEncoder.encode(barcode, "UTF-8")}&fmt=json&limit=1"
+                val conn = URL(apiUrl).openConnection() as java.net.HttpURLConnection
+                conn.requestMethod = "GET"
+                conn.setRequestProperty("User-Agent", "turnTable/1.0 (https://github.com/turntable)")
+                conn.connectTimeout = 10000
+                conn.readTimeout = 10000
+                val json = conn.inputStream.bufferedReader().readText()
+                conn.disconnect()
+                parseMusicBrainzArtistTitle(json)
+            } catch (_: Exception) {
+                null
+            }
+            runOnUiThread {
+                if (!query.isNullOrBlank()) {
+                    openSecondaryUrl(secondaryUrl, query, pkg)
+                } else {
+                    val manual = binding.editSecondarySearchTerms.text?.toString()?.trim()
+                    if (!manual.isNullOrBlank()) {
+                        openSecondaryUrl(secondaryUrl, manual, pkg)
+                    } else {
+                        Toast.makeText(this, R.string.secondary_no_artist_title, Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                }
+            }
+        }.start()
+    }
+
+    private fun parseMusicBrainzArtistTitle(json: String): String? {
+        return try {
+            val root = JSONObject(json)
+            val releases = root.optJSONArray("releases") ?: return null
+            if (releases.length() == 0) return null
+            val first = releases.getJSONObject(0)
+            val title = first.optString("title", "").trim()
+            val artistCredit = first.optJSONArray("artist-credit") ?: return null
+            val artist = StringBuilder()
+            for (i in 0 until artistCredit.length()) {
+                val o = artistCredit.getJSONObject(i)
+                artist.append(o.optString("name", ""))
+                if (i < artistCredit.length() - 1) {
+                    artist.append(o.optString("joinphrase", " "))
+                }
+            }
+            val artistStr = artist.toString().trim()
+            if (artistStr.isBlank() && title.isBlank()) null else "$artistStr - $title"
+        } catch (_: Exception) {
+            null
         }
     }
 
