@@ -10,10 +10,23 @@ object SearchPresets {
 
     data class Preset(val id: String, val name: String, val url: String)
 
-    /** Music info sources – API only (no URL opened in browser). */
+    data class PrimaryApiEntry(
+        /** API id / command (e.g. musicbrainz, discogs, theaudiodb, lastfm). */
+        val cmd: String,
+        val enabled: Boolean,
+        val displayName: String,
+    )
+
+    /**
+     * Music info sources – API only (no URL opened in browser).
+     * Includes “Music Metadata” class providers (e.g. per
+     * [Soundcharts music data API overview](https://soundcharts.com/en/blog/music-data-api)).
+     */
     val primaryMusicInfoDefault: List<Preset> = listOf(
         Preset("musicbrainz", "MusicBrainz (API)", ""),
         Preset("discogs", "Discogs (API)", ""),
+        Preset("theaudiodb", "TheAudioDB (via MB release)", ""),
+        Preset("lastfm", "Last.fm — album by MBID (API key)", ""),
     )
 
     /** Yadg/tracker upload sites – opened in browser with artist/title query. */
@@ -26,38 +39,71 @@ object SearchPresets {
         Preset("db9", "DB9 (DeepBassNine)", "https://deepbassnine.com/torrents.php?searchstr=%s"),
     )
 
-    fun primaryMusicInfo(context: android.content.Context): List<Preset> =
-        parsePrimaryListText(SearchPrefs(context).primaryListText) ?: primaryMusicInfoDefault
+    /** All available primary (music info) APIs – fixed set. */
+    fun primaryMusicInfoAvailable(): List<Preset> = primaryMusicInfoDefault
+
+    private fun defaultPrimaryEntries(): List<PrimaryApiEntry> =
+        primaryMusicInfoDefault.map { PrimaryApiEntry(it.id, true, it.name) }
+
+    /** Primary API config in user order (cmd + enabled + optional display name override). */
+    fun primaryApiEntries(context: android.content.Context): List<PrimaryApiEntry> {
+        val saved = parsePrimaryApiListText(SearchPrefs(context).primaryApiListText)
+        return saved ?: defaultPrimaryEntries()
+    }
+
+    /** Ordered list of enabled primary API command ids. */
+    fun primaryApiCmdsOrderedEnabled(context: android.content.Context): List<String> =
+        primaryApiEntries(context)
+            .filter { it.enabled && it.cmd.isNotBlank() }
+            .map { it.cmd }
 
     fun secondaryTrackers(context: android.content.Context): List<Preset> =
         parseSecondaryListText(SearchPrefs(context).secondaryListText) ?: secondaryTrackersDefault
 
-    fun findPrimaryById(context: android.content.Context, id: String): Preset? =
-        primaryMusicInfo(context).find { it.id == id }
+    fun findPrimaryPresetByCmd(cmd: String): Preset? =
+        primaryMusicInfoDefault.find { it.id == cmd }
 
     fun findSecondaryByUrl(context: android.content.Context, url: String?): Preset? =
         secondaryTrackers(context).find { it.url == url }
 
     /**
-     * CLI-style format, one entry per line:
-     *   id|name
+     * Parse primary API list: one line per API.
+     *
+     * Supported formats (older saves supported):
+     *   - `cmd|enabled` (2 parts)
+     *   - `cmd|enabled|displayName` (3 parts)
+     *
      * Lines starting with # are comments.
      */
-    fun parsePrimaryListText(text: String?): List<Preset>? {
+    fun parsePrimaryApiListText(text: String?): List<PrimaryApiEntry>? {
         val t = text?.trim()?.takeIf { it.isNotBlank() } ?: return null
-        val out = mutableListOf<Preset>()
+        val out = mutableListOf<PrimaryApiEntry>()
         for (raw in t.lines()) {
             val line = raw.trim()
             if (line.isBlank() || line.startsWith("#")) continue
             val parts = line.split("|")
             if (parts.size < 2) continue
-            val id = parts[0].trim()
-            val name = parts[1].trim()
-            if (id.isBlank() || name.isBlank()) continue
-            out.add(Preset(id, name, ""))
+            val cmd = parts[0].trim()
+            if (cmd.isBlank()) continue
+
+            val enabledRaw = parts[1].trim()
+            val enabled = enabledRaw == "1" || enabledRaw.equals("true", ignoreCase = true)
+
+            val nameRaw =
+                if (parts.size >= 3) parts.subList(2, parts.size).joinToString("|").trim() else ""
+            val defaultName = findPrimaryPresetByCmd(cmd)?.name ?: cmd
+            val displayName = if (nameRaw.isBlank()) defaultName else nameRaw
+            out.add(PrimaryApiEntry(cmd, enabled, displayName))
         }
         return out.takeIf { it.isNotEmpty() }
     }
+
+    /** Serialize primary API config to `cmd|enabled|displayName` lines. */
+    fun serializePrimaryApiList(entries: List<PrimaryApiEntry>): String =
+        entries.joinToString("\n") { e ->
+            val name = e.displayName.replace("\n", " ").trim()
+            "${e.cmd}|${if (e.enabled) 1 else 0}|$name"
+        }
 
     /**
      * CLI-style format, one entry per line:
@@ -81,4 +127,8 @@ object SearchPresets {
         }
         return out.takeIf { it.isNotEmpty() }
     }
+
+    /** Serialize secondary list to "id|name|url" lines (URL may contain |). */
+    fun serializeSecondaryList(presets: List<Preset>): String =
+        presets.joinToString("\n") { "${it.id}|${it.name}|${it.url}" }
 }

@@ -1,6 +1,6 @@
-# 1D Barcode Scanner — Android & iOS (C++)
+# turnTable — 1D Barcode Scanner (Android & iOS, C++)
 
-Native **Android** and **iOS** apps that show the camera and scan **1D barcodes** (Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, Codabar, ITF). The decoding core is shared **C++** (ZXing-cpp), with platform UI and camera on each side.
+Native **Android** and **iOS** apps that show the camera and scan **1D barcodes** (Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, Codabar, ITF). The decoding core is shared **C++** (ZXing-cpp), with platform UI and camera on each side. The Android app (turnTable) adds configurable **primary** (music-info APIs, e.g. MusicBrainz/Discogs) and **secondary** (e.g. tracker) search flows; see **CHANGELOG.md** for features.
 
 ## Structure
 
@@ -10,7 +10,9 @@ Native **Android** and **iOS** apps that show the camera and scan **1D barcodes*
 
 ## Android
 
-**Requirements:** Android Studio (or CLI), NDK, CMake 3.22+.
+**Requirements:** Android Studio (or CLI), **NDK 28** (16 KB page-size–friendly libc++ and defaults), CMake 3.22+, **AGP 8.5+** (aligned JNI packaging).
+
+**ABI / Play:** Native builds include **arm64-v8a** and **x86_64** (64-bit) plus **armeabi-v7a** and **x86** for older devices. CMake uses `ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON` and `-Wl,-z,max-page-size=16384` on JNI/ZXing; APK uses uncompressed, page-aligned JNI (`packaging.jniLibs.useLegacyPackaging=false`, `extractNativeLibs=false`). See [Support 16 KB page sizes](https://developer.android.com/guide/practices/page-sizes).
 
 1. Open the `android/` folder in Android Studio (or use it as the project root).
 2. Sync Gradle and build. The app’s CMake build will pull and build the `cpp/` project (including ZXing-cpp) for the selected ABI.
@@ -19,7 +21,11 @@ Native **Android** and **iOS** apps that show the camera and scan **1D barcodes*
 ```bash
 cd android
 ./gradlew assembleDebug
-# Install: adb install app/build/outputs/apk/debug/app-debug.apk
+# Debug APK: app/build/outputs/apk/debug/turnTable.debug.apk
+adb install -r app/build/outputs/apk/debug/turnTable.debug.apk
+
+./gradlew assembleRelease
+# Release APK: app/build/outputs/apk/release/turnTable.release.apk
 ```
 
 ## iOS

@@ -16,6 +16,10 @@ set(ZXING_WRITERS OFF CACHE STRING "" FORCE)
 set(ZXING_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(ZXING_C_API OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(zxing_cpp)
+# 16KB page-size alignment for ZXing shared lib (required for Android 16KB devices)
+if(TARGET ZXing::ZXing)
+  target_link_options(ZXing::ZXing PRIVATE "-Wl,-z,max-page-size=16384")
+endif()
 
 add_library(barcode_scanner_core STATIC
   src/barcode_scanner.cpp

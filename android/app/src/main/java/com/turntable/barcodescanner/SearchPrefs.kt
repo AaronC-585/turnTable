@@ -8,15 +8,10 @@ class SearchPrefs(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    /** Primary = music info API only (e.g. MusicBrainz). Id from SearchPresets.primaryMusicInfo. */
-    var primaryMusicInfoApiId: String?
-        get() = prefs.getString(KEY_PRIMARY_API_ID, null)?.takeIf { it.isNotBlank() }
-        set(value) = prefs.edit { putString(KEY_PRIMARY_API_ID, value) }
-
-    /** Optional override for the primary (music info) list, edited as text in Settings. */
-    var primaryListText: String?
-        get() = prefs.getString(KEY_PRIMARY_LIST_TEXT, null)?.takeIf { it.isNotBlank() }
-        set(value) = prefs.edit { putString(KEY_PRIMARY_LIST_TEXT, value) }
+    /** Primary API list: one line per API, `cmd|enabled|displayName`. Order = try order. */
+    var primaryApiListText: String?
+        get() = prefs.getString(KEY_PRIMARY_API_LIST, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit { putString(KEY_PRIMARY_API_LIST, value) }
 
     /** Optional override for the secondary (tracker) list, edited as text in Settings. */
     var secondaryListText: String?
@@ -59,10 +54,29 @@ class SearchPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_BEEP_ON_SCAN, true)
         set(value) = prefs.edit { putBoolean(KEY_BEEP_ON_SCAN, value) }
 
+    /**
+     * Optional Discogs personal access token (discogs.com/settings/developers).
+     * Improves rate limits per https://www.discogs.com/developers#page:authentication
+     */
+    var discogsPersonalToken: String?
+        get() = prefs.getString(KEY_DISCOGS_TOKEN, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit { putString(KEY_DISCOGS_TOKEN, value) }
+
+    /** Last.fm API key for album.getinfobymbid (optional; required for Last.fm primary). */
+    var lastFmApiKey: String?
+        get() = prefs.getString(KEY_LASTFM_API_KEY, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit { putString(KEY_LASTFM_API_KEY, value) }
+
+    /**
+     * TheAudioDB API key (path segment). Default `1` is the public test key; register for your own.
+     */
+    var theAudioDbApiKey: String?
+        get() = prefs.getString(KEY_THEAUDIODB_API_KEY, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit { putString(KEY_THEAUDIODB_API_KEY, value) }
+
     companion object {
         const val PREFS_NAME = "search_prefs"
-        const val KEY_PRIMARY_API_ID = "primary_music_info_api_id"
-        const val KEY_PRIMARY_LIST_TEXT = "primary_list_text"
+        const val KEY_PRIMARY_API_LIST = "primary_api_list"
         const val KEY_METHOD = "method"
         const val KEY_POST_CONTENT_TYPE = "post_content_type"
         const val KEY_POST_BODY = "post_body"
@@ -72,6 +86,9 @@ class SearchPrefs(context: Context) {
         const val KEY_SECONDARY_BROWSER_PACKAGE = "secondary_browser_package"
         const val KEY_SECONDARY_AUTO_MUSICBRAINZ = "secondary_auto_musicbrainz"
         const val KEY_BEEP_ON_SCAN = "beep_on_scan"
+        const val KEY_DISCOGS_TOKEN = "discogs_personal_token"
+        const val KEY_LASTFM_API_KEY = "lastfm_api_key"
+        const val KEY_THEAUDIODB_API_KEY = "theaudiodb_api_key"
         const val METHOD_GET = "GET"
         const val METHOD_POST = "POST"
     }

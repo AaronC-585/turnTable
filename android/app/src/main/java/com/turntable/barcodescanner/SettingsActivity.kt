@@ -16,7 +16,6 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private var browserEntries: List<BrowserEntry> = emptyList()
-    private var primaryApis: List<SearchPresets.Preset> = emptyList()
     private var secondaryPresets: List<SearchPresets.Preset> = emptyList()
 
     private val editListLauncher = registerForActivityResult(
@@ -36,6 +35,10 @@ class SettingsActivity : AppCompatActivity() {
         binding.checkBeepOnScan.isChecked = prefs.beepOnScan
 
         loadListsAndBind()
+
+        binding.editDiscogsToken.setText(prefs.discogsPersonalToken ?: "")
+        binding.editTheAudioDbApiKey.setText(prefs.theAudioDbApiKey ?: "")
+        binding.editLastFmApiKey.setText(prefs.lastFmApiKey ?: "")
 
         binding.editContentType.setText(prefs.postContentType ?: "application/json")
         binding.editPostBody.setText(prefs.postBody ?: """{"code":"%s"}""")
@@ -72,22 +75,18 @@ class SettingsActivity : AppCompatActivity() {
         binding.spinnerSecondaryBrowser.setSelection(secondaryBrowserIndex.coerceIn(0, browserEntries.size - 1))
 
         binding.buttonEditPrimaryList.setOnClickListener {
-            editListLauncher.launch(
-                Intent(this, EditSearchListActivity::class.java)
-                    .putExtra(EditSearchListActivity.EXTRA_LIST_TYPE, EditSearchListActivity.LIST_PRIMARY)
-            )
+            editListLauncher.launch(Intent(this, EditPrimaryApiListActivity::class.java))
         }
 
         binding.buttonEditSecondaryList.setOnClickListener {
-            editListLauncher.launch(
-                Intent(this, EditSearchListActivity::class.java)
-                    .putExtra(EditSearchListActivity.EXTRA_LIST_TYPE, EditSearchListActivity.LIST_SECONDARY)
-            )
+            editListLauncher.launch(Intent(this, EditSecondaryListActivity::class.java))
         }
 
         binding.buttonSave.setOnClickListener {
             prefs.beepOnScan = binding.checkBeepOnScan.isChecked
-            prefs.primaryMusicInfoApiId = primaryApis.getOrNull(binding.spinnerPrimaryApi.selectedItemPosition)?.id
+            prefs.discogsPersonalToken = binding.editDiscogsToken.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
+            prefs.theAudioDbApiKey = binding.editTheAudioDbApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
+            prefs.lastFmApiKey = binding.editLastFmApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.secondarySearchUrl = binding.editSecondaryUrl.text?.toString()?.trim()
             prefs.secondarySearchAutoFromMusicBrainz = binding.checkSecondaryAutoMusicBrainz.isChecked
             prefs.method = methods[binding.spinnerMethod.selectedItemPosition]
@@ -104,17 +103,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun loadListsAndBind() {
         val prefs = SearchPrefs(this)
 
-        primaryApis = SearchPresets.primaryMusicInfo(this)
         secondaryPresets = SearchPresets.secondaryTrackers(this)
-
-        binding.spinnerPrimaryApi.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            primaryApis.map { it.name }
-        )
-        val primaryId = prefs.primaryMusicInfoApiId
-        val primaryIndex = primaryApis.indexOfFirst { it.id == primaryId }.takeIf { it >= 0 } ?: 0
-        binding.spinnerPrimaryApi.setSelection(primaryIndex)
 
         binding.spinnerSecondaryPreset.adapter = ArrayAdapter(
             this,

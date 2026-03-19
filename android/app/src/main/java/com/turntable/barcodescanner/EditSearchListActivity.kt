@@ -11,47 +11,30 @@ class EditSearchListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Primary (1st) search is edited only in EditPrimaryApiListActivity, not via CLI.
+        if (intent.getStringExtra(EXTRA_LIST_TYPE) == "primary") {
+            finish()
+            return
+        }
         binding = ActivityEditSearchListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val type = intent.getStringExtra(EXTRA_LIST_TYPE) ?: LIST_SECONDARY
         val prefs = SearchPrefs(this)
-
-        when (type) {
-            LIST_PRIMARY -> {
-                binding.textTitle.setText(R.string.edit_list_title_primary)
-                binding.textHelp.setText(R.string.edit_list_help_primary)
-                binding.editList.setText(prefs.primaryListText ?: defaultPrimaryText())
-            }
-            else -> {
-                binding.textTitle.setText(R.string.edit_list_title_secondary)
-                binding.textHelp.setText(R.string.edit_list_help_secondary)
-                binding.editList.setText(prefs.secondaryListText ?: defaultSecondaryText())
-            }
-        }
+        binding.textTitle.setText(R.string.edit_list_title_secondary)
+        binding.textHelp.setText(R.string.edit_list_help_secondary)
+        binding.editList.setText(prefs.secondaryListText ?: defaultSecondaryText())
 
         binding.buttonReset.setOnClickListener {
-            when (type) {
-                LIST_PRIMARY -> binding.editList.setText(defaultPrimaryText())
-                else -> binding.editList.setText(defaultSecondaryText())
-            }
+            binding.editList.setText(defaultSecondaryText())
         }
 
         binding.buttonSave.setOnClickListener {
             val text = binding.editList.text?.toString().orEmpty()
-            val ok = when (type) {
-                LIST_PRIMARY -> SearchPresets.parsePrimaryListText(text) != null
-                else -> SearchPresets.parseSecondaryListText(text) != null
-            }
-            if (!ok) {
+            if (SearchPresets.parseSecondaryListText(text) == null) {
                 Toast.makeText(this, R.string.edit_list_invalid, Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-
-            when (type) {
-                LIST_PRIMARY -> prefs.primaryListText = text
-                else -> prefs.secondaryListText = text
-            }
+            prefs.secondaryListText = text
             setResult(RESULT_OK)
             finish()
         }
@@ -61,15 +44,11 @@ class EditSearchListActivity : AppCompatActivity() {
         }
     }
 
-    private fun defaultPrimaryText(): String =
-        SearchPresets.primaryMusicInfoDefault.joinToString("\n") { "${it.id}|${it.name}" }
-
     private fun defaultSecondaryText(): String =
         SearchPresets.secondaryTrackersDefault.joinToString("\n") { "${it.id}|${it.name}|${it.url}" }
 
     companion object {
         const val EXTRA_LIST_TYPE = "list_type"
-        const val LIST_PRIMARY = "primary"
         const val LIST_SECONDARY = "secondary"
     }
 }

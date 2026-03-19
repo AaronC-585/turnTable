@@ -1,12 +1,16 @@
 package com.turntable.barcodescanner
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivitySearchBinding
-import org.json.JSONObject
+import java.net.HttpURLConnection
 import java.net.URL
 
 class SearchActivity : AppCompatActivity() {
@@ -107,17 +111,29 @@ class SearchActivity : AppCompatActivity() {
         pkg: String?,
         prefs: SearchPrefs
     ) {
-        val apiId = prefs.primaryMusicInfoApiId ?: "musicbrainz"
+        val orderedCmds = SearchPresets.primaryApiCmdsOrderedEnabled(this)
+        val discogsToken = prefs.discogsPersonalToken
         Thread {
-            val query = try {
-                when (apiId) {
-                    "discogs" -> fetchDiscogsArtistTitle(barcode)
-                    else -> fetchMusicBrainzArtistTitle(barcode)
+            PrimarySearchAssist.clearMusicBrainzSearchCache()
+            var lookup: PrimaryLookupResult? = null
+            for (cmd in orderedCmds) {
+                try {
+                    lookup = when (cmd) {
+                        "discogs" -> PrimarySearchAssist.fetchDiscogs(barcode, discogsToken)
+                        "theaudiodb" -> PrimarySearchAssist.fetchTheAudioDb(barcode, prefs.theAudioDbApiKey)
+                        "lastfm" -> PrimarySearchAssist.fetchLastFm(barcode, prefs.lastFmApiKey)
+                        "musicbrainz" -> PrimarySearchAssist.fetchMusicBrainz(barcode)
+                        else -> null
+                    }
+                    if (lookup != null) break
+                } catch (_: Exception) {
+                    // try next in list
                 }
-            } catch (_: Exception) {
-                null
             }
+            val query = lookup?.searchQuery
+            val coverUrl = lookup?.coverImageUrl
             runOnUiThread {
+                applyCoverAssist(coverUrl)
                 if (!query.isNullOrBlank()) {
                     openSecondaryUrl(secondaryUrl, query, pkg)
                 } else {
@@ -133,66 +149,71 @@ class SearchActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun fetchMusicBrainzArtistTitle(barcode: String): String? {
-        val apiUrl =
-            "https://musicbrainz.org/ws/2/release/?query=barcode:${java.net.URLEncoder.encode(barcode, "UTF-8")}&fmt=json&limit=1"
-        val conn = URL(apiUrl).openConnection() as java.net.HttpURLConnection
-        conn.requestMethod = "GET"
-        conn.setRequestProperty("User-Agent", "turnTable/1.0 (https://github.com/turntable)")
-        conn.connectTimeout = 10000
-        conn.readTimeout = 10000
-        val json = conn.inputStream.bufferedReader().readText()
-        conn.disconnect()
-        return parseMusicBrainzArtistTitle(json)
+    /** Fill cover URL field, optional preview, clipboard (yadg-style assist). */
+    private fun applyCoverAssist(coverUrl: String?) {
+        if (coverUrl.isNullOrBlank()) {
+            binding.editCoverImageUrl.text?.clear()
+            binding.imageCover.setImageDrawable(null)
+            binding.cardCoverPreview.visibility = View.GONE
+            return
+        }
+        binding.editCoverImageUrl.setText(coverUrl)
+        binding.cardCoverPreview.visibility = View.VISIBLE
+        loadCoverPreview(coverUrl)
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        cm.setPrimaryClip(ClipData.newPlainText("Cover URL", coverUrl))
+        Toast.makeText(this, R.string.cover_url_copied, Toast.LENGTH_SHORT).show()
     }
 
-    private fun fetchDiscogsArtistTitle(barcode: String): String? {
-        val apiUrl = "https://api.discogs.com/database/search?barcode=${java.net.URLEncoder.encode(barcode, "UTF-8")}&type=release"
-        val conn = URL(apiUrl).openConnection() as java.net.HttpURLConnection
-        conn.requestMethod = "GET"
-        conn.setRequestProperty("User-Agent", "turnTable/1.0")
-        conn.connectTimeout = 10000
-        conn.readTimeout = 10000
-        val json = conn.inputStream.bufferedReader().readText()
-        conn.disconnect()
-        return parseDiscogsArtistTitle(json)
-    }
-
-    private fun parseMusicBrainzArtistTitle(json: String): String? {
-        return try {
-            val root = JSONObject(json)
-            val releases = root.optJSONArray("releases") ?: return null
-            if (releases.length() == 0) return null
-            val first = releases.getJSONObject(0)
-            val title = first.optString("title", "").trim()
-            val artistCredit = first.optJSONArray("artist-credit") ?: return null
-            val artist = StringBuilder()
-            for (i in 0 until artistCredit.length()) {
-                val o = artistCredit.getJSONObject(i)
-                artist.append(o.optString("name", ""))
-                if (i < artistCredit.length() - 1) {
-                    artist.append(o.optString("joinphrase", " "))
+    private fun loadCoverPreview(imageUrl: String) {
+        Thread {
+            var bmp: android.graphics.Bitmap? = null
+            try {
+                val conn = URL(imageUrl).openConnection() as HttpURLConnection
+                conn.requestMethod = "GET"
+                conn.connectTimeout = 12000
+                conn.readTimeout = 12000
+                conn.setRequestProperty("User-Agent", "turnTable/1.0")
+                if (conn.responseCode in 200..299) {
+                    val bytes = conn.inputStream.use { it.readBytes() }
+                    conn.disconnect()
+                    if (bytes.isNotEmpty()) {
+                        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                        bounds.inJustDecodeBounds = false
+                        bounds.inSampleSize = computeInSampleSize(bounds, 512, 512)
+                        bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                    }
+                } else {
+                    conn.disconnect()
+                }
+            } catch (_: Exception) {
+                bmp = null
+            }
+            runOnUiThread {
+                if (bmp != null) {
+                    binding.imageCover.setImageBitmap(bmp)
+                } else {
+                    binding.imageCover.setImageDrawable(null)
                 }
             }
-            val artistStr = artist.toString().trim()
-            if (artistStr.isBlank() && title.isBlank()) null else "$artistStr - $title"
-        } catch (_: Exception) {
-            null
-        }
+        }.start()
     }
 
-    private fun parseDiscogsArtistTitle(json: String): String? {
-        return try {
-            val root = JSONObject(json)
-            val results = root.optJSONArray("results") ?: return null
-            if (results.length() == 0) return null
-            val first = results.getJSONObject(0)
-            val title = first.optString("title", "").trim()
-            if (title.isBlank()) return null
-            title
-        } catch (_: Exception) {
-            null
+    private fun computeInSampleSize(
+        options: BitmapFactory.Options,
+        reqWidth: Int,
+        reqHeight: Int,
+    ): Int {
+        var inSampleSize = 1
+        if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
+            var halfH = options.outHeight / 2
+            var halfW = options.outWidth / 2
+            while (halfH / inSampleSize >= reqHeight && halfW / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
         }
+        return inSampleSize.coerceAtLeast(1)
     }
 
     private fun doPost(
