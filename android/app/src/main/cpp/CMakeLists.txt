@@ -3,8 +3,8 @@ project(barcode_jni CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Shared C++ barcode core (lives in repo at ../../../../cpp relative to this file)
-get_filename_component(BARCODE_TOP "${CMAKE_CURRENT_SOURCE_DIR}/../../../../" ABSOLUTE)
+# Shared C++ barcode core (repo root is ../../../../../ from app/src/main/cpp)
+get_filename_component(BARCODE_TOP "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../" ABSOLUTE)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 add_subdirectory(${BARCODE_TOP}/cpp ${CMAKE_BINARY_DIR}/barcode_core)
 

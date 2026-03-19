@@ -8,7 +8,7 @@ include(FetchContent)
 FetchContent_Declare(
   zxing_cpp
   GIT_REPOSITORY https://github.com/zxing-cpp/zxing-cpp.git
-  GIT_TAG        v3.0.2
+  GIT_TAG        v2.2.1
   GIT_SHALLOW    TRUE
 )
 set(ZXING_READERS ON CACHE BOOL "" FORCE)
