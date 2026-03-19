@@ -58,13 +58,17 @@ cpp/build/
 *.temp
 .cache/
 
-# Env / secrets (uncomment if used)
-# .env
-# .env.local
-# *.pem
-# *.p12
-# google-services.json
-# GoogleService-Info.plist
+# Env / secrets
+.env
+.env.*
+*.pem
+*.p12
+google-services.json
+GoogleService-Info.plist
 android/keystore.properties
 *.jks
 *.keystore
+passwords*
+*password*.txt
+secrets*
+credentials*
