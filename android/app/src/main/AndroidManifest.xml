@@ -16,6 +16,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BarcodeScanner">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -62,6 +72,38 @@
             android:name=".UserStatsActivity"
             android:exported="false"
             android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedHubActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedBrowseActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedTorrentGroupActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedAccountActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedTop10Activity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedBookmarksActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedRequestsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedUserTorrentsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedInboxActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedConversationActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedForumMainActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedForumThreadsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedForumThreadActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedNotificationsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedAnnouncementsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedUserSearchActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedSubscriptionsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedWikiActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedLogcheckerActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedRipLogActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedGroupEditActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedTorrentEditActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedAddToCollageActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedSendPmActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedUploadInfoActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedArtistActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedUserProfileActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedCommunityStatsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedCollageActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedTorrentDetailActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedSimilarArtistsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedRequestDetailActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
     </application>
 
 </manifest>

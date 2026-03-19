@@ -1,6 +1,6 @@
 # turnTable — 1D Barcode Scanner (Android & iOS, C++)
 
-Native **Android** and **iOS** apps that show the camera and scan **1D barcodes** (Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, Codabar, ITF). The decoding core is shared **C++** (ZXing-cpp), with platform UI and camera on each side. The Android app (turnTable) adds configurable **primary** (music-info APIs, e.g. MusicBrainz/Discogs) and **secondary** (e.g. tracker) search flows; see **CHANGELOG.md** for features.
+Native **Android** and **iOS** apps that show the camera and scan **1D barcodes** (Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, Codabar, ITF). The decoding core is shared **C++** (ZXing-cpp), with platform UI and camera on each side. The Android app (turnTable) adds configurable **primary** (music-info APIs, e.g. MusicBrainz/Discogs) and **secondary** (e.g. tracker) search flows, plus an optional in-app **Redacted** JSON API browser when you add your API key in Settings; see **CHANGELOG.md** for features.
 
 ## Structure
 
@@ -12,7 +12,16 @@ Native **Android** and **iOS** apps that show the camera and scan **1D barcodes*
 
 **Requirements:** Android Studio (or CLI), **NDK 28** (16 KB page-size–friendly libc++ and defaults), CMake 3.22+, **AGP 8.5+** (aligned JNI packaging).
 
-**ABI / Play:** Native builds include **arm64-v8a** and **x86_64** (64-bit) plus **armeabi-v7a** and **x86** for older devices. CMake uses `ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON` and `-Wl,-z,max-page-size=16384` on JNI/ZXing; APK uses uncompressed, page-aligned JNI (`packaging.jniLibs.useLegacyPackaging=false`, `extractNativeLibs=false`). See [Support 16 KB page sizes](https://developer.android.com/guide/practices/page-sizes).
+**ABI / Play:** Native builds target **arm64-v8a** and **x86_64** (64-bit only). CMake uses `ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON` and `-Wl,-z,max-page-size=16384` on JNI/ZXing; APK uses uncompressed, page-aligned JNI (`packaging.jniLibs.useLegacyPackaging=false`, `extractNativeLibs=false`). See [Support 16 KB page sizes](https://developer.android.com/guide/practices/page-sizes).
+
+### Redacted API (optional)
+
+If you use [Redacted](https://redacted.sh), generate an **API key** on the site (with the scopes you need) and paste it under **Settings → Redacted API key**. The app sends it as the `Authorization` header to `https://redacted.sh/ajax.php` (per the site’s JSON API docs).
+
+- **Toolbar (⋮) → Redacted** or **Settings → Redacted API browser** opens the **hub** (account, torrent search, top 10, bookmarks, requests, inbox, forums, notifications, wiki, logchecker, edits, etc.).
+- On the **Search** screen, **Search Redacted** appears when a key is set; it opens in-app torrent search and can prefill from the artist/album field.
+
+Implementation lives under `android/app/src/main/java/com/turntable/barcodescanner/` (`Redacted*Activity`, `redacted/RedactedApiClient.kt`). **OkHttp** is used for HTTP. Downloaded `.torrent` files are shared via **`FileProvider`** (`res/xml/file_paths.xml`). Multipart **upload** is not fully wired in the UI; the client exposes `postUpload` for extensions—see the upload note in the hub.
 
 1. Open the `android/` folder in Android Studio (or use it as the project root).
 2. Sync Gradle and build. The app’s CMake build will pull and build the `cpp/` project (including ZXing-cpp) for the selected ABI.

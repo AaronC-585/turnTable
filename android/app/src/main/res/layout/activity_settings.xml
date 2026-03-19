@@ -96,6 +96,15 @@
                 android:textColor="#eeeeee" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <Button
+            android:id="@+id/buttonRedactedHub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/redacted_open_hub"
+            android:textColor="#ffffff"
+            app:backgroundTint="#6a4a9e" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

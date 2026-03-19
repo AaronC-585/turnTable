@@ -83,6 +83,14 @@ class SettingsActivity : AppCompatActivity() {
             editListLauncher.launch(Intent(this, EditSecondaryListActivity::class.java))
         }
 
+        binding.buttonRedactedHub.setOnClickListener {
+            if (prefs.redactedApiKey.isNullOrBlank()) {
+                Toast.makeText(this, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
+            } else {
+                startActivity(Intent(this, RedactedHubActivity::class.java))
+            }
+        }
+
         binding.buttonSave.setOnClickListener {
             prefs.beepOnScan = binding.checkBeepOnScan.isChecked
             prefs.discogsPersonalToken = binding.editDiscogsToken.text?.toString()?.trim()?.takeIf { it.isNotBlank() }

@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivitySearchBinding
+import com.turntable.barcodescanner.redacted.RedactedExtras
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -35,6 +36,17 @@ class SearchActivity : AppCompatActivity() {
         binding.buttonSubmit.setOnClickListener { submit(barcode) }
         if (intent.getBooleanExtra(EXTRA_AUTOSUBMIT, false)) {
             binding.buttonSubmit.post { submit(barcode) }
+        }
+
+        val hasRedacted = !SearchPrefs(this).redactedApiKey.isNullOrBlank()
+        binding.buttonRedactedSearch.visibility = if (hasRedacted) View.VISIBLE else View.GONE
+        binding.buttonRedactedSearch.setOnClickListener {
+            val q = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty()
+            startActivity(
+                Intent(this, RedactedBrowseActivity::class.java).apply {
+                    if (q.isNotBlank()) putExtra(RedactedExtras.INITIAL_QUERY, q)
+                },
+            )
         }
     }
 

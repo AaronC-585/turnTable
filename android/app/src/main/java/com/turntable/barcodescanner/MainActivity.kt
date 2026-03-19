@@ -52,6 +52,18 @@ class MainActivity : AppCompatActivity() {
                     toggleFlashlight()
                     true
                 }
+                R.id.action_redacted -> {
+                    if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
+                        android.widget.Toast.makeText(
+                            this,
+                            R.string.redacted_need_api_key,
+                            android.widget.Toast.LENGTH_LONG,
+                        ).show()
+                    } else {
+                        startActivity(Intent(this, RedactedHubActivity::class.java))
+                    }
+                    true
+                }
                 else -> false
             }
         }
