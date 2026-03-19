@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">1D Barcode Scanner</string>
+    <string name="app_name">turnTable</string>
+    <string name="settings">Settings</string>
+    <string name="search_url">Search URL</string>
+    <string name="search_url_hint">https://example.com/search?q=%s</string>
+    <string name="method_get">GET</string>
+    <string name="method_post">POST</string>
+    <string name="http_method">Method</string>
+    <string name="post_content_type">Content-Type</string>
+    <string name="post_content_type_hint">application/json</string>
+    <string name="post_body">Body (optional)</string>
+    <string name="post_body_hint">{\"code\": \"%s\"}</string>
+    <string name="post_headers">Headers (one per line: Key: Value)</string>
+    <string name="save">Save</string>
+    <string name="search_pane_title">Search</string>
+    <string name="scanned_code">Scanned code</string>
+    <string name="question_notes">Notes (optional)</string>
+    <string name="question_category">Category (optional)</string>
+    <string name="submit_search">Submit</string>
+    <string name="configure_search_url">Set a search URL in Settings first.</string>
+    <string name="search_preset">Search preset</string>
+    <string name="search_preset_custom">Custom</string>
 </resources>

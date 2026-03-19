@@ -1,14 +1,11 @@
 package com.turntable.barcodescanner
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.ImageFormat
-import android.graphics.Rect
-import android.graphics.YuvImage
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -18,7 +15,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import com.turntable.barcodescanner.databinding.ActivityMainBinding
-import java.io.ByteArrayOutputStream
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,6 +27,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.buttonSettings.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
 
         if (!hasCameraPermission()) {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA)
@@ -54,7 +54,6 @@ class MainActivity : AppCompatActivity() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startCamera()
             } else {
-                Toast.makeText(this, "Camera permission required", Toast.LENGTH_LONG).show()
                 finish()
             }
         }
@@ -110,8 +109,10 @@ class MainActivity : AppCompatActivity() {
                 lastCode = result
                 lastCodeTime = now
                 runOnUiThread {
-                    binding.resultText.text = result
-                    binding.resultCard.visibility = View.VISIBLE
+                    startActivity(
+                        Intent(this, SearchActivity::class.java)
+                            .putExtra(SearchActivity.EXTRA_BARCODE, result)
+                    )
                 }
             }
         }
