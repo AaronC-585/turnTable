@@ -15,7 +15,10 @@ class SplashActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, MainActivity::class.java))
+            val prefs = getSharedPreferences(PermissionOnboardingActivity.PREFS_NAME, MODE_PRIVATE)
+            val onboardingDone = prefs.getBoolean(PermissionOnboardingActivity.KEY_ONBOARDING_DONE, false)
+            val next = if (onboardingDone) MainActivity::class.java else PermissionOnboardingActivity::class.java
+            startActivity(Intent(this, next))
             finish()
         }, SPLASH_MS)
     }

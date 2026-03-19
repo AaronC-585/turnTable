@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <!-- Limit to phone and tablet only (exclude TV, watch, auto) -->
+    <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -33,6 +36,10 @@
             android:theme="@style/Theme.BarcodeScanner" />
         <activity
             android:name=".SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.BarcodeScanner" />
+        <activity
+            android:name=".PermissionOnboardingActivity"
             android:exported="false"
             android:theme="@style/Theme.BarcodeScanner" />
     </application>

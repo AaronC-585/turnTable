@@ -18,7 +18,7 @@ object SearchPresets {
     /** Yadg/tracker upload sites – opened in browser with artist/title query. */
     val secondaryTrackers: List<Preset> = listOf(
         Preset(CUSTOM_ID, "Custom", ""),
-        Preset("red", "RED (redacted.ch)", "https://redacted.ch/torrents.php?searchstr=%s"),
+        Preset("red", "RED (redacted.sh)", "https://redacted.sh/torrents.php?searchstr=%s"),
         Preset("ops", "Orpheus (OPS)", "https://orpheus.network/torrents.php?searchstr=%s"),
         Preset("dic", "DIC", "https://dicmusic.club/torrents.php?searchstr=%s"),
         Preset("d3si", "d3si", "https://d3si.net/torrents.php?searchstr=%s"),

@@ -35,4 +35,15 @@
     <string name="secondary_search_terms_hint">Optional; or use auto-fill in Settings</string>
     <string name="secondary_no_artist_title">No release found for barcode; enter artist/album for secondary</string>
     <string name="beep_on_scan">Beep on successful scan</string>
+    <string name="permission_onboarding_title">Permissions needed</string>
+    <string name="permission_onboarding_intro">turnTable needs the following permissions. Each is used only for the reason listed.</string>
+    <string name="permission_internet_title">Internet</string>
+    <string name="permission_internet_why">Used to look up music info (e.g. MusicBrainz) and to open search results in your browser.</string>
+    <string name="permission_internet_status">Granted at install</string>
+    <string name="permission_camera_title">Camera</string>
+    <string name="permission_camera_why">Required to scan barcode labels with your device camera.</string>
+    <string name="permission_request_camera">Request camera</string>
+    <string name="permission_status_granted">Granted ✓</string>
+    <string name="permission_status_denied">Denied</string>
+    <string name="permission_continue">Continue</string>
 </resources>

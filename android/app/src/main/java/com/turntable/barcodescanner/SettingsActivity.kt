@@ -1,7 +1,5 @@
 package com.turntable.barcodescanner
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -78,7 +76,7 @@ class SettingsActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        browserEntries = getAppsThatHandleWebLinks()
+        browserEntries = getSecondaryBrowserList()
         binding.spinnerSecondaryBrowser.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
@@ -107,21 +105,24 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun getAppsThatHandleWebLinks(): List<BrowserEntry> {
+    /** Hard-coded list for secondary search: Default + Play Store browsers (Android). On iOS use same list with appStoreUrl. */
+    private fun getSecondaryBrowserList(): List<BrowserEntry> {
         val list = mutableListOf(BrowserEntry(getString(R.string.browser_default), null))
-        val seen = mutableSetOf<String>()
-        for (uri in listOf("https://", "http://")) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
-            val resolveInfos = packageManager.queryIntentActivities(intent, 0)
-            for (ri in resolveInfos) {
-                val pkg = ri.activityInfo.packageName
-                if (seen.add(pkg)) {
-                    val label = ri.loadLabel(packageManager).toString()
-                    list.add(BrowserEntry(label, pkg))
-                }
-            }
+        for (b in KnownBrowsers.all) {
+            val installed = isPackageInstalled(b.packageName)
+            val label = if (installed) b.name else "${b.name} (not installed)"
+            list.add(BrowserEntry(label, b.packageName))
         }
         return list
+    }
+
+    private fun isPackageInstalled(packageName: String): Boolean {
+        return try {
+            packageManager.getPackageInfo(packageName, 0)
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private fun updatePostOptionsVisibility(show: Boolean) {
