@@ -37,6 +37,7 @@ class SettingsActivity : AppCompatActivity() {
         loadListsAndBind()
 
         binding.editDiscogsToken.setText(prefs.discogsPersonalToken ?: "")
+        binding.editRedactedApiKey.setText(prefs.redactedApiKey ?: "")
         binding.editTheAudioDbApiKey.setText(prefs.theAudioDbApiKey ?: "")
         binding.editLastFmApiKey.setText(prefs.lastFmApiKey ?: "")
 
@@ -85,6 +86,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.buttonSave.setOnClickListener {
             prefs.beepOnScan = binding.checkBeepOnScan.isChecked
             prefs.discogsPersonalToken = binding.editDiscogsToken.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
+            prefs.redactedApiKey = binding.editRedactedApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.theAudioDbApiKey = binding.editTheAudioDbApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.lastFmApiKey = binding.editLastFmApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.secondarySearchUrl = binding.editSecondaryUrl.text?.toString()?.trim()

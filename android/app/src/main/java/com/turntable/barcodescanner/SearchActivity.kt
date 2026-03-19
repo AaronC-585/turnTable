@@ -24,11 +24,18 @@ class SearchActivity : AppCompatActivity() {
 
         val barcode = intent.getStringExtra(EXTRA_BARCODE).orEmpty()
         binding.editBarcode.setText(barcode)
+        val prefillTerms = intent.getStringExtra(EXTRA_PREFILL_SECONDARY_TERMS).orEmpty()
+        if (prefillTerms.isNotBlank()) {
+            binding.editSecondarySearchTerms.setText(prefillTerms)
+        }
 
         val hasSecondary = !SearchPrefs(this).secondarySearchUrl.isNullOrBlank()
         binding.secondarySearchTermsContainer.visibility = if (hasSecondary) View.VISIBLE else View.GONE
 
         binding.buttonSubmit.setOnClickListener { submit(barcode) }
+        if (intent.getBooleanExtra(EXTRA_AUTOSUBMIT, false)) {
+            binding.buttonSubmit.post { submit(barcode) }
+        }
     }
 
     private fun submit(barcode: String) {
@@ -99,7 +106,12 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
-    private fun openSecondaryUrl(secondaryUrl: String, query: String, pkg: String?) {
+    private fun openSecondaryUrl(
+        secondaryUrl: String,
+        query: String,
+        pkg: String?,
+        coverUrl: String? = null,
+    ) {
         fun enc(s: String) = java.net.URLEncoder.encode(s, Charsets.UTF_8.name())
         val parts = query.split(" - ", limit = 2)
         val artist = parts.getOrNull(0)?.trim().orEmpty()
@@ -108,7 +120,12 @@ class SearchActivity : AppCompatActivity() {
             .replace("%s", enc(query))
             .replace("%artist%", enc(if (artist.isNotBlank()) artist else query))
             .replace("%album%", enc(if (album.isNotBlank()) album else query))
-        SearchHistoryStore.add(this, barcode = binding.editBarcode.text?.toString().orEmpty(), query = query)
+        SearchHistoryStore.add(
+            this,
+            barcode = binding.editBarcode.text?.toString().orEmpty(),
+            title = query,
+            coverUrl = coverUrl,
+        )
         openInBrowser(url, pkg) { finish() }
     }
 
@@ -142,11 +159,11 @@ class SearchActivity : AppCompatActivity() {
             runOnUiThread {
                 applyCoverAssist(coverUrl)
                 if (!query.isNullOrBlank()) {
-                    openSecondaryUrl(secondaryUrl, query, pkg)
+                    openSecondaryUrl(secondaryUrl, query, pkg, coverUrl)
                 } else {
                     val manual = binding.editSecondarySearchTerms.text?.toString()?.trim()
                     if (!manual.isNullOrBlank()) {
-                        openSecondaryUrl(secondaryUrl, manual, pkg)
+                        openSecondaryUrl(secondaryUrl, manual, pkg, null)
                     } else {
                         Toast.makeText(this, R.string.secondary_no_artist_title, Toast.LENGTH_SHORT).show()
                         finish()
@@ -270,5 +287,7 @@ class SearchActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_BARCODE = "barcode"
+        const val EXTRA_PREFILL_SECONDARY_TERMS = "prefill_secondary_terms"
+        const val EXTRA_AUTOSUBMIT = "autosubmit"
     }
 }

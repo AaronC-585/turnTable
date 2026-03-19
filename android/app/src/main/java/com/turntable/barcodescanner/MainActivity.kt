@@ -44,6 +44,10 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this, SearchHistoryActivity::class.java))
                     true
                 }
+                R.id.action_stats -> {
+                    startActivity(Intent(this, UserStatsActivity::class.java))
+                    true
+                }
                 R.id.action_flashlight -> {
                     toggleFlashlight()
                     true
