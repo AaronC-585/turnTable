@@ -1,29 +1,37 @@
 ---
-description: GitHub releases must include the app install file (APK) as an asset
+description: Every GitHub release must attach the Android APK as a release asset
 alwaysApply: true
 ---
 
-# Releases: Always Include App Install File
+# Releases: Always Attach the APK
 
-For **any** GitHub release in this project (alpha, beta, release, or other), always attach the app install file as a release asset.
+For **every** GitHub release in this repo (alpha, beta, production, or ad-hoc), **attach the installable Android APK** as a release asset. Do not publish a release with only source or notes—users must be able to download and install from the release page.
 
-## Rule
+## APK paths (this project)
 
-- **Include the APK** in every release, regardless of release type (alpha, beta, stable, etc.).
-- The install file is the built Android app: `android/app/build/outputs/apk/debug/app-debug.apk` (debug) or the release APK if doing a signed release build.
-- When creating or updating a release (e.g. with `gh release create` or the GitHub UI), upload this file as a release asset so users can install the app from the release page.
+After building from `android/`:
 
-## Workflow
+| Build        | Output file |
+|-------------|-------------|
+| Debug       | `android/app/build/outputs/apk/debug/turnTable.debug.apk` |
+| Release     | `android/app/build/outputs/apk/release/turnTable.release.apk` (requires release signing) |
 
-1. Build the APK (e.g. `gradle assembleDebug` or `assembleRelease`).
-2. Create the tag and/or release.
-3. **Attach the APK** to the release (e.g. `gh release create TAG ./path/to/app-debug.apk --title "..." --notes "..."` or `gh release upload TAG ./path/to/app.apk` for an existing release).
+Use **debug** for quick/prerelease drops if release signing is not configured; use **release** for store-quality signed builds.
 
-Example with GitHub CLI (creating a new release with the APK attached):
+## Checklist (before publishing any release)
+
+1. `./gradlew assembleDebug` and/or `./gradlew assembleRelease` (from `android/`).
+2. Confirm the APK exists at one of the paths above.
+3. Create the tag/release and **upload the APK** (`gh release upload`, GitHub UI “Attach binaries”, or equivalent).
+4. Optionally note the attached file name in release notes.
+
+## Example (GitHub CLI)
 
 ```bash
-# After building: android/app/build/outputs/apk/debug/app-debug.apk
-gh release create "alpha-2026-03-19T1220Z" android/app/build/outputs/apk/debug/app-debug.apk --title "Alpha ..." --notes "..." --prerelease
+cd android && ./gradlew assembleDebug
+gh release create "v1.0.0-alpha1" \
+  app/build/outputs/apk/debug/turnTable.debug.apk \
+  --title "v1.0.0-alpha1" --notes "..." --prerelease
 ```
 
-Never publish a release without the app install file attached.
+**Never** ship a release without at least one APK asset for this Android app.
