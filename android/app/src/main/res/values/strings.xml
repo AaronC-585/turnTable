@@ -23,4 +23,6 @@
     <string name="search_preset_custom">Custom</string>
     <string name="open_in_browser">Open links in</string>
     <string name="browser_default">Default browser</string>
+    <string name="browser_open_play_store">Opening Play Store to install %1$s</string>
+    <string name="could_not_open_link">Could not open link</string>
 </resources>

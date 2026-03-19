@@ -35,23 +35,31 @@ class SearchActivity : AppCompatActivity() {
         when (prefs.method) {
             SearchPrefs.METHOD_GET -> {
                 val fullUrl = buildGetUrl(url, barcode, notes, category)
+                val pkg = prefs.browserPackage
                 val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(fullUrl)).apply {
-                    prefs.browserPackage?.let { pkg -> setPackage(pkg) }
+                    pkg?.let { setPackage(it) }
                 }
                 try {
                     startActivity(intent)
                     finish()
-                } catch (e: Exception) {
-                    if (prefs.browserPackage != null) {
-                        intent.setPackage(null)
+                } catch (_: Exception) {
+                    val known = KnownBrowsers.findByPackage(pkg)
+                    if (known != null) {
                         try {
+                            startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(known.playStoreUrl)))
+                            Toast.makeText(this, getString(R.string.browser_open_play_store, known.name), Toast.LENGTH_SHORT).show()
+                            finish()
+                        } catch (_: Exception) {
+                            Toast.makeText(this, R.string.could_not_open_link, Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        try {
+                            intent.setPackage(null)
                             startActivity(intent)
                             finish()
                         } catch (_: Exception) {
-                            Toast.makeText(this, "Could not open link", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this, R.string.could_not_open_link, Toast.LENGTH_SHORT).show()
                         }
-                    } else {
-                        Toast.makeText(this, "Could not open link", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

@@ -1,8 +1,5 @@
 package com.turntable.barcodescanner
 
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -67,7 +64,7 @@ class SettingsActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        browserEntries = getInstalledBrowsers()
+        browserEntries = getKnownBrowsersList()
         binding.spinnerBrowser.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
@@ -93,16 +90,23 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun getInstalledBrowsers(): List<BrowserEntry> {
+    private fun getKnownBrowsersList(): List<BrowserEntry> {
         val list = mutableListOf(BrowserEntry(getString(R.string.browser_default), null))
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://"))
-        val resolveInfos = packageManager.queryIntentActivities(intent, 0)
-        for (ri in resolveInfos) {
-            val label = ri.loadLabel(packageManager).toString()
-            val pkg = ri.activityInfo.packageName
-            list.add(BrowserEntry(label, pkg))
+        for (b in KnownBrowsers.all) {
+            val installed = isBrowserInstalled(b.packageName)
+            val label = if (installed) b.name else "${b.name} (not installed)"
+            list.add(BrowserEntry(label, b.packageName))
         }
         return list
+    }
+
+    private fun isBrowserInstalled(packageName: String): Boolean {
+        return try {
+            packageManager.getPackageInfo(packageName, 0)
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private fun updatePostOptionsVisibility(show: Boolean) {
