@@ -3,24 +3,37 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file("keystore.properties")
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
+def releaseStoreFile = (keystoreProps["storeFile"] ?: System.getenv("ANDROID_KEYSTORE_FILE"))?.toString()?.trim()
+def releaseStorePassword = (keystoreProps["storePassword"] ?: System.getenv("ANDROID_KEYSTORE_PASSWORD"))?.toString()?.trim()
+def releaseKeyAlias = (keystoreProps["keyAlias"] ?: System.getenv("ANDROID_KEY_ALIAS"))?.toString()?.trim()
+def releaseKeyPassword = (keystoreProps["keyPassword"] ?: System.getenv("ANDROID_KEY_PASSWORD"))?.toString()?.trim()
+def releaseKeyPasswordEffective = releaseKeyPassword ?: releaseStorePassword
+
 android {
     namespace = "com.turntable.barcodescanner"
     compileSdk = 34
     ndkVersion = "28.0.12433566"
 
     defaultConfig {
-        applicationId = "com.2ndlifetech.turntable"
+        // Android package segments must start with a letter.
+        applicationId = "com.secondlifetech.turntable"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
         // 64-bit only (packaging smaller APK/AAB); required for Play 64-bit compatibility.
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            abiFilters += ['arm64-v8a', 'x86_64']
         }
         externalNativeBuild {
             cmake {
-                cppFlags += "-std=c++17"
+                cppFlags += "-std=c++20"
                 arguments += "-DANDROID_STL=c++_shared"
                 // NDK r28+: 16 KB ELF segments for arm64-v8a / x86_64 (see developer.android.com 16 KB page size)
                 arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
@@ -37,6 +50,8 @@ android {
 
     buildTypes {
         release {
+            // Use release keystore when configured; otherwise fallback to debug signing.
+            signingConfig (signingConfigs.findByName("release") ?: signingConfigs.debug)
             minifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -45,9 +60,24 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            output.outputFileName = "turnTable.${variant.buildType.name}.apk"
+    signingConfigs {
+        if (releaseStoreFile) {
+            release {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPasswordEffective
+            }
+        }
+    }
+
+    androidComponents {
+        onVariants(selector().all()) { variant ->
+            def bt = variant.buildType
+            variant.outputs.each { output ->
+                def outName = (bt == "release") ? "turnTable.beta.apk" : "turnTable.${bt}.apk"
+                output.outputFileName.set(outName)
+            }
         }
     }
 
@@ -84,4 +114,22 @@ dependencies {
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
+}
+
+tasks.register("validateReleaseSigning") {
+    doLast {
+        if (!releaseStoreFile || !releaseStorePassword || !releaseKeyAlias) {
+            throw new GradleException(
+                "Release signing is required. Configure android/keystore.properties " +
+                "or ANDROID_KEYSTORE_* env vars (file/password/alias)."
+            )
+        }
+        if (!file(releaseStoreFile).exists()) {
+            throw new GradleException("Release keystore file not found: ${releaseStoreFile}")
+        }
+    }
+}
+
+tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
+    dependsOn("validateReleaseSigning")
 }

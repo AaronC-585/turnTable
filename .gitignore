@@ -65,3 +65,6 @@ cpp/build/
 # *.p12
 # google-services.json
 # GoogleService-Info.plist
+android/keystore.properties
+*.jks
+*.keystore

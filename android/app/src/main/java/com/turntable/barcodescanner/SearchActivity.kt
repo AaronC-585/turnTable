@@ -101,7 +101,13 @@ class SearchActivity : AppCompatActivity() {
 
     private fun openSecondaryUrl(secondaryUrl: String, query: String, pkg: String?) {
         fun enc(s: String) = java.net.URLEncoder.encode(s, Charsets.UTF_8.name())
-        val url = secondaryUrl.replace("%s", enc(query))
+        val parts = query.split(" - ", limit = 2)
+        val artist = parts.getOrNull(0)?.trim().orEmpty()
+        val album = parts.getOrNull(1)?.trim().orEmpty()
+        val url = secondaryUrl
+            .replace("%s", enc(query))
+            .replace("%artist%", enc(if (artist.isNotBlank()) artist else query))
+            .replace("%album%", enc(if (album.isNotBlank()) album else query))
         openInBrowser(url, pkg) { finish() }
     }
 

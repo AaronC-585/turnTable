@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(barcode_jni CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # Shared C++ barcode core (repo root is ../../../../../ from app/src/main/cpp)
 get_filename_component(BARCODE_TOP "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../" ABSOLUTE)
