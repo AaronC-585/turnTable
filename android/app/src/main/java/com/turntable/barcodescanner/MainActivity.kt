@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.ImageFormat
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -109,6 +111,9 @@ class MainActivity : AppCompatActivity() {
                 lastCode = result
                 lastCodeTime = now
                 runOnUiThread {
+                    if (SearchPrefs(this).beepOnScan) {
+                        playScanBeep()
+                    }
                     startActivity(
                         Intent(this, SearchActivity::class.java)
                             .putExtra(SearchActivity.EXTRA_BARCODE, result)
@@ -116,6 +121,17 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun playScanBeep() {
+        try {
+            val toneGen = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 80)
+            toneGen.startTone(ToneGenerator.TONE_PROP_BEEP, 150)
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+                { toneGen.release() },
+                200
+            )
+        } catch (_: Exception) { }
     }
 
     companion object {

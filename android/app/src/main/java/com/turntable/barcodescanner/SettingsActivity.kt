@@ -15,7 +15,8 @@ data class BrowserEntry(val label: String, val packageName: String?)
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
-    private val presets = SearchPresets.all
+    private val primaryApis = SearchPresets.primaryMusicInfo
+    private val secondaryPresets = SearchPresets.secondaryTrackers
     private var browserEntries: List<BrowserEntry> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,39 +26,29 @@ class SettingsActivity : AppCompatActivity() {
 
         val prefs = SearchPrefs(this)
 
-        binding.spinnerPreset.adapter = ArrayAdapter(
+        binding.checkBeepOnScan.isChecked = prefs.beepOnScan
+
+        binding.spinnerPrimaryApi.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
-            presets.map { it.name }
+            primaryApis.map { it.name }
         )
-        val currentUrl = prefs.searchUrl
-        val presetIndex = presets.indexOfFirst { it.url == currentUrl }.takeIf { it >= 0 } ?: 0
-        binding.spinnerPreset.setSelection(presetIndex)
-
-        binding.spinnerPreset.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val preset = presets[position]
-                if (preset.id != SearchPresets.CUSTOM_ID) {
-                    binding.editSearchUrl.setText(preset.url)
-                }
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-        binding.editSearchUrl.setText(currentUrl ?: "")
+        val primaryId = prefs.primaryMusicInfoApiId
+        val primaryIndex = primaryApis.indexOfFirst { it.id == primaryId }.takeIf { it >= 0 } ?: 0
+        binding.spinnerPrimaryApi.setSelection(primaryIndex)
 
         binding.spinnerSecondaryPreset.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
-            presets.map { it.name }
+            secondaryPresets.map { it.name }
         )
         val currentSecondaryUrl = prefs.secondarySearchUrl
-        val secondaryPresetIndex = presets.indexOfFirst { it.url == currentSecondaryUrl }.takeIf { it >= 0 } ?: 0
+        val secondaryPresetIndex = secondaryPresets.indexOfFirst { it.url == currentSecondaryUrl }.takeIf { it >= 0 } ?: 0
         binding.spinnerSecondaryPreset.setSelection(secondaryPresetIndex)
         binding.editSecondaryUrl.setText(currentSecondaryUrl ?: "")
         binding.spinnerSecondaryPreset.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val preset = presets[position]
+                val preset = secondaryPresets[position]
                 if (preset.id != SearchPresets.CUSTOM_ID) {
                     binding.editSecondaryUrl.setText(preset.url)
                 }
@@ -88,28 +79,29 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         browserEntries = getAppsThatHandleWebLinks()
-        binding.spinnerBrowser.adapter = ArrayAdapter(
+        binding.spinnerSecondaryBrowser.adapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_dropdown_item,
             browserEntries.map { it.label }
         )
-        val savedPackage = prefs.browserPackage
-        val browserIndex = when {
-            savedPackage == null -> 0
-            else -> browserEntries.indexOfFirst { it.packageName == savedPackage }.takeIf { it >= 0 } ?: 0
+        val savedSecondaryPackage = prefs.secondaryBrowserPackage
+        val secondaryBrowserIndex = when {
+            savedSecondaryPackage == null -> 0
+            else -> browserEntries.indexOfFirst { it.packageName == savedSecondaryPackage }.takeIf { it >= 0 } ?: 0
         }
-        binding.spinnerBrowser.setSelection(browserIndex.coerceIn(0, browserEntries.size - 1))
+        binding.spinnerSecondaryBrowser.setSelection(secondaryBrowserIndex.coerceIn(0, browserEntries.size - 1))
 
         binding.buttonSave.setOnClickListener {
-            prefs.searchUrl = binding.editSearchUrl.text?.toString()?.trim()
+            prefs.beepOnScan = binding.checkBeepOnScan.isChecked
+            prefs.primaryMusicInfoApiId = primaryApis.getOrNull(binding.spinnerPrimaryApi.selectedItemPosition)?.id
             prefs.secondarySearchUrl = binding.editSecondaryUrl.text?.toString()?.trim()
             prefs.secondarySearchAutoFromMusicBrainz = binding.checkSecondaryAutoMusicBrainz.isChecked
             prefs.method = methods[binding.spinnerMethod.selectedItemPosition]
             prefs.postContentType = binding.editContentType.text?.toString()?.trim()
             prefs.postBody = binding.editPostBody.text?.toString()?.trim()
             prefs.postHeaders = binding.editPostHeaders.text?.toString()?.trim()
-            val browserPos = binding.spinnerBrowser.selectedItemPosition.coerceIn(0, browserEntries.size - 1)
-            prefs.browserPackage = browserEntries.getOrNull(browserPos)?.packageName
+            val secondaryBrowserPos = binding.spinnerSecondaryBrowser.selectedItemPosition.coerceIn(0, browserEntries.size - 1)
+            prefs.secondaryBrowserPackage = browserEntries.getOrNull(secondaryBrowserPos)?.packageName
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
             finish()
         }

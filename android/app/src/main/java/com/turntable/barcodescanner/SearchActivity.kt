@@ -2,8 +2,6 @@ package com.turntable.barcodescanner
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -31,41 +29,33 @@ class SearchActivity : AppCompatActivity() {
 
     private fun submit(barcode: String) {
         val prefs = SearchPrefs(this)
-        val url = prefs.searchUrl
-        if (url.isNullOrBlank()) {
-            Toast.makeText(this, R.string.configure_search_url, Toast.LENGTH_LONG).show()
-            return
-        }
-
         val notes = binding.editNotes.text?.toString().orEmpty()
         val category = binding.editCategory.text?.toString().orEmpty()
 
         when (prefs.method) {
             SearchPrefs.METHOD_GET -> {
-                val primaryUrl = buildGetUrl(url, barcode, notes, category)
                 val secondaryUrl = prefs.secondarySearchUrl?.takeIf { it.isNotBlank() }
-                val pkg = prefs.browserPackage
-
-                openInBrowser(primaryUrl, pkg) { primarySuccess ->
-                    if (!primarySuccess) return@openInBrowser
-                    if (secondaryUrl != null) {
-                        val secondaryQuery = binding.editSecondarySearchTerms.text?.toString()?.trim()
-                        val openSecondary: () -> Unit = {
-                            if (prefs.secondarySearchAutoFromMusicBrainz) {
-                                fetchMusicBrainzAndOpenSecondary(barcode, secondaryUrl, pkg)
-                            } else if (!secondaryQuery.isNullOrBlank()) {
-                                openSecondaryUrl(secondaryUrl, secondaryQuery, pkg)
-                            } else {
-                                finish()
-                            }
-                        }
-                        Handler(Looper.getMainLooper()).postDelayed(openSecondary, 600)
-                    } else {
-                        finish()
-                    }
+                if (secondaryUrl.isNullOrBlank()) {
+                    Toast.makeText(this, R.string.configure_secondary_url, Toast.LENGTH_LONG).show()
+                    return
+                }
+                val secondaryPkg = prefs.secondaryBrowserPackage
+                val secondaryQuery = binding.editSecondarySearchTerms.text?.toString()?.trim()
+                if (prefs.secondarySearchAutoFromMusicBrainz) {
+                    fetchMusicBrainzAndOpenSecondary(barcode, secondaryUrl, secondaryPkg)
+                } else if (!secondaryQuery.isNullOrBlank()) {
+                    openSecondaryUrl(secondaryUrl, secondaryQuery, secondaryPkg)
+                    finish()
+                } else {
+                    Toast.makeText(this, R.string.secondary_no_artist_title, Toast.LENGTH_SHORT).show()
                 }
             }
             SearchPrefs.METHOD_POST -> {
+                val url = prefs.secondarySearchUrl
+                if (url.isNullOrBlank()) {
+                    Toast.makeText(this, R.string.configure_secondary_url, Toast.LENGTH_LONG).show()
+                    return
+                }
                 doPost(url, barcode, notes, category, prefs)
             }
         }
@@ -163,16 +153,6 @@ class SearchActivity : AppCompatActivity() {
         } catch (_: Exception) {
             null
         }
-    }
-
-    private fun buildGetUrl(base: String, barcode: String, notes: String, category: String): String {
-        fun enc(s: String) = java.net.URLEncoder.encode(s, Charsets.UTF_8.name())
-        var u = base.replace("%s", barcode)
-        if (u == base && !base.contains("?")) u = "$base?code=${enc(barcode)}"
-        else if (u == base) u = "$base&code=${enc(barcode)}"
-        if (notes.isNotBlank()) u += "&notes=${enc(notes)}"
-        if (category.isNotBlank()) u += "&category=${enc(category)}"
-        return u
     }
 
     private fun doPost(

@@ -1,7 +1,8 @@
 package com.turntable.barcodescanner
 
 /**
- * Default search presets from yadg-pth-userscript–supported trackers.
+ * Primary = music info (API only, e.g. MusicBrainz barcode lookup).
+ * Secondary = yadg/tracker upload sites (open in browser).
  * @see <a href="https://github.com/SavageCore/yadg-pth-userscript">yadg-pth-userscript</a>
  */
 object SearchPresets {
@@ -9,21 +10,21 @@ object SearchPresets {
 
     data class Preset(val id: String, val name: String, val url: String)
 
-    val all: List<Preset> = listOf(
+    /** Music info sources – API only (no URL opened in browser). */
+    val primaryMusicInfo: List<Preset> = listOf(
+        Preset("musicbrainz", "MusicBrainz (API)", ""),
+    )
+
+    /** Yadg/tracker upload sites – opened in browser with artist/title query. */
+    val secondaryTrackers: List<Preset> = listOf(
         Preset(CUSTOM_ID, "Custom", ""),
         Preset("red", "RED (redacted.ch)", "https://redacted.ch/torrents.php?searchstr=%s"),
         Preset("ops", "Orpheus (OPS)", "https://orpheus.network/torrents.php?searchstr=%s"),
         Preset("dic", "DIC", "https://dicmusic.club/torrents.php?searchstr=%s"),
         Preset("d3si", "d3si", "https://d3si.net/torrents.php?searchstr=%s"),
         Preset("db9", "DB9 (DeepBassNine)", "https://deepbassnine.com/torrents.php?searchstr=%s"),
-        // Music search / discovery
-        Preset("discogs", "Discogs", "https://www.discogs.com/search/?q=%s"),
-        Preset("musicbrainz", "MusicBrainz", "https://musicbrainz.org/search?query=%s&type=release"),
-        Preset("allmusic", "AllMusic", "https://www.allmusic.com/search/all/%s"),
-        Preset("lastfm", "Last.fm", "https://www.last.fm/search?q=%s"),
-        Preset("bandcamp", "Bandcamp", "https://bandcamp.com/search?q=%s")
     )
 
-    fun findById(id: String): Preset? = all.find { it.id == id }
-    fun findByUrl(url: String?): Preset? = all.find { it.url == url }
+    fun findPrimaryById(id: String): Preset? = primaryMusicInfo.find { it.id == id }
+    fun findSecondaryByUrl(url: String?): Preset? = secondaryTrackers.find { it.url == url }
 }
