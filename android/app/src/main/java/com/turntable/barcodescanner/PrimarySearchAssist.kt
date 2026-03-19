@@ -275,7 +275,8 @@ object PrimarySearchAssist {
     private fun discogsHeaders(personalAccessToken: String?): Map<String, String> {
         val m = linkedMapOf(
             "User-Agent" to UA_DISCOGS,
-            "Accept" to "application/json",
+            // Explicit Discogs API v2 media type.
+            "Accept" to "application/vnd.discogs.v2+json",
         )
         personalAccessToken?.trim()?.takeIf { it.isNotEmpty() }?.let { token ->
             m["Authorization"] = "Discogs token=$token"

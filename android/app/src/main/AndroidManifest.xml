@@ -54,6 +54,10 @@
             android:name=".EditSecondaryListActivity"
             android:exported="false"
             android:theme="@style/Theme.BarcodeScanner" />
+        <activity
+            android:name=".SearchHistoryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.BarcodeScanner" />
     </application>
 
 </manifest>

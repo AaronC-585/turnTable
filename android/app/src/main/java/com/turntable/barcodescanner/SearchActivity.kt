@@ -108,6 +108,7 @@ class SearchActivity : AppCompatActivity() {
             .replace("%s", enc(query))
             .replace("%artist%", enc(if (artist.isNotBlank()) artist else query))
             .replace("%album%", enc(if (album.isNotBlank()) album else query))
+        SearchHistoryStore.add(this, barcode = binding.editBarcode.text?.toString().orEmpty(), query = query)
         openInBrowser(url, pkg) { finish() }
     }
 

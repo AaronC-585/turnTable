@@ -2,6 +2,9 @@
 <resources>
     <string name="app_name">turnTable</string>
     <string name="settings">Settings</string>
+    <string name="history">History</string>
+    <string name="history_empty">No search history yet.</string>
+    <string name="flashlight">Flashlight</string>
     <string name="search_url">Search URL</string>
     <string name="search_url_hint">https://example.com/search?q=%s</string>
     <string name="method_get">GET</string>
@@ -28,7 +31,7 @@
     <string name="could_not_open_link">Could not open link</string>
     <string name="primary_search">Primary (music info – API only)</string>
     <string name="discogs_token_hint">Discogs token (optional)</string>
-    <string name="discogs_token_help">Create at discogs.com → Settings → Developers. Sent as Authorization: Discogs token=… per API docs.</string>
+    <string name="discogs_token_help">Create at discogs.com → Settings → Developers. Sent as Authorization: Discogs token=… using Discogs API v2.0 JSON endpoints.</string>
     <string name="lastfm_api_key_hint">Last.fm API key (optional)</string>
     <string name="lastfm_api_key_help">For Last.fm primary source: last.fm/api — method album.getinfobymbid.</string>
     <string name="theaudiodb_api_key_hint">TheAudioDB API key (optional)</string>

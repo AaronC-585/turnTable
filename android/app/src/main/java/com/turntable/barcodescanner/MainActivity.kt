@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -24,14 +25,31 @@ class MainActivity : AppCompatActivity() {
     private var lastCode: String? = null
     private var lastCodeTime = 0L
     private val throttleMs = 1500L
+    private var camera: Camera? = null
+    private var torchEnabled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.buttonSettings.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
+        binding.topToolbar.inflateMenu(R.menu.main_toolbar_menu)
+        binding.topToolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_settings -> {
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                    true
+                }
+                R.id.action_history -> {
+                    startActivity(Intent(this, SearchHistoryActivity::class.java))
+                    true
+                }
+                R.id.action_flashlight -> {
+                    toggleFlashlight()
+                    true
+                }
+                else -> false
+            }
         }
 
         if (!hasCameraPermission()) {
@@ -85,10 +103,22 @@ class MainActivity : AppCompatActivity() {
 
         try {
             provider.unbindAll()
-            provider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
+            camera = provider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
+            torchEnabled = false
         } catch (e: Exception) {
             Log.e(TAG, "Bind failed", e)
         }
+    }
+
+    private fun toggleFlashlight() {
+        val c = camera ?: return
+        val hasFlash = c.cameraInfo.hasFlashUnit()
+        if (!hasFlash) {
+            Log.w(TAG, "Flash unit not available on this camera")
+            return
+        }
+        torchEnabled = !torchEnabled
+        c.cameraControl.enableTorch(torchEnabled)
     }
 
     private fun analyze(imageProxy: ImageProxy) {
