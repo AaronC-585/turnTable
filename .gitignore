@@ -1,0 +1,67 @@
+# OS
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+# Editors & IDEs
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Android
+android/local.properties
+android/.gradle/
+android/**/build/
+android/**/.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# iOS / Xcode
+ios/build/
+ios/**/DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM/
+
+# C++ / CMake
+cpp/build/
+**/CMakeFiles/
+**/cmake_install.cmake
+**/CMakeCache.txt
+**/Makefile
+**/*.o
+**/*.obj
+**/*.a
+**/*.so
+**/*.dylib
+**/.ninja_*
+**/compile_commands.json
+
+# Gradle (wrapper jar can be large; regenerate with: gradle wrapper)
+# android/gradle/wrapper/gradle-wrapper.jar
+
+# Logs & temp
+*.log
+*.tmp
+*.temp
+.cache/
+
+# Env / secrets (uncomment if used)
+# .env
+# .env.local
+# *.pem
+# *.p12
+# google-services.json
+# GoogleService-Info.plist
