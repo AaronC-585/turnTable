@@ -54,14 +54,6 @@ class SearchPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_BEEP_ON_SCAN, true)
         set(value) = prefs.edit { putBoolean(KEY_BEEP_ON_SCAN, value) }
 
-    /**
-     * Optional Discogs personal access token (discogs.com/settings/developers).
-     * Improves rate limits per https://www.discogs.com/developers#page:authentication
-     */
-    var discogsPersonalToken: String?
-        get() = prefs.getString(KEY_DISCOGS_TOKEN, null)?.takeIf { it.isNotBlank() }
-        set(value) = prefs.edit { putString(KEY_DISCOGS_TOKEN, value) }
-
     /** Last.fm API key for album.getinfobymbid (optional; required for Last.fm primary). */
     var lastFmApiKey: String?
         get() = prefs.getString(KEY_LASTFM_API_KEY, null)?.takeIf { it.isNotBlank() }
@@ -98,7 +90,6 @@ class SearchPrefs(context: Context) {
         const val KEY_SECONDARY_BROWSER_PACKAGE = "secondary_browser_package"
         const val KEY_SECONDARY_AUTO_MUSICBRAINZ = "secondary_auto_musicbrainz"
         const val KEY_BEEP_ON_SCAN = "beep_on_scan"
-        const val KEY_DISCOGS_TOKEN = "discogs_personal_token"
         const val KEY_LASTFM_API_KEY = "lastfm_api_key"
         const val KEY_THEAUDIODB_API_KEY = "theaudiodb_api_key"
         const val KEY_REDACTED_API_KEY = "redacted_api_key"

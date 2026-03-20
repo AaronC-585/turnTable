@@ -56,7 +56,7 @@ cd android
 
 ## iOS
 
-**Requirements:** Xcode 14+, CMake 3.16+, macOS.
+**Requirements:** **macOS**, **Xcode 14+**, **CMake 3.16+**, and the **iOS SDK** (bundled with Xcode). Full compiler / toolchain checklist: **`ios/BUILD.md`**.
 
 1. **Build the C++ library** (device and simulator) from the **repo root** (requires **macOS** with Xcode; CMake uses the iOS toolchain):
 

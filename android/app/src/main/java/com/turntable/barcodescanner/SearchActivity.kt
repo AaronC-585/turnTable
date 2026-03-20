@@ -150,14 +150,13 @@ class SearchActivity : AppCompatActivity() {
         prefs: SearchPrefs
     ) {
         val orderedCmds = SearchPresets.primaryApiCmdsOrderedEnabled(this)
-        val discogsToken = prefs.discogsPersonalToken
         Thread {
             PrimarySearchAssist.clearMusicBrainzSearchCache()
             var lookup: PrimaryLookupResult? = null
             for (cmd in orderedCmds) {
                 try {
                     lookup = when (cmd) {
-                        "discogs" -> PrimarySearchAssist.fetchDiscogs(barcode, discogsToken)
+                        "discogs" -> PrimarySearchAssist.fetchDiscogs(barcode, null)
                         "theaudiodb" -> PrimarySearchAssist.fetchTheAudioDb(barcode, prefs.theAudioDbApiKey)
                         "lastfm" -> PrimarySearchAssist.fetchLastFm(barcode, prefs.lastFmApiKey)
                         "musicbrainz" -> PrimarySearchAssist.fetchMusicBrainz(barcode)

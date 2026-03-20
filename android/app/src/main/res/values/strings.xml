@@ -33,8 +33,6 @@
     <string name="browser_open_play_store">Opening Play Store to install %1$s</string>
     <string name="could_not_open_link">Could not open link</string>
     <string name="primary_search">Primary (music info – API only)</string>
-    <string name="discogs_token_hint">Discogs token (optional)</string>
-    <string name="discogs_token_help">Create at discogs.com → Settings → Developers. Sent as Authorization: Discogs token=… using Discogs API v2.0 JSON endpoints.</string>
     <string name="redacted_api_key_hint">Redacted API key (optional)</string>
     <string name="redacted_api_key_help">Sent as Authorization on https://redacted.sh/ajax.php (JSON API). Use Home or the scanner menu to open in-app torrent search when a key is set.</string>
     <string name="lastfm_api_key_hint">Last.fm API key (optional)</string>

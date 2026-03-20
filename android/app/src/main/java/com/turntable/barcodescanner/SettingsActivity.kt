@@ -38,7 +38,6 @@ class SettingsActivity : AppCompatActivity() {
 
         loadListsAndBind()
 
-        binding.editDiscogsToken.setText(prefs.discogsPersonalToken ?: "")
         binding.editRedactedApiKey.setText(prefs.redactedApiKey ?: "")
         binding.editTheAudioDbApiKey.setText(prefs.theAudioDbApiKey ?: "")
         binding.editLastFmApiKey.setText(prefs.lastFmApiKey ?: "")
@@ -87,7 +86,6 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.buttonSave.setOnClickListener {
             prefs.beepOnScan = binding.checkBeepOnScan.isChecked
-            prefs.discogsPersonalToken = binding.editDiscogsToken.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.redactedApiKey = binding.editRedactedApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.theAudioDbApiKey = binding.editTheAudioDbApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.lastFmApiKey = binding.editLastFmApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
@@ -130,7 +128,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.checkSecondaryAutoMusicBrainz.isChecked = prefs.secondarySearchAutoFromMusicBrainz
     }
 
-    /** Hard-coded list for secondary search: Default + Play Store browsers (Android). On iOS use same list with appStoreUrl. */
+    /** Default + all Android-capable browsers from [KnownBrowsers.all] (includes Android-only entries). */
     private fun getSecondaryBrowserList(): List<BrowserEntry> {
         val list = mutableListOf(BrowserEntry(getString(R.string.browser_default), null))
         for (b in KnownBrowsers.all) {

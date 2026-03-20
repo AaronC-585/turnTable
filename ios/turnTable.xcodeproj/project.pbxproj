@@ -10,6 +10,7 @@
 		A10000000000000100000001 = {isa = PBXFileReference; lastKnownFileType = folder; path = build; sourceTree = "<group>"; };
 		A10000000000000200000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A10000000000000900000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigation.swift; sourceTree = "<group>"; };
+		A10000000000002700000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosSecondaryBrowser.swift; sourceTree = "<group>"; };
 		A10000000000001000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
 		A10000000000001100000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
 		A10000000000001200000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactedAccountViewController.swift; sourceTree = "<group>"; };
@@ -48,6 +49,7 @@
 			children = (
 				A10000000000000200000001,
 				A10000000000000900000001,
+				A10000000000002700000001,
 				A10000000000001000000001,
 				A10000000000001100000001,
 				A10000000000001200000001,
@@ -104,6 +106,7 @@
 			files = (
 				A30000000000000200000001,
 				A30000000000000800000001,
+				A30000000000002600000001,
 				A30000000000000900000001,
 				A30000000000001000000001,
 				A30000000000001100000001,
@@ -126,6 +129,7 @@
 		};
 		A30000000000000200000001 = {isa = PBXBuildFile; fileRef = A10000000000000200000001; };
 		A30000000000000800000001 = {isa = PBXBuildFile; fileRef = A10000000000000900000001; };
+		A30000000000002600000001 = {isa = PBXBuildFile; fileRef = A10000000000002700000001; };
 		A30000000000000900000001 = {isa = PBXBuildFile; fileRef = A10000000000001000000001; };
 		A30000000000001000000001 = {isa = PBXBuildFile; fileRef = A10000000000001100000001; };
 		A30000000000001100000001 = {isa = PBXBuildFile; fileRef = A10000000000001200000001; };

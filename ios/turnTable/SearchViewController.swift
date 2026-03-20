@@ -119,7 +119,8 @@ final class SearchViewController: UIViewController {
 
         let urlBuilt = buildSecondaryUrl(template: secondaryUrl, query: terms)
         SearchHistoryStore.add(barcode: bc, title: terms, coverUrl: nil)
-        UIApplication.shared.open(urlBuilt, options: [:]) { ok in
+        let browser = prefs.iosSecondaryBrowser
+        SecondaryBrowserOpener.open(url: urlBuilt, browser: browser) { ok in
             if !ok { DispatchQueue.main.async { self.showAlert("Could not open URL") } }
         }
     }

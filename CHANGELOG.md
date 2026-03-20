@@ -4,7 +4,14 @@ All notable changes to the turnTable / 1D Barcode Scanner project are documented
 
 ## [Unreleased]
 
-- **Releases (policy):** GitHub releases should include **Android** (`turnTable.release-<version>.apk`) and **iOS** (`turnTable-ios-<version>.ipa`) as assets. See **`RELEASE.md`**, **`scripts/release-github.sh`**, and Cursor rule **releases-include-mobile-apps**. APK may be published first; upload IPA from macOS with `gh release upload` when ready.
+(nothing yet)
+
+## [2026.3.19.1373] — Android production release
+
+- **Secondary browser list:** Android Settings keeps the full Play Store–oriented list (including Android-only browsers: Soul, Kiwi, Firefox Beta/Nightly, Via, Cake). iOS Settings uses a separate list: the same cross-platform browsers plus iOS-only **Arc Search** and **Orion Browser**; Android-only entries are omitted. **Samsung Internet** is not listed on iOS (no App Store product). Opening GET secondary links on iOS respects the chosen browser (URL schemes + `LSApplicationQueriesSchemes`).
+- **Store IDs:** Corrected Play/App Store fallbacks for Opera, Opera GX, Vivaldi, UC Browser, Tor-related iOS (**Onion Browser**), Arc, Orion; documented in **`docs/browser-store-ids.md`**. Android: **`KnownBrowsers.kt`**. iOS: **`IosSecondaryBrowser.swift`**.
+- **Settings:** Removed Discogs personal API token field and help text (Android & iOS). Discogs primary search still works **without** a token (anonymous rate limits).
+- **Releases (policy):** GitHub releases should include **Android** (`turnTable.release-<version>.apk`) and **iOS** (`turnTable-ios-<version>.ipa`) as assets. See **`RELEASE.md`**, **`scripts/release-github.sh`**, and Cursor rule **releases-include-mobile-apps**. This tag ships **APK** from Linux; upload IPA from macOS with `gh release upload v2026.3.19.1373 turnTable-ios-<version>.ipa` when ready.
 
 ## [2026.3.19.1219] — Android production release
 

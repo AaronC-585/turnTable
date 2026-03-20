@@ -28,9 +28,16 @@ final class SearchPrefs {
         get { str(Key.postHeaders) }
         set { d.set(newValue, forKey: Key.postHeaders) }
     }
+    /// Android: package name. iOS: [IosSecondaryBrowser] slug (e.g. `chrome`, `default` cleared as nil).
     var secondaryBrowserPackage: String? {
         get { str(Key.secondaryBrowserPackage) }
-        set { d.set(newValue, forKey: Key.secondaryBrowserPackage) }
+        set {
+            guard let raw = newValue?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
+                d.removeObject(forKey: Key.secondaryBrowserPackage)
+                return
+            }
+            d.set(raw, forKey: Key.secondaryBrowserPackage)
+        }
     }
     var secondarySearchUrl: String? {
         get { str(Key.secondaryUrl) }
@@ -43,10 +50,6 @@ final class SearchPrefs {
     var beepOnScan: Bool {
         get { d.object(forKey: Key.beepOnScan) as? Bool ?? true }
         set { d.set(newValue, forKey: Key.beepOnScan) }
-    }
-    var discogsPersonalToken: String? {
-        get { str(Key.discogsToken) }
-        set { d.set(newValue, forKey: Key.discogsToken) }
     }
     var lastFmApiKey: String? {
         get { str(Key.lastFm) }
@@ -91,7 +94,6 @@ final class SearchPrefs {
         static let secondaryBrowserPackage = "secondary_browser_package"
         static let secondaryAutoMb = "secondary_auto_musicbrainz"
         static let beepOnScan = "beep_on_scan"
-        static let discogsToken = "discogs_personal_token"
         static let lastFm = "lastfm_api_key"
         static let theAudioDb = "theaudiodb_api_key"
         static let redactedKey = "redacted_api_key"
