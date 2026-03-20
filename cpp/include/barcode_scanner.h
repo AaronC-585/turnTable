@@ -36,6 +36,18 @@ int BARCODE_API barcode_decode_grayscale(
   int out_size
 );
 
+/**
+ * Backwards-compat wrapper for an older misspelling:
+ * `barcode_decode_greyscal` -> `barcode_decode_grayscale`.
+ */
+int BARCODE_API barcode_decode_greyscal(
+  const unsigned char* data,
+  int width,
+  int height,
+  char* out,
+  int out_size
+);
+
 #ifdef __cplusplus
 }
 #endif

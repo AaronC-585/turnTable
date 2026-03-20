@@ -35,3 +35,14 @@ int barcode_decode_grayscale(
     out[len] = '\0';
     return 1;
 }
+
+// Backwards-compat: tolerate older misspelling.
+extern "C" int barcode_decode_greyscal(
+    const unsigned char* data,
+    int width,
+    int height,
+    char* out,
+    int out_size)
+{
+    return barcode_decode_grayscale(data, width, height, out, out_size);
+}

@@ -4,7 +4,7 @@ All notable changes to the turnTable / 1D Barcode Scanner project are documented
 
 ## [Unreleased]
 
-(nothing yet)
+- **Barcode decode symbol compatibility (iOS):** Added a C wrapper `barcode_decode_greyscal` forwarding to `barcode_decode_grayscale` to tolerate legacy misspellings and prevent “cannot find … in scope” build failures.
 
 ## [2026.3.19.1373] — Android production release
 
