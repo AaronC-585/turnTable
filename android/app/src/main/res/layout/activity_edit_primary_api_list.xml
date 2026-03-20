@@ -5,15 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_main">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#202020"
+        android:background="@color/app_bg_toolbar"
         app:title="@string/edit_primary_list_title"
-        app:titleTextColor="#eeeeee" />
+        app:titleTextColor="@color/app_text_primary" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -31,7 +31,7 @@
             android:id="@+id/textHelp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#aaaaaa"
+            android:textColor="@color/app_text_help"
             android:textSize="13sp"
             android:layout_marginBottom="16dp" />
 
@@ -39,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/secondary_edit_dropdown_label"
-            android:textColor="#888888"
+            android:textColor="@color/app_text_label"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
@@ -52,22 +52,22 @@
             android:paddingEnd="12dp"
             android:layout_marginBottom="12dp" />
 
-        <CheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkPrimaryEnabled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/primary_edit_enabled"
-            android:textColor="#cccccc"
+            android:textColor="@color/app_text_secondary"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/secondary_edit_name_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -75,17 +75,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/primary_edit_cmd_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -95,14 +95,14 @@
                 android:inputType="textMultiLine|textNoSuggestions"
                 android:minLines="6"
                 android:typeface="monospace"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/primary_edit_add_from_dropdown"
-            android:textColor="#888888"
+            android:textColor="@color/app_text_label"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
@@ -127,8 +127,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/secondary_edit_move_up"
-                android:textColor="#ffffff"
-                app:backgroundTint="#555555"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_chip_stroke"
                 android:layout_marginEnd="8dp" />
 
             <Button
@@ -136,8 +136,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/secondary_edit_move_down"
-                android:textColor="#ffffff"
-                app:backgroundTint="#555555"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_chip_stroke"
                 android:layout_marginEnd="8dp" />
 
             <Button
@@ -145,8 +145,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/secondary_edit_remove"
-                android:textColor="#ffffff"
-                app:backgroundTint="#b71c1c"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_button_danger"
                 android:layout_marginEnd="8dp" />
 
             <Button
@@ -154,8 +154,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/secondary_edit_add"
-                android:textColor="#ffffff"
-                app:backgroundTint="#3a7bd5" />
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_accent" />
         </LinearLayout>
 
         <LinearLayout
@@ -169,8 +169,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/cancel"
-                android:textColor="#ffffff"
-                app:backgroundTint="#444444"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_button_secondary"
                 android:layout_marginEnd="12dp" />
 
             <Button
@@ -178,8 +178,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/edit_list_save"
-                android:textColor="#ffffff"
-                app:backgroundTint="#3a7bd5" />
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_accent" />
         </LinearLayout>
 
     </LinearLayout>

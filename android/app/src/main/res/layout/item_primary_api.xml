@@ -10,11 +10,11 @@
     android:paddingEnd="8dp"
     android:background="?attr/selectableItemBackground">
 
-    <CheckBox
+    <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/checkEnabled"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#cccccc" />
+        android:textColor="@color/app_text_secondary" />
 
     <TextView
         android:id="@+id/textApiName"
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginStart="8dp"
-        android:textColor="#eeeeee"
+        android:textColor="@color/app_text_primary"
         android:textSize="16sp" />
 
     <ImageButton
@@ -33,5 +33,5 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@android:drawable/ic_menu_sort_by_size"
         android:scaleType="centerInside"
-        app:tint="#888888" />
+        app:tint="@color/app_text_label" />
 </LinearLayout>

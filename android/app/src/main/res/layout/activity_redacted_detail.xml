@@ -4,15 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_main">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#2a2a2a"
-        app:titleTextColor="#eeeeee"
-        app:navigationIconTint="#eeeeee" />
+        android:background="@color/app_surface_input"
+        app:titleTextColor="@color/app_text_primary"
+        app:navigationIconTint="@color/app_text_primary" />
 
     <ProgressBar
         android:id="@+id/progress"
@@ -32,7 +32,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="12dp"
-            android:textColor="#cccccc"
+            android:textColor="@color/app_text_secondary"
             android:textSize="13sp"
             android:fontFamily="monospace"
             android:textIsSelectable="true" />

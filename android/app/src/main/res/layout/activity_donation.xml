@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/app_bg_main">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/app_bg_toolbar"
+        app:title="@string/donation_title"
+        app:titleTextColor="@color/app_text_primary"
+        app:navigationIconTint="@color/app_text_primary" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/donation_body"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="15sp"
+                android:lineSpacingMultiplier="1.15"
+                android:layout_marginBottom="24dp" />
+
+            <Button
+                android:id="@+id/buttonOpenPayPal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="@string/donation_open_paypal"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_paypal" />
+
+            <Button
+                android:id="@+id/buttonOpenCashApp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/donation_open_cash_app"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_cash_green" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -5,17 +5,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1a1a1a"
+    android:background="@color/app_bg_main"
     tools:context=".MainActivity">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/topToolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#202020"
+        android:background="@color/app_bg_toolbar"
         android:minHeight="?attr/actionBarSize"
         app:title="@string/app_name"
-        app:titleTextColor="#eeeeee"
+        app:titleTextColor="@color/app_text_primary"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

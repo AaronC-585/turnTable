@@ -5,15 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_main">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#202020"
+        android:background="@color/app_bg_toolbar"
         app:title="@string/search_pane_title"
-        app:titleTextColor="#eeeeee" />
+        app:titleTextColor="@color/app_text_primary" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -31,10 +31,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/scanned_code"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -42,17 +42,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/question_notes"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -61,17 +61,17 @@
                 android:layout_height="wrap_content"
                 android:inputType="textMultiLine"
                 android:minLines="2"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/question_category"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -79,25 +79,29 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/cover_image_url_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editCoverImageUrl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textUri"
-                android:textColor="#eeeeee" />
+                android:gravity="top|start"
+                android:inputType="textMultiLine|textUri|textNoSuggestions"
+                android:minLines="2"
+                android:scrollbars="vertical"
+                android:typeface="monospace"
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.card.MaterialCardView
@@ -106,8 +110,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#2a2a2a"
-            app:strokeColor="#3a7bd5"
+            app:cardBackgroundColor="@color/app_surface_input"
+            app:strokeColor="@color/app_accent"
             app:strokeWidth="1dp">
 
             <ImageView
@@ -120,15 +124,68 @@
                 android:scaleType="fitCenter" />
         </com.google.android.material.card.MaterialCardView>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/theaudiodb_text_search_section"
+            android:textColor="@color/app_text_label"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/theaudiodb_text_search_help"
+            android:textColor="@color/app_text_help_small"
+            android:textSize="12sp"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerAudioDbSearchKind"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:entries="@array/audiodb_search_kind"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/theaudiodb_text_search_hint"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:boxStrokeColor="@color/app_accent"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editAudioDbQuery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="@color/app_text_primary" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/buttonAudioDbSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/theaudiodb_text_search_button"
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_accent_teal"
+            android:layout_marginBottom="24dp" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/secondarySearchTermsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/secondary_search_terms_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="24dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -136,7 +193,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
@@ -144,8 +201,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/submit_search"
-            android:textColor="#ffffff"
-            app:backgroundTint="#3a7bd5" />
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_accent" />
 
         <Button
             android:id="@+id/buttonRedactedSearch"
@@ -153,9 +210,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/redacted_search_in_app"
-            android:textColor="#ffffff"
+            android:textColor="@color/app_text_on_button"
             android:visibility="gone"
-            app:backgroundTint="#6a4a9e" />
+            app:backgroundTint="@color/app_accent_purple" />
     </LinearLayout>
     </ScrollView>
 </LinearLayout>

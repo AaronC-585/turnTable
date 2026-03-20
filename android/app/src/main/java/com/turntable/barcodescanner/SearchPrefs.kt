@@ -54,13 +54,22 @@ class SearchPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_BEEP_ON_SCAN, true)
         set(value) = prefs.edit { putBoolean(KEY_BEEP_ON_SCAN, value) }
 
-    /** Last.fm API key for album.getinfobymbid (optional; required for Last.fm primary). */
-    var lastFmApiKey: String?
-        get() = prefs.getString(KEY_LASTFM_API_KEY, null)?.takeIf { it.isNotBlank() }
-        set(value) = prefs.edit { putString(KEY_LASTFM_API_KEY, value) }
+    /** If true, short haptic when a barcode is successfully scanned. */
+    var hapticOnScan: Boolean
+        get() = prefs.getBoolean(KEY_HAPTIC_ON_SCAN, false)
+        set(value) = prefs.edit { putBoolean(KEY_HAPTIC_ON_SCAN, value) }
 
     /**
-     * TheAudioDB API key (path segment). Default `1` is the public test key; register for your own.
+     * UI theme: [THEME_LIGHT], [THEME_DARK], or [THEME_FOLLOW_SYSTEM] (default).
+     * Applied at app start and when saved in Settings (see [AppTheme]).
+     */
+    var themeMode: String
+        get() = prefs.getString(KEY_THEME_MODE, THEME_FOLLOW_SYSTEM) ?: THEME_FOLLOW_SYSTEM
+        set(value) = prefs.edit { putString(KEY_THEME_MODE, value) }
+
+    /**
+     * TheAudioDB API key: sent as **`X-API-KEY`** on every v2 request (barcode lookup + text search).
+     * Default in code is `123` if empty; v2 often requires a premium key from theaudiodb.com.
      */
     var theAudioDbApiKey: String?
         get() = prefs.getString(KEY_THEAUDIODB_API_KEY, null)?.takeIf { it.isNotBlank() }
@@ -90,7 +99,12 @@ class SearchPrefs(context: Context) {
         const val KEY_SECONDARY_BROWSER_PACKAGE = "secondary_browser_package"
         const val KEY_SECONDARY_AUTO_MUSICBRAINZ = "secondary_auto_musicbrainz"
         const val KEY_BEEP_ON_SCAN = "beep_on_scan"
-        const val KEY_LASTFM_API_KEY = "lastfm_api_key"
+        const val KEY_HAPTIC_ON_SCAN = "haptic_on_scan"
+        const val KEY_THEME_MODE = "theme_mode"
+
+        const val THEME_LIGHT = "light"
+        const val THEME_DARK = "dark"
+        const val THEME_FOLLOW_SYSTEM = "system"
         const val KEY_THEAUDIODB_API_KEY = "theaudiodb_api_key"
         const val KEY_REDACTED_API_KEY = "redacted_api_key"
         const val KEY_REDACTED_NOTIF_SNAPSHOT = "redacted_notifications_snapshot"

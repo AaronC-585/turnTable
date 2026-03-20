@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Marks root already wrapped by [AppBottomBars.attach] -->
+    <item name="tag_turn_table_bottom_wrapped" type="id" />
+</resources>

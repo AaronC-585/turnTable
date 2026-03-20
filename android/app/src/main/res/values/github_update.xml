@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  GitHub update checks use GET /repos/{owner}/{repo}/releases/latest (public API).
+  Set github_update_owner to your GitHub username or org. Leave empty to disable
+  automatic checks on the home screen (manual "Check for updates" will explain).
+-->
+<resources>
+    <string name="github_update_owner" translatable="false">AaronC-585</string>
+    <string name="github_update_repo" translatable="false">turnTable</string>
+</resources>

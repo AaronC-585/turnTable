@@ -17,9 +17,9 @@ import java.net.URLEncoder
  * database search + release resource.
  *
  * **Music Metadata** (see e.g. [Soundcharts API guide](https://soundcharts.com/en/blog/music-data-api)):
- * [TheAudioDB](https://www.theaudiodb.com/) (`album-mb.php` by MusicBrainz release id) and
- * [Last.fm](https://www.last.fm/api) (`album.getinfobymbid`) share a **cached** MusicBrainz barcode
- * search so only one MB request runs per lookup when multiple MB-derived providers are tried.
+ * [TheAudioDB](https://www.theaudiodb.com/) v2 **`lookup/album_mb/{mbid}`** with **`X-API-KEY`** reuses a
+ * **cached** MusicBrainz barcode search so only one MB request runs per lookup when chaining
+ * MB-derived providers.
  */
 data class PrimaryLookupResult(
     val searchQuery: String,
@@ -55,9 +55,6 @@ object PrimarySearchAssist {
 
     private const val DISCOGS_API = "https://api.discogs.com"
 
-    private const val THEAUDIODB_API = "https://www.theaudiodb.com/api/v1/json"
-    private const val LASTFM_API = "https://ws.audioscrobbler.com/2.0/"
-
     private val mbSearchCacheLock = Any()
     private var mbSearchCacheBarcode: String? = null
     private var mbSearchCacheJson: String? = null
@@ -71,7 +68,7 @@ object PrimarySearchAssist {
     }
 
     /**
-     * Single MusicBrainz barcode search per [barcode] per lookup session (cached for TheAudioDB / Last.fm).
+     * Single MusicBrainz barcode search per [barcode] per lookup session (cached for TheAudioDB).
      */
     private fun getOrFetchMusicBrainzBarcodeSearchJson(barcode: String): String? {
         synchronized(mbSearchCacheLock) {
@@ -97,38 +94,15 @@ object PrimarySearchAssist {
     }
 
     /**
-     * TheAudioDB album by MusicBrainz release id ([album-mb](https://www.theaudiodb.com/api_guide.php)).
-     * @param apiKey path key; if null/blank, `1` (public test key) is used.
+     * TheAudioDB v2 album by MusicBrainz **release** id:
+     * `GET /api/v2/json/lookup/album_mb/{mbid}` with **`X-API-KEY`** ([docs](https://www.theaudiodb.com/free_music_api)).
      */
     fun fetchTheAudioDb(barcode: String, apiKey: String? = null): PrimaryLookupResult? {
-        val key = apiKey?.trim()?.takeIf { it.isNotEmpty() } ?: "1"
         val mbJson = getOrFetchMusicBrainzBarcodeSearchJson(barcode) ?: return null
         val mbid = extractMusicBrainzReleaseMbidFromSearchJson(mbJson) ?: return null
-        val url = "$THEAUDIODB_API/$key/album-mb.php?i=${URLEncoder.encode(mbid, Charsets.UTF_8.name())}"
-        val body = httpGet(url, mapOf("User-Agent" to UA_TURNTABLE)) ?: return null
+        val path = "lookup/album_mb/${TheAudioDbApi.pathEncode(mbid)}"
+        val body = TheAudioDbApi.get(path, apiKey) ?: return null
         return parseTheAudioDbAlbumMbResponse(body)
-    }
-
-    /**
-     * Last.fm [album.getinfobymbid](https://www.last.fm/api/show/album.getInfoByMbID).
-     * @return null if [apiKey] is missing (configure in Settings).
-     */
-    fun fetchLastFm(barcode: String, apiKey: String?): PrimaryLookupResult? {
-        val key = apiKey?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-        val mbJson = getOrFetchMusicBrainzBarcodeSearchJson(barcode) ?: return null
-        val mbid = extractMusicBrainzReleaseMbidFromSearchJson(mbJson) ?: return null
-        val q = linkedMapOf(
-            "method" to "album.getinfobymbid",
-            "mbid" to mbid,
-            "api_key" to key,
-            "format" to "json",
-        )
-        val qs = q.entries.joinToString("&") { (k, v) ->
-            "${URLEncoder.encode(k, Charsets.UTF_8.name())}=${URLEncoder.encode(v, Charsets.UTF_8.name())}"
-        }
-        val url = "$LASTFM_API?$qs"
-        val body = httpGet(url, mapOf("User-Agent" to UA_TURNTABLE)) ?: return null
-        return parseLastFmAlbumGetInfoByMbid(body)
     }
 
     private fun extractMusicBrainzReleaseMbidFromSearchJson(json: String): String? {
@@ -144,14 +118,7 @@ object PrimarySearchAssist {
 
     private fun parseTheAudioDbAlbumMbResponse(json: String): PrimaryLookupResult? {
         return try {
-            val root = JSONObject(json)
-            val arr = root.optJSONArray("album")
-            val a = when {
-                arr != null && arr.length() > 0 -> arr.getJSONObject(0)
-                root.has("album") && !root.isNull("album") && root.optJSONObject("album") != null ->
-                    root.getJSONObject("album")
-                else -> return null
-            }
+            val a = extractTheAudioDbAlbumJson(json) ?: return null
             val artist = a.optString("strArtist", "").trim()
             val album = a.optString("strAlbum", "").trim()
             if (artist.isBlank() && album.isBlank()) return null
@@ -169,42 +136,23 @@ object PrimarySearchAssist {
         }
     }
 
-    private fun parseLastFmAlbumGetInfoByMbid(json: String): PrimaryLookupResult? {
+    /** v1/v2-style album payload: `album` array or object, optional `data` wrapper. */
+    private fun extractTheAudioDbAlbumJson(json: String): JSONObject? {
         return try {
             val root = JSONObject(json)
-            if (root.has("error")) return null
-            val album = root.optJSONObject("album") ?: return null
-            val name = album.optString("name", "").trim()
-            val artistName = when {
-                album.optJSONObject("artist") != null ->
-                    album.getJSONObject("artist").optString("name", "").trim()
-                else -> album.optString("artist", "").trim()
-            }
-            if (name.isBlank()) return null
-            val query = if (artistName.isNotBlank()) "$artistName - $name" else name
-            val cover = largestLastFmImage(album.optJSONArray("image"))
-            PrimaryLookupResult(query, cover)
+            extractAlbumFromTheAudioDbNode(root)
+                ?: root.optJSONObject("data")?.let { extractAlbumFromTheAudioDbNode(it) }
         } catch (_: Exception) {
             null
         }
     }
 
-    private fun largestLastFmImage(images: org.json.JSONArray?): String? {
-        if (images == null || images.length() == 0) return null
-        val preferredOrder = listOf("mega", "extralarge", "large", "medium", "small")
-        for (size in preferredOrder) {
-            for (i in 0 until images.length()) {
-                val im = images.getJSONObject(i)
-                if (im.optString("size", "") != size) continue
-                val url = im.optString("#text", "").ifBlank { im.optString("text", "") }
-                if (url.isNotBlank()) return url
-            }
-        }
-        for (i in 0 until images.length()) {
-            val url = images.getJSONObject(i).optString("#text", "")
-                .ifBlank { images.getJSONObject(i).optString("text", "") }
-            if (url.isNotBlank()) return url
-        }
+    private fun extractAlbumFromTheAudioDbNode(node: JSONObject): JSONObject? {
+        val arr = node.optJSONArray("album")
+        if (arr != null && arr.length() > 0) return arr.optJSONObject(0)
+        node.optJSONObject("album")?.let { return it }
+        val albums = node.optJSONArray("albums")
+        if (albums != null && albums.length() > 0) return albums.optJSONObject(0)
         return null
     }
 

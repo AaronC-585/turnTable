@@ -5,15 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_main">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#202020"
+        android:background="@color/app_bg_toolbar"
         app:title="@string/edit_secondary_list_title"
-        app:titleTextColor="#eeeeee" />
+        app:titleTextColor="@color/app_text_primary" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -31,7 +31,7 @@
             android:id="@+id/textHelp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#aaaaaa"
+            android:textColor="@color/app_text_help"
             android:textSize="13sp"
             android:layout_marginBottom="16dp" />
 
@@ -39,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/secondary_edit_dropdown_label"
-            android:textColor="#888888"
+            android:textColor="@color/app_text_label"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
@@ -56,10 +56,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/secondary_edit_name_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -67,28 +67,156 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/secondary_edit_url_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_label"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editUrl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textUri"
-                android:minLines="2"
+                android:gravity="top|start"
+                android:inputType="textMultiLine|textUri|textNoSuggestions"
+                android:minLines="5"
+                android:scrollbars="vertical"
                 android:typeface="monospace"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/secondary_edit_http_method_section"
+            android:textColor="@color/app_text_label"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/http_method"
+            android:textColor="@color/app_text_label"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerMethod"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:id="@+id/postOptionsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/post_content_type"
+                android:textColor="@color/app_text_label"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/post_content_type_hint"
+                app:boxBackgroundColor="@color/app_surface_input"
+                app:hintTextColor="@color/app_text_label"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="@color/app_accent"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editContentType"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:textColor="@color/app_text_primary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/post_body"
+                android:textColor="@color/app_text_label"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/post_body_hint"
+                app:boxBackgroundColor="@color/app_surface_input"
+                app:hintTextColor="@color/app_text_label"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="@color/app_accent"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editPostBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:minLines="3"
+                    android:textColor="@color/app_text_primary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/post_headers"
+                android:textColor="@color/app_text_label"
+                android:textSize="14sp"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editPostHeaders"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:minLines="2"
+                android:hint="Authorization: Bearer token"
+                android:textColor="@color/app_text_primary"
+                android:background="@android:drawable/edit_text"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/secondary_variables_reference_intro"
+            android:textColor="@color/app_text_label"
+            android:textSize="13sp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/textSecondaryVariablesHelp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textColor="@color/app_text_mono_help"
+            android:typeface="monospace"
+            android:layout_marginBottom="16dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -102,8 +230,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/secondary_edit_move_up"
-                android:textColor="#ffffff"
-                app:backgroundTint="#555555"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_chip_stroke"
                 android:layout_marginEnd="8dp" />
 
             <Button
@@ -111,8 +239,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/secondary_edit_move_down"
-                android:textColor="#ffffff"
-                app:backgroundTint="#555555"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_chip_stroke"
                 android:layout_marginEnd="8dp" />
 
             <Button
@@ -120,8 +248,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/secondary_edit_remove"
-                android:textColor="#ffffff"
-                app:backgroundTint="#b71c1c"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_button_danger"
                 android:layout_marginEnd="8dp" />
 
             <Button
@@ -129,8 +257,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/secondary_edit_add"
-                android:textColor="#ffffff"
-                app:backgroundTint="#3a7bd5" />
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_accent" />
         </LinearLayout>
 
         <LinearLayout
@@ -144,8 +272,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/cancel"
-                android:textColor="#ffffff"
-                app:backgroundTint="#444444"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_button_secondary"
                 android:layout_marginEnd="12dp" />
 
             <Button
@@ -153,8 +281,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/edit_list_save"
-                android:textColor="#ffffff"
-                app:backgroundTint="#3a7bd5" />
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_accent" />
         </LinearLayout>
     </LinearLayout>
     </ScrollView>

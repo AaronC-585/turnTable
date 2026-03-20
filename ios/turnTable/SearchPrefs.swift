@@ -51,9 +51,9 @@ final class SearchPrefs {
         get { d.object(forKey: Key.beepOnScan) as? Bool ?? true }
         set { d.set(newValue, forKey: Key.beepOnScan) }
     }
-    var lastFmApiKey: String? {
-        get { str(Key.lastFm) }
-        set { d.set(newValue, forKey: Key.lastFm) }
+    var hapticOnScan: Bool {
+        get { d.object(forKey: Key.hapticOnScan) as? Bool ?? false }
+        set { d.set(newValue, forKey: Key.hapticOnScan) }
     }
     var theAudioDbApiKey: String? {
         get { str(Key.theAudioDb) }
@@ -94,7 +94,7 @@ final class SearchPrefs {
         static let secondaryBrowserPackage = "secondary_browser_package"
         static let secondaryAutoMb = "secondary_auto_musicbrainz"
         static let beepOnScan = "beep_on_scan"
-        static let lastFm = "lastfm_api_key"
+        static let hapticOnScan = "haptic_on_scan"
         static let theAudioDb = "theaudiodb_api_key"
         static let redactedKey = "redacted_api_key"
         static let redactedNotifSnap = "redacted_notifications_snapshot"

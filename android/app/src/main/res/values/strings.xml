@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">turnTable</string>
+    <string name="about_title">About</string>
+    <string name="about_version_fmt">Version %1$s</string>
+    <string name="about_body">turnTable is a native 1D barcode scanner for Android and iOS with a shared C++ (ZXing) core. It supports configurable music metadata lookups and optional Redacted tracker integration.\n\nOpen source. See the project README and CHANGELOG in the repository for details.</string>
+    <string name="about_logo_content_description">turnTable logo</string>
+    <string name="donation_title">Donate</string>
+    <string name="donation_body">If you find turnTable useful, you can support development with a voluntary donation via PayPal or Cash App. Thank you!</string>
+    <string name="donation_open_paypal">Donate with PayPal</string>
+    <string name="donate_paypal_url">https://paypal.me/rcbaaron?locale.x=en_US&amp;country.x=US</string>
+    <string name="donation_open_cash_app">Donate with Cash App</string>
+    <string name="donate_cash_app_url">https://cash.app/$RCBaaron</string>
+    <string name="settings_section_about">About &amp; support</string>
+    <string name="settings_about">About</string>
+    <string name="settings_donate">Donate</string>
     <string name="nav_home">Home</string>
     <string name="settings">Settings</string>
     <string name="history">History</string>
@@ -35,10 +48,19 @@
     <string name="primary_search">Primary (music info – API only)</string>
     <string name="redacted_api_key_hint">Redacted API key (optional)</string>
     <string name="redacted_api_key_help">Sent as Authorization on https://redacted.sh/ajax.php (JSON API). Use Home or the scanner menu to open in-app torrent search when a key is set.</string>
-    <string name="lastfm_api_key_hint">Last.fm API key (optional)</string>
-    <string name="lastfm_api_key_help">For Last.fm primary source: last.fm/api — method album.getinfobymbid.</string>
     <string name="theaudiodb_api_key_hint">TheAudioDB API key (optional)</string>
-    <string name="theaudiodb_api_key_help">Defaults to public test key 1 if empty. Register at theaudiodb.com for your own key.</string>
+    <string name="theaudiodb_api_key_help">Sent as X-API-KEY on all TheAudioDB v2 requests (barcode album lookup and Search-screen artist/album search). Defaults to 123 if empty; a premium key is usually required for v2.</string>
+    <string name="theaudiodb_text_search_section">TheAudioDB (text search)</string>
+    <string name="theaudiodb_text_search_help">v2 only: /search/artist/{query} and /search/album/{query} with X-API-KEY (same as Settings).</string>
+    <string name="theaudiodb_text_search_hint">e.g. Coldplay or Parachutes</string>
+    <string name="theaudiodb_text_search_button">Search TheAudioDB</string>
+    <string name="theaudiodb_text_search_pick">Choose a result</string>
+    <string name="theaudiodb_text_search_empty">No TheAudioDB results</string>
+    <string name="theaudiodb_text_search_enter_query">Enter a search term</string>
+    <string-array name="audiodb_search_kind">
+        <item>Artist</item>
+        <item>Album</item>
+    </string-array>
     <string name="secondary_search">Secondary (yadg upload sites)</string>
     <string name="open_secondary_in_browser">Open secondary links in</string>
     <string name="secondary_search_hint">e.g. tracker search by artist/album</string>
@@ -50,6 +72,11 @@
     <string name="cover_url_copied">Cover image URL copied to clipboard</string>
     <string name="secondary_no_artist_title">No release found for barcode; enter artist/album for secondary</string>
     <string name="beep_on_scan">Beep on successful scan</string>
+    <string name="haptic_on_scan">Haptic feedback on successful scan</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_follow_system">Use system setting</string>
     <string name="permission_onboarding_title">Permissions needed</string>
     <string name="permission_onboarding_intro">turnTable needs the following permissions. Each is used only for the reason listed.</string>
     <string name="permission_internet_title">Internet</string>
@@ -67,7 +94,7 @@
     <string name="drag_to_reorder">Drag to reorder</string>
     <string name="edit_secondary_list">Edit secondary list</string>
     <string name="edit_secondary_list_title">Edit secondary search list</string>
-    <string name="edit_secondary_list_help">Select an entry to edit name and URL. Use %s in URL for the search query. Add, remove, or reorder entries.</string>
+    <string name="edit_secondary_list_help">Select an entry to edit name and URL. Use %s in URL for the search query. Add, remove, or reorder entries. Below that, set GET or POST and (for POST) body/headers for how the search screen talks to your secondary URL.</string>
     <string name="secondary_edit_dropdown_label">Search entry</string>
     <string name="secondary_edit_name_hint">Display name</string>
     <string name="secondary_edit_url_hint">URL (use %s for query)</string>
@@ -77,6 +104,10 @@
     <string name="secondary_edit_add">Add new</string>
     <string name="secondary_edit_need_one">Keep at least one entry.</string>
     <string name="secondary_edit_invalid">Name and URL are required; URL must contain %s.</string>
+    <string name="secondary_edit_http_method_section">How the search screen submits to your secondary URL (GET opens browser; POST uses body below).</string>
+    <string name="secondary_variables_reference_intro">Placeholder reference (search screen fields):</string>
+    <string name="secondary_variables_get_header">GET URL</string>
+    <string name="secondary_variables_post_header">POST body</string>
     <string name="edit_list_title_primary">Edit primary list (CLI)</string>
     <string name="edit_list_title_secondary">Edit secondary list (CLI)</string>
     <string name="edit_list_help_primary">One entry per line: id|name\nLines starting with # are comments.</string>
@@ -95,6 +126,36 @@
     <string name="redacted_search_in_app">Search Redacted</string>
     <string name="redacted_share_torrent">Share .torrent</string>
     <string name="redacted_torrent_search">Torrent search</string>
+    <string name="redacted_browse_header">Torrents</string>
+    <string name="redacted_browse_filter_title">Basic / Advanced search</string>
+    <string name="redacted_browse_mode_basic">Basic</string>
+    <string name="redacted_browse_mode_advanced">Advanced</string>
+    <string name="redacted_browse_search_terms">Search terms</string>
+    <string name="redacted_browse_artist_name">Artist name</string>
+    <string name="redacted_browse_album_torrent_name">Album / torrent name</string>
+    <string name="redacted_browse_record_label">Record label</string>
+    <string name="redacted_browse_catalogue_number">Catalogue #</string>
+    <string name="redacted_browse_year">Year</string>
+    <string name="redacted_browse_edition_title">Edition title</string>
+    <string name="redacted_browse_edition_year">Edition year</string>
+    <string name="redacted_browse_file_list">File list</string>
+    <string name="redacted_browse_torrent_description">Torrent description</string>
+    <string name="redacted_browse_rip_specifics">Rip specifics</string>
+    <string name="redacted_browse_misc">Misc</string>
+    <string name="redacted_browse_tags_hint">Tags (comma-separated)</string>
+    <string name="redacted_browse_tags_any">Any</string>
+    <string name="redacted_browse_tags_all">All</string>
+    <string name="redacted_browse_group_by_release">Group by release</string>
+    <string name="redacted_browse_categories">Categories</string>
+    <string name="redacted_browse_cat_music">Music</string>
+    <string name="redacted_browse_cat_apps">Applications</string>
+    <string name="redacted_browse_cat_ebooks">E-Books</string>
+    <string name="redacted_browse_cat_audiobooks">Audiobooks</string>
+    <string name="redacted_browse_cat_elearning">E-Learning Videos</string>
+    <string name="redacted_browse_cat_comedy">Comedy</string>
+    <string name="redacted_browse_cat_comics">Comics</string>
+    <string name="redacted_browse_reset">Reset</string>
+    <string name="redacted_browse_filter_torrents">Filter torrents</string>
     <string name="redacted_search_hint">Search (artist, album, catalog #, …)</string>
     <string name="redacted_search">Search</string>
     <string name="redacted_prev_page">Prev</string>
@@ -205,6 +266,31 @@
     <string name="home_content_cd_history">Search history</string>
     <string name="home_content_cd_settings">Settings</string>
     <string name="home_content_cd_redacted">Redacted hub</string>
+
+    <!-- red.trackerstatus.info strip (API: /api/all/) -->
+    <string name="tracker_status_service_website">Website</string>
+    <string name="tracker_status_service_http">Tracker HTTP</string>
+    <string name="tracker_status_service_https">Tracker HTTPS</string>
+    <string name="tracker_status_service_irc">IRC server</string>
+    <string name="tracker_status_service_announcer">IRC torrent announcer</string>
+    <string name="tracker_status_service_user_id">IRC user identifiers</string>
+    <string name="tracker_status_a11y">%1$s: %2$s. %3$s.</string>
+    <string name="tracker_status_up">Up</string>
+    <string name="tracker_status_down">Down</string>
+    <string name="tracker_status_latency">Latency %1$s</string>
+
+    <!-- GitHub release update check (see values/github_update.xml for owner/repo) -->
+    <string name="github_update_not_configured">GitHub update check isn’t configured. Add your GitHub user or org in github_update.xml (github_update_owner), then rebuild.</string>
+    <string name="github_update_checking">Checking GitHub…</string>
+    <string name="github_update_dialog_title">Update available</string>
+    <string name="github_update_dialog_summary_fmt">Installed: %1$s\nLatest release: %2$s</string>
+    <string name="github_update_download_apk">Download APK</string>
+    <string name="github_update_open_release">Open release page</string>
+    <string name="github_update_skip_version">Skip this version (no more prompts)</string>
+    <string name="github_update_later">Later</string>
+    <string name="github_update_up_to_date_fmt">You’re up to date (%1$s).</string>
+    <string name="github_update_failed_fmt">Couldn’t check for updates: %1$s</string>
+    <string name="github_update_check_button">Check for updates</string>
     <string name="notif_channel_redacted_name">Redacted alerts</string>
     <string name="notif_channel_redacted_description">Alerts when your Redacted index notifications show new activity</string>
     <string name="notif_redacted_title">turnTable · Redacted</string>

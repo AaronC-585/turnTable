@@ -5,15 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_main">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#202020"
+        android:background="@color/app_bg_toolbar"
         app:title="@string/settings"
-        app:titleTextColor="#eeeeee" />
+        app:titleTextColor="@color/app_toolbar_title" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -27,19 +27,44 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <CheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkBeepOnScan"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/beep_on_scan"
-            android:textColor="#cccccc"
+            android:textColor="@color/app_text_secondary"
+            android:layout_marginBottom="12dp" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/checkHapticOnScan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/haptic_on_scan"
+            android:textColor="@color/app_text_secondary"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_theme"
+            android:textColor="@color/app_text_label"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerTheme"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:layout_marginBottom="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/primary_search"
-            android:textColor="#888888"
+            android:textColor="@color/app_text_label"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
@@ -52,15 +77,15 @@
             android:drawableStart="@drawable/ic_edit_pencil"
             android:drawablePadding="8dp"
             android:padding="10dp"
-            android:textColor="#ffffff"
-            app:backgroundTint="#3a7bd5"
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_accent"
             android:layout_marginBottom="8dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/redacted_api_key_help"
-            android:textColor="#666666"
+            android:textColor="@color/app_text_help_small"
             android:textSize="12sp"
             android:layout_marginBottom="8dp" />
 
@@ -68,10 +93,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/redacted_api_key_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_hint"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             app:endIconMode="password_toggle"
             android:layout_marginBottom="20dp">
 
@@ -80,14 +105,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/theaudiodb_api_key_help"
-            android:textColor="#666666"
+            android:textColor="@color/app_text_help_small"
             android:textSize="12sp"
             android:layout_marginBottom="8dp" />
 
@@ -95,10 +120,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/theaudiodb_api_key_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_hint"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -106,41 +131,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:textColor="#eeeeee" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/lastfm_api_key_help"
-            android:textColor="#666666"
-            android:textSize="12sp"
-            android:layout_marginBottom="8dp" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/lastfm_api_key_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
-            app:endIconMode="password_toggle"
-            android:layout_marginBottom="20dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editLastFmApiKey"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/secondary_search"
-            android:textColor="#888888"
+            android:textColor="@color/app_text_hint"
             android:textSize="14sp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
@@ -163,33 +161,37 @@
             android:drawableStart="@drawable/ic_edit_pencil"
             android:drawablePadding="8dp"
             android:padding="10dp"
-            android:textColor="#ffffff"
-            app:backgroundTint="#3a7bd5"
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_accent"
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/secondary_search_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
+            app:boxBackgroundColor="@color/app_surface_input"
+            app:hintTextColor="@color/app_text_hint"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="8dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editSecondaryUrl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textUri"
-                android:textColor="#eeeeee" />
+                android:gravity="top|start"
+                android:inputType="textMultiLine|textUri|textNoSuggestions"
+                android:minLines="4"
+                android:scrollbars="vertical"
+                android:typeface="monospace"
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/open_secondary_in_browser"
-            android:textColor="#888888"
+            android:textColor="@color/app_text_hint"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
@@ -202,122 +204,57 @@
             android:paddingEnd="12dp"
             android:layout_marginBottom="8dp" />
 
-        <CheckBox
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkSecondaryAutoMusicBrainz"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/secondary_auto_musicbrainz"
-            android:textColor="#cccccc"
+            android:textColor="@color/app_text_secondary"
             android:layout_marginBottom="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/http_method"
-            android:textColor="#888888"
+            android:text="@string/settings_section_about"
+            android:textColor="@color/app_text_hint"
             android:textSize="14sp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
 
-        <Spinner
-            android:id="@+id/spinnerMethod"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:layout_marginBottom="16dp" />
-
-        <LinearLayout
-            android:id="@+id/postOptionsContainer"
+        <Button
+            android:id="@+id/buttonAbout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            android:layout_marginBottom="24dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/post_content_type"
-            android:textColor="#888888"
-            android:textSize="14sp"
+            android:text="@string/settings_about"
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_button_neutral"
             android:layout_marginBottom="8dp" />
 
-        <com.google.android.material.textfield.TextInputLayout
+        <Button
+            android:id="@+id/buttonCheckUpdates"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/post_content_type_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
-            android:layout_marginBottom="16dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editContentType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text"
-                android:textColor="#eeeeee"
-                />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/post_body"
-            android:textColor="#888888"
-            android:textSize="14sp"
+            android:text="@string/github_update_check_button"
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_accent_green_dark"
             android:layout_marginBottom="8dp" />
 
-        <com.google.android.material.textfield.TextInputLayout
+        <Button
+            android:id="@+id/buttonDonate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/post_body_hint"
-            app:boxBackgroundColor="#2a2a2a"
-            app:hintTextColor="#888888"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
-            android:layout_marginBottom="16dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editPostBody"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textMultiLine"
-                android:minLines="3"
-                android:textColor="#eeeeee" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/post_headers"
-            android:textColor="#888888"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp" />
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editPostHeaders"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
-            android:minLines="2"
-            android:hint="Authorization: Bearer token"
-            android:textColor="#eeeeee"
-            android:background="@android:drawable/edit_text"
-            android:padding="12dp"
-            android:layout_marginBottom="24dp" />
-
-        </LinearLayout>
+            android:text="@string/settings_donate"
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_paypal"
+            android:layout_marginBottom="20dp" />
 
         <Button
             android:id="@+id/buttonSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/save"
-            android:textColor="#ffffff"
-            app:backgroundTint="#3a7bd5" />
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_accent" />
     </LinearLayout>
     </ScrollView>
 </LinearLayout>

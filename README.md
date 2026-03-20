@@ -21,6 +21,8 @@ The **iOS app binary** is built in **Xcode** (`open ios/turnTable.xcodeproj`); `
 
 Publish **Android APK** and **iOS IPA** on each release (attach both to the same tag). See **`RELEASE.md`** and **`scripts/release-github.sh`**.
 
+**In-app update check (Android):** Set `github_update_owner` in **`android/app/src/main/res/values/github_update.xml`** to your GitHub user or org (same repo as releases). The app calls the public [latest release](https://docs.github.com/en/rest/releases/releases#get-the-latest-release) API, compares the release tag to `versionName`, and can prompt on the home screen (once per 24h) or from **Settings** / **About → Check for updates**. Tags should match the dotted version form (e.g. `v2026.3.19.1373`).
+
 ## Android
 
 **Requirements:** Android Studio (or CLI), **NDK 28** (16 KB page-size–friendly libc++ and defaults), CMake 3.22+, **AGP 8.5+** (aligned JNI packaging).

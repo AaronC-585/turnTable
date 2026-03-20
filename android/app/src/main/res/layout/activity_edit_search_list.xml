@@ -5,15 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_main">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#202020"
+        android:background="@color/app_bg_toolbar"
         app:title="@string/edit_list_title_secondary"
-        app:titleTextColor="#eeeeee" />
+        app:titleTextColor="@color/app_text_primary" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -31,16 +31,16 @@
             android:id="@+id/textHelp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#aaaaaa"
+            android:textColor="@color/app_text_help"
             android:textSize="13sp"
             android:layout_marginBottom="16dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:boxBackgroundColor="#2a2a2a"
+            app:boxBackgroundColor="@color/app_surface_input"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5"
+            app:boxStrokeColor="@color/app_accent"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -50,7 +50,7 @@
                 android:inputType="textMultiLine|textNoSuggestions"
                 android:minLines="10"
                 android:typeface="monospace"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
@@ -65,8 +65,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/edit_list_reset"
-                android:textColor="#ffffff"
-                app:backgroundTint="#555555" />
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_chip_stroke" />
 
             <View
                 android:layout_width="12dp"
@@ -78,8 +78,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/edit_list_save"
-                android:textColor="#ffffff"
-                app:backgroundTint="#3a7bd5" />
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_accent" />
         </LinearLayout>
 
         <Button
@@ -87,8 +87,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/cancel"
-            android:textColor="#ffffff"
-            app:backgroundTint="#444444" />
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_button_secondary" />
     </LinearLayout>
     </ScrollView>
 </LinearLayout>

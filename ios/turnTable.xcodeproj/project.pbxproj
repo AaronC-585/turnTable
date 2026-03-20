@@ -26,6 +26,8 @@
 		A10000000000002200000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPrefs.swift; sourceTree = "<group>"; };
 		A10000000000002300000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
 		A10000000000002400000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		A10000000000002800000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutViewController.swift; sourceTree = "<group>"; };
+		A10000000000002900000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DonationViewController.swift; sourceTree = "<group>"; };
 		A10000000000002500000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		A10000000000000400000001 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A10000000000000500000001 = {isa = PBXFileReference; lastKnownFileType = wrapper.app; path = turnTable.app; sourceTree = "BUILT_PRODUCTS_DIR"; };
@@ -65,6 +67,8 @@
 				A10000000000002200000001,
 				A10000000000002300000001,
 				A10000000000002400000001,
+				A10000000000002800000001,
+				A10000000000002900000001,
 				A10000000000002500000001,
 				A10000000000000400000001,
 				A10000000000000700000001,
@@ -123,6 +127,8 @@
 				A30000000000002200000001,
 				A30000000000002300000001,
 				A30000000000002400000001,
+				A30000000000002900000001,
+				A30000000000003000000001,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			sourceTree = "<group>";
@@ -146,6 +152,8 @@
 		A30000000000002200000001 = {isa = PBXBuildFile; fileRef = A10000000000002300000001; };
 		A30000000000002300000001 = {isa = PBXBuildFile; fileRef = A10000000000002400000001; };
 		A30000000000002400000001 = {isa = PBXBuildFile; fileRef = A10000000000002500000001; };
+		A30000000000002900000001 = {isa = PBXBuildFile; fileRef = A10000000000002800000001; };
+		A30000000000003000000001 = {isa = PBXBuildFile; fileRef = A10000000000002900000001; };
 
 		/* Build phases - Frameworks */
 		A30000000000000400000001 = {

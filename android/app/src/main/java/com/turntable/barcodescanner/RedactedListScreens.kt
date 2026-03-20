@@ -8,7 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.turntable.barcodescanner.databinding.ActivityRedactedBookmarksBinding
-import com.turntable.barcodescanner.databinding.ActivityRedactedBrowseBinding
+import com.turntable.barcodescanner.databinding.ActivityRedactedSimpleListBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedTop10Binding
 import com.turntable.barcodescanner.databinding.ActivityRedactedUserTorrentsBinding
 import com.turntable.barcodescanner.redacted.RedactedExtras
@@ -201,7 +201,7 @@ class RedactedBookmarksActivity : AppCompatActivity() {
 }
 
 class RedactedRequestsActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityRedactedBrowseBinding
+    private lateinit var binding: ActivityRedactedSimpleListBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private var currentPage = 1
     private var totalPages = 1
@@ -211,14 +211,14 @@ class RedactedRequestsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val c = RedactedUiHelper.requireApi(this) ?: return
         api = c
-        binding = ActivityRedactedBrowseBinding.inflate(layoutInflater)
+        binding = ActivityRedactedSimpleListBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.redacted_requests)
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
-        binding.editSearch.hint = getString(R.string.redacted_requests_search_hint)
+        binding.inputQueryLayout.hint = getString(R.string.redacted_requests_search_hint)
 
         val adapter = TwoLineRowsAdapter { pos ->
             val rid = requestIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
@@ -246,7 +246,7 @@ class RedactedRequestsActivity : AppCompatActivity() {
     }
 
     private fun load(adapter: TwoLineRowsAdapter) {
-        val q = binding.editSearch.text?.toString()?.trim().orEmpty()
+        val q = binding.editQuery.text?.toString()?.trim().orEmpty()
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.requests(search = q.takeIf { it.isNotBlank() }, page = currentPage)

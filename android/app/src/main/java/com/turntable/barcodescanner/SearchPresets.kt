@@ -11,7 +11,7 @@ object SearchPresets {
     data class Preset(val id: String, val name: String, val url: String)
 
     data class PrimaryApiEntry(
-        /** API id / command (e.g. musicbrainz, discogs, theaudiodb, lastfm). */
+        /** API id / command (e.g. musicbrainz, discogs, theaudiodb). */
         val cmd: String,
         val enabled: Boolean,
         val displayName: String,
@@ -26,7 +26,6 @@ object SearchPresets {
         Preset("musicbrainz", "MusicBrainz (API)", ""),
         Preset("discogs", "Discogs (API)", ""),
         Preset("theaudiodb", "TheAudioDB (via MB release)", ""),
-        Preset("lastfm", "Last.fm — album by MBID (API key)", ""),
     )
 
     /** Yadg/tracker upload sites – opened in browser with artist/title query. */

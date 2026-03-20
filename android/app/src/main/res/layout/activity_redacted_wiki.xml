@@ -4,32 +4,32 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_main">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#2a2a2a"
+        android:background="@color/app_surface_input"
         app:title="@string/redacted_wiki"
-        app:titleTextColor="#eeeeee"
-        app:navigationIconTint="#eeeeee" />
+        app:titleTextColor="@color/app_text_primary"
+        app:navigationIconTint="@color/app_text_primary" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:hint="@string/redacted_wiki_name"
-        app:boxBackgroundColor="#2a2a2a"
+        app:boxBackgroundColor="@color/app_surface_input"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        app:boxStrokeColor="#3a7bd5">
+        app:boxStrokeColor="@color/app_accent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
-            android:textColor="#eeeeee" />
+            android:textColor="@color/app_text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
@@ -38,23 +38,23 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
         android:text="@string/redacted_load_by_name"
-        app:backgroundTint="#3a7bd5" />
+        app:backgroundTint="@color/app_accent" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:hint="@string/redacted_wiki_id_hint"
-        app:boxBackgroundColor="#2a2a2a"
+        app:boxBackgroundColor="@color/app_surface_input"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        app:boxStrokeColor="#3a7bd5">
+        app:boxStrokeColor="@color/app_accent">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editWikiId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="number"
-            android:textColor="#eeeeee" />
+            android:textColor="@color/app_text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
@@ -63,7 +63,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
         android:text="@string/redacted_load_by_id"
-        app:backgroundTint="#555555" />
+        app:backgroundTint="@color/app_chip_stroke" />
 
     <ProgressBar
         android:id="@+id/progress"
@@ -82,7 +82,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="12dp"
-            android:textColor="#cccccc"
+            android:textColor="@color/app_text_secondary"
             android:textSize="13sp"
             android:fontFamily="monospace"
             android:textIsSelectable="true" />

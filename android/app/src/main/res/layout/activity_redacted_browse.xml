@@ -4,72 +4,592 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_root_browse">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#2a2a2a"
-        app:title="@string/redacted_torrent_search"
-        app:titleTextColor="#eeeeee"
-        app:navigationIconTint="#eeeeee" />
+        android:background="@color/app_bg_toolbar"
+        app:title="@string/redacted_browse_header"
+        app:titleTextColor="@color/app_text_primary"
+        app:navigationIconTint="@color/app_text_primary" />
 
-    <com.google.android.material.textfield.TextInputLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="12dp"
-        android:hint="@string/redacted_search_hint"
-        app:boxBackgroundColor="#2a2a2a"
-        app:hintTextColor="#888888"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        app:boxStrokeColor="#3a7bd5">
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editSearch"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
-            android:textColor="#eeeeee" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardBackgroundColor="@color/app_card_browse"
+                app:strokeColor="@color/app_stroke_browse_card"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/redacted_browse_filter_title"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:paddingBottom="8dp" />
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/toggleSearchMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        app:singleSelection="true"
+                        app:checkedButton="@+id/btnModeBasic">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnModeBasic"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_browse_mode_basic"
+                            android:textColor="@color/app_chip_text"
+                            app:strokeColor="@color/app_chip_stroke" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnModeAdvanced"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_browse_mode_advanced"
+                            android:textColor="@color/app_chip_text"
+                            app:strokeColor="@color/app_chip_stroke" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                    <LinearLayout
+                        android:id="@+id/panelBasic"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/redacted_browse_search_terms"
+                            app:boxBackgroundColor="@color/app_surface_input"
+                            app:hintTextColor="@color/app_text_label"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            app:boxStrokeColor="@color/app_accent">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editSearchStr"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:textColor="@color/app_text_primary" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/panelAdvanced"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/redacted_browse_artist_name"
+                            app:boxBackgroundColor="@color/app_surface_input"
+                            app:hintTextColor="@color/app_text_label"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            app:boxStrokeColor="@color/app_accent"
+                            android:layout_marginBottom="6dp">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editArtistName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:textColor="@color/app_text_primary" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/redacted_browse_album_torrent_name"
+                            app:boxBackgroundColor="@color/app_surface_input"
+                            app:hintTextColor="@color/app_text_label"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            app:boxStrokeColor="@color/app_accent"
+                            android:layout_marginBottom="6dp">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editGroupName"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:textColor="@color/app_text_primary" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/redacted_browse_record_label"
+                            app:boxBackgroundColor="@color/app_surface_input"
+                            app:hintTextColor="@color/app_text_label"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            app:boxStrokeColor="@color/app_accent"
+                            android:layout_marginBottom="6dp">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editRecordLabel"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:textColor="@color/app_text_primary" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:hint="@string/redacted_browse_catalogue_number"
+                                app:boxBackgroundColor="@color/app_surface_input"
+                                app:hintTextColor="@color/app_text_label"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                app:boxStrokeColor="@color/app_accent"
+                                android:layout_marginEnd="6dp"
+                                android:layout_marginBottom="6dp">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/editCatalogueNumber"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="text"
+                                    android:textColor="@color/app_text_primary" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="100dp"
+                                android:layout_height="wrap_content"
+                                android:hint="@string/redacted_browse_year"
+                                app:boxBackgroundColor="@color/app_surface_input"
+                                app:hintTextColor="@color/app_text_label"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                app:boxStrokeColor="@color/app_accent"
+                                android:layout_marginBottom="6dp">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/editYear"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="number"
+                                    android:textColor="@color/app_text_primary" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:hint="@string/redacted_browse_edition_title"
+                                app:boxBackgroundColor="@color/app_surface_input"
+                                app:hintTextColor="@color/app_text_label"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                app:boxStrokeColor="@color/app_accent"
+                                android:layout_marginEnd="6dp"
+                                android:layout_marginBottom="6dp">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/editRemasterTitle"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="text"
+                                    android:textColor="@color/app_text_primary" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="100dp"
+                                android:layout_height="wrap_content"
+                                android:hint="@string/redacted_browse_edition_year"
+                                app:boxBackgroundColor="@color/app_surface_input"
+                                app:hintTextColor="@color/app_text_label"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                app:boxStrokeColor="@color/app_accent"
+                                android:layout_marginBottom="6dp">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/editRemasterYear"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="number"
+                                    android:textColor="@color/app_text_primary" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/redacted_browse_file_list"
+                            app:boxBackgroundColor="@color/app_surface_input"
+                            app:hintTextColor="@color/app_text_label"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            app:boxStrokeColor="@color/app_accent"
+                            android:layout_marginBottom="6dp">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editFileList"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:textColor="@color/app_text_primary" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/redacted_browse_torrent_description"
+                            app:boxBackgroundColor="@color/app_surface_input"
+                            app:hintTextColor="@color/app_text_label"
+                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            app:boxStrokeColor="@color/app_accent"
+                            android:layout_marginBottom="8dp">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editTorrentDescription"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:textColor="@color/app_text_primary" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_browse_rip_specifics"
+                            android:textColor="@color/app_text_muted"
+                            android:textSize="12sp"
+                            android:paddingBottom="4dp" />
+
+                        <HorizontalScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:scrollbars="none"
+                            android:layout_marginBottom="8dp">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <Spinner
+                                    android:id="@+id/spinnerEncoding"
+                                    android:layout_width="140dp"
+                                    android:layout_height="48dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@android:drawable/btn_dropdown" />
+
+                                <Spinner
+                                    android:id="@+id/spinnerFormat"
+                                    android:layout_width="120dp"
+                                    android:layout_height="48dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@android:drawable/btn_dropdown" />
+
+                                <Spinner
+                                    android:id="@+id/spinnerMedia"
+                                    android:layout_width="120dp"
+                                    android:layout_height="48dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@android:drawable/btn_dropdown" />
+
+                                <Spinner
+                                    android:id="@+id/spinnerReleaseType"
+                                    android:layout_width="160dp"
+                                    android:layout_height="48dp"
+                                    android:background="@android:drawable/btn_dropdown" />
+                            </LinearLayout>
+                        </HorizontalScrollView>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_browse_misc"
+                            android:textColor="@color/app_text_muted"
+                            android:textSize="12sp"
+                            android:paddingBottom="4dp" />
+
+                        <HorizontalScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:scrollbars="none"
+                            android:layout_marginBottom="8dp">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <Spinner
+                                    android:id="@+id/spinnerHasLog"
+                                    android:layout_width="130dp"
+                                    android:layout_height="48dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@android:drawable/btn_dropdown" />
+
+                                <Spinner
+                                    android:id="@+id/spinnerHasCue"
+                                    android:layout_width="110dp"
+                                    android:layout_height="48dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@android:drawable/btn_dropdown" />
+
+                                <Spinner
+                                    android:id="@+id/spinnerScene"
+                                    android:layout_width="100dp"
+                                    android:layout_height="48dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@android:drawable/btn_dropdown" />
+
+                                <Spinner
+                                    android:id="@+id/spinnerVanityHouse"
+                                    android:layout_width="130dp"
+                                    android:layout_height="48dp"
+                                    android:layout_marginEnd="6dp"
+                                    android:background="@android:drawable/btn_dropdown" />
+
+                                <Spinner
+                                    android:id="@+id/spinnerFreeTorrent"
+                                    android:layout_width="140dp"
+                                    android:layout_height="48dp"
+                                    android:background="@android:drawable/btn_dropdown" />
+                            </LinearLayout>
+                        </HorizontalScrollView>
+                    </LinearLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/redacted_browse_tags_hint"
+                        app:boxBackgroundColor="@color/app_surface_input"
+                        app:hintTextColor="@color/app_text_label"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        app:boxStrokeColor="@color/app_accent"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="6dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editTaglist"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="text"
+                            android:textColor="@color/app_text_primary" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <RadioGroup
+                        android:id="@+id/radioTagsMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <RadioButton
+                            android:id="@+id/radioTagsAny"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_browse_tags_any"
+                            android:textColor="@color/app_text_secondary"
+                            android:checked="true"
+                            android:buttonTint="@color/app_accent" />
+
+                        <RadioButton
+                            android:id="@+id/radioTagsAll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="16dp"
+                            android:text="@string/redacted_browse_tags_all"
+                            android:textColor="@color/app_text_secondary"
+                            android:buttonTint="@color/app_accent" />
+                    </RadioGroup>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <Spinner
+                            android:id="@+id/spinnerOrderBy"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            android:background="@android:drawable/btn_dropdown" />
+
+                        <Spinner
+                            android:id="@+id/spinnerOrderWay"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:background="@android:drawable/btn_dropdown" />
+                    </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchGroupResults"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/redacted_browse_group_by_release"
+                        android:textColor="@color/app_text_secondary"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/redacted_browse_categories"
+                        android:textColor="@color/app_text_muted"
+                        android:textSize="12sp"
+                        android:paddingBottom="4dp" />
+
+                    <GridLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:columnCount="2"
+                        android:layout_marginBottom="8dp">
+
+                        <CheckBox
+                            android:id="@+id/checkCat1"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:text="@string/redacted_browse_cat_music"
+                            android:textColor="@color/app_text_secondary" />
+                        <CheckBox
+                            android:id="@+id/checkCat2"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:text="@string/redacted_browse_cat_apps"
+                            android:textColor="@color/app_text_secondary" />
+                        <CheckBox
+                            android:id="@+id/checkCat3"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:text="@string/redacted_browse_cat_ebooks"
+                            android:textColor="@color/app_text_secondary" />
+                        <CheckBox
+                            android:id="@+id/checkCat4"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:text="@string/redacted_browse_cat_audiobooks"
+                            android:textColor="@color/app_text_secondary" />
+                        <CheckBox
+                            android:id="@+id/checkCat5"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:text="@string/redacted_browse_cat_elearning"
+                            android:textColor="@color/app_text_secondary" />
+                        <CheckBox
+                            android:id="@+id/checkCat6"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:text="@string/redacted_browse_cat_comedy"
+                            android:textColor="@color/app_text_secondary" />
+                        <CheckBox
+                            android:id="@+id/checkCat7"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_columnWeight="1"
+                            android:text="@string/redacted_browse_cat_comics"
+                            android:textColor="@color/app_text_secondary" />
+                    </GridLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <Button
+                            android:id="@+id/buttonReset"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/redacted_browse_reset"
+                            app:backgroundTint="@color/app_button_secondary"
+                            android:layout_marginEnd="6dp" />
+
+                        <Button
+                            android:id="@+id/buttonSearch"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/redacted_browse_filter_torrents"
+                            app:backgroundTint="@color/app_accent" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingHorizontal="12dp"
-        android:paddingBottom="8dp">
-
-        <Button
-            android:id="@+id/buttonSearch"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/redacted_search"
-            app:backgroundTint="#3a7bd5" />
+        android:paddingVertical="6dp"
+        android:gravity="center_vertical">
 
         <Button
             android:id="@+id/buttonPrev"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/redacted_prev_page"
-            app:backgroundTint="#444444" />
+            app:backgroundTint="@color/app_button_secondary" />
+
+        <TextView
+            android:id="@+id/textPage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="@color/app_text_help"
+            android:textSize="13sp" />
 
         <Button
             android:id="@+id/buttonNext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/redacted_next_page"
-            app:backgroundTint="#444444" />
+            app:backgroundTint="@color/app_button_secondary" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/textPage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textColor="#888888"
-        android:paddingBottom="4dp" />
 
     <ProgressBar
         android:id="@+id/progress"
@@ -82,5 +602,7 @@
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="3"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp" />
 </LinearLayout>

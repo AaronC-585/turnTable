@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Docked at bottom of most screens: tracker status + shortcut row. Inflated by [AppBottomBars]. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/appBottomDock"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/app_bg_main"
+    android:elevation="6dp">
+
+    <LinearLayout
+        android:id="@+id/trackerStatusBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/app_bg_bottom_nav"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingVertical="4dp"
+        android:paddingHorizontal="4dp">
+
+        <ImageView
+            android:id="@+id/imageTrackerWebsite"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/tracker_status_service_website"
+            android:src="@drawable/tracker_status_ie_bad" />
+
+        <ImageView
+            android:id="@+id/imageTrackerHttp"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/tracker_status_service_http"
+            android:src="@drawable/tracker_status_http_bad" />
+
+        <ImageView
+            android:id="@+id/imageTrackerHttps"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/tracker_status_service_https"
+            android:src="@drawable/tracker_status_https_bad" />
+
+        <ImageView
+            android:id="@+id/imageTrackerIrc"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/tracker_status_service_irc"
+            android:src="@drawable/tracker_status_irc_bad" />
+
+        <ImageView
+            android:id="@+id/imageTrackerAnnouncer"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/tracker_status_service_announcer"
+            android:src="@drawable/tracker_status_announcer_bad" />
+
+        <ImageView
+            android:id="@+id/imageTrackerUserId"
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/tracker_status_service_user_id"
+            android:src="@drawable/tracker_status_userid_bad" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:letterSpacing="0.05"
+        android:text="@string/home_actions_shortcuts"
+        android:textAllCaps="true"
+        android:textColor="@color/home_text_muted"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:id="@+id/layoutHomeActions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp">
+
+        <LinearLayout
+            android:id="@+id/homeActionScan"
+            style="@style/HomeActionColumn"
+            android:contentDescription="@string/home_content_cd_scan">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonHomeScan"
+                style="@style/HomeIconActionButton"
+                app:icon="@android:drawable/ic_menu_camera"
+                app:iconTint="@color/home_text_primary" />
+
+            <TextView
+                style="@style/HomeActionLabel"
+                android:text="@string/scan" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/homeActionHistory"
+            style="@style/HomeActionColumn"
+            android:contentDescription="@string/home_content_cd_history">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonHomeHistory"
+                style="@style/HomeIconActionButton"
+                app:icon="@android:drawable/ic_menu_recent_history"
+                app:iconTint="@color/home_text_primary" />
+
+            <TextView
+                style="@style/HomeActionLabel"
+                android:text="@string/history" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/homeActionSettings"
+            style="@style/HomeActionColumn"
+            android:contentDescription="@string/home_content_cd_settings">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonHomeSettings"
+                style="@style/HomeIconActionButton"
+                app:icon="@drawable/ic_settings_gear"
+                app:iconTint="@color/home_text_primary" />
+
+            <TextView
+                style="@style/HomeActionLabel"
+                android:text="@string/settings" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/homeActionRedacted"
+            style="@style/HomeActionColumn"
+            android:contentDescription="@string/home_content_cd_redacted">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonHomeRedacted"
+                style="@style/HomeIconActionButton"
+                app:icon="@android:drawable/ic_menu_compass"
+                app:iconTint="@color/home_text_primary" />
+
+            <TextView
+                style="@style/HomeActionLabel"
+                android:text="@string/redacted_torrent_search" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

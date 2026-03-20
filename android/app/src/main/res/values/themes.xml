@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.BarcodeScanner" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">#3a7bd5</item>
-        <item name="android:statusBarColor">#1a1a1a</item>
-        <item name="android:navigationBarColor">#1a1a1a</item>
-        <item name="android:windowBackground">#1a1a1a</item>
+        <item name="colorPrimary">@color/app_accent</item>
+        <item name="android:statusBarColor">@color/app_bg_main</item>
+        <item name="android:navigationBarColor">@color/app_bg_main</item>
+        <item name="android:windowBackground">@color/app_bg_main</item>
     </style>
 
     <style name="HomeActionColumn">

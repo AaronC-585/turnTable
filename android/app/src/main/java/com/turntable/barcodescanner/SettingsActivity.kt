@@ -35,33 +35,25 @@ class SettingsActivity : AppCompatActivity() {
         val prefs = SearchPrefs(this)
 
         binding.checkBeepOnScan.isChecked = prefs.beepOnScan
+        binding.checkHapticOnScan.isChecked = prefs.hapticOnScan
+
+        val themeChoices = listOf(
+            SearchPrefs.THEME_LIGHT to getString(R.string.theme_light),
+            SearchPrefs.THEME_DARK to getString(R.string.theme_dark),
+            SearchPrefs.THEME_FOLLOW_SYSTEM to getString(R.string.theme_follow_system),
+        )
+        binding.spinnerTheme.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            themeChoices.map { it.second }
+        )
+        val themeIndex = themeChoices.indexOfFirst { it.first == prefs.themeMode }.takeIf { it >= 0 } ?: 2
+        binding.spinnerTheme.setSelection(themeIndex.coerceIn(0, themeChoices.size - 1))
 
         loadListsAndBind()
 
         binding.editRedactedApiKey.setText(prefs.redactedApiKey ?: "")
         binding.editTheAudioDbApiKey.setText(prefs.theAudioDbApiKey ?: "")
-        binding.editLastFmApiKey.setText(prefs.lastFmApiKey ?: "")
-
-        binding.editContentType.setText(prefs.postContentType ?: "application/json")
-        binding.editPostBody.setText(prefs.postBody ?: """{"code":"%s"}""")
-        binding.editPostHeaders.setText(prefs.postHeaders ?: "")
-
-        val methods = listOf(SearchPrefs.METHOD_GET, SearchPrefs.METHOD_POST)
-        binding.spinnerMethod.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            methods
-        )
-        val methodIndex = methods.indexOf(prefs.method).coerceAtLeast(0)
-        binding.spinnerMethod.setSelection(methodIndex)
-        updatePostOptionsVisibility(methodIndex == 1)
-
-        binding.spinnerMethod.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updatePostOptionsVisibility(methods[position] == SearchPrefs.METHOD_POST)
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
 
         browserEntries = getSecondaryBrowserList()
         binding.spinnerSecondaryBrowser.adapter = ArrayAdapter(
@@ -84,17 +76,32 @@ class SettingsActivity : AppCompatActivity() {
             editListLauncher.launch(Intent(this, EditSecondaryListActivity::class.java))
         }
 
+        binding.buttonAbout.setOnClickListener {
+            startActivity(Intent(this, AboutActivity::class.java))
+        }
+        binding.buttonCheckUpdates.setOnClickListener {
+            UpdateCheckCoordinator.checkManually(this)
+        }
+        binding.buttonDonate.setOnClickListener {
+            startActivity(Intent(this, DonationActivity::class.java))
+        }
+
         binding.buttonSave.setOnClickListener {
+            val themePos = binding.spinnerTheme.selectedItemPosition.coerceIn(0, themeChoices.size - 1)
+            val newTheme = themeChoices[themePos].first
+            if (newTheme != prefs.themeMode) {
+                prefs.themeMode = newTheme
+                AppTheme.applyPersistentNightMode(this)
+                (application as TurnTableApp).bumpThemeEpoch()
+                delegate.applyDayNight()
+            }
+
             prefs.beepOnScan = binding.checkBeepOnScan.isChecked
+            prefs.hapticOnScan = binding.checkHapticOnScan.isChecked
             prefs.redactedApiKey = binding.editRedactedApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.theAudioDbApiKey = binding.editTheAudioDbApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
-            prefs.lastFmApiKey = binding.editLastFmApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
-            prefs.secondarySearchUrl = binding.editSecondaryUrl.text?.toString()?.trim()
+            prefs.secondarySearchUrl = binding.editSecondaryUrl.text.normalizeUrlInput().takeIf { it.isNotBlank() }
             prefs.secondarySearchAutoFromMusicBrainz = binding.checkSecondaryAutoMusicBrainz.isChecked
-            prefs.method = methods[binding.spinnerMethod.selectedItemPosition]
-            prefs.postContentType = binding.editContentType.text?.toString()?.trim()
-            prefs.postBody = binding.editPostBody.text?.toString()?.trim()
-            prefs.postHeaders = binding.editPostHeaders.text?.toString()?.trim()
             val secondaryBrowserPos = binding.spinnerSecondaryBrowser.selectedItemPosition.coerceIn(0, browserEntries.size - 1)
             prefs.secondaryBrowserPackage = browserEntries.getOrNull(secondaryBrowserPos)?.packageName
             Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
@@ -148,7 +155,4 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun updatePostOptionsVisibility(show: Boolean) {
-        binding.postOptionsContainer.visibility = if (show) View.VISIBLE else View.GONE
-    }
 }

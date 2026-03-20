@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivitySearchBinding
 import com.turntable.barcodescanner.redacted.RedactedExtras
@@ -50,12 +51,65 @@ class SearchActivity : AppCompatActivity() {
                 },
             )
         }
+
+        binding.buttonAudioDbSearch.setOnClickListener { runTheAudioDbTextSearch() }
+    }
+
+    /**
+     * TheAudioDB v2 `search/artist/{q}` and `search/album/{q}` via [TheAudioDbApi] (**X-API-KEY**).
+     * @see [TheAudioDbTextSearch]
+     */
+    private fun runTheAudioDbTextSearch() {
+        val q = binding.editAudioDbQuery.text?.toString()?.trim().orEmpty()
+        if (q.isEmpty()) {
+            Toast.makeText(this, R.string.theaudiodb_text_search_enter_query, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val kindArtist = binding.spinnerAudioDbSearchKind.selectedItemPosition == 0
+        val prefs = SearchPrefs(this)
+        binding.buttonAudioDbSearch.isEnabled = false
+        Thread {
+            val items = try {
+                if (kindArtist) {
+                    TheAudioDbTextSearch.searchArtists(prefs.theAudioDbApiKey, q)
+                } else {
+                    TheAudioDbTextSearch.searchAlbums(prefs.theAudioDbApiKey, q)
+                }
+            } catch (_: Exception) {
+                emptyList()
+            }
+            runOnUiThread {
+                binding.buttonAudioDbSearch.isEnabled = true
+                if (items.isEmpty()) {
+                    Toast.makeText(this, R.string.theaudiodb_text_search_empty, Toast.LENGTH_LONG).show()
+                } else {
+                    showTheAudioDbResultPicker(items)
+                }
+            }
+        }.start()
+    }
+
+    private fun showTheAudioDbResultPicker(items: List<TheAudioDbSearchItem>) {
+        val lines = items.map { item ->
+            buildString {
+                append(item.title)
+                item.subtitle?.takeIf { it.isNotBlank() }?.let { append(" — ").append(it) }
+            }
+        }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(R.string.theaudiodb_text_search_pick)
+            .setItems(lines) { _, which ->
+                val item = items[which]
+                binding.editSecondarySearchTerms.setText(item.secondarySearchQuery)
+                applyCoverAssist(item.coverImageUrl)
+                binding.secondarySearchTermsContainer.visibility = View.VISIBLE
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun submit(barcode: String) {
         val prefs = SearchPrefs(this)
-        val notes = binding.editNotes.text?.toString().orEmpty()
-        val category = binding.editCategory.text?.toString().orEmpty()
 
         when (prefs.method) {
             SearchPrefs.METHOD_GET -> {
@@ -69,7 +123,7 @@ class SearchActivity : AppCompatActivity() {
                 if (prefs.secondarySearchAutoFromMusicBrainz) {
                     fetchPrimaryInfoAndOpenSecondary(barcode, secondaryUrl, secondaryPkg, prefs)
                 } else if (!secondaryQuery.isNullOrBlank()) {
-                    openSecondaryUrl(secondaryUrl, secondaryQuery, secondaryPkg)
+                    openSecondaryUrl(secondaryUrl, secondaryPkg, secondaryVarsFromUi(barcode))
                     finish()
                 } else {
                     Toast.makeText(this, R.string.secondary_no_artist_title, Toast.LENGTH_SHORT).show()
@@ -81,10 +135,22 @@ class SearchActivity : AppCompatActivity() {
                     Toast.makeText(this, R.string.configure_secondary_url, Toast.LENGTH_LONG).show()
                     return
                 }
-                doPost(url, barcode, notes, category, prefs)
+                doPost(url, prefs, secondaryVarsFromUi(barcode))
             }
         }
     }
+
+    private fun secondaryVarsFromUi(
+        barcode: String,
+        query: String = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty(),
+        coverUrl: String? = binding.editCoverImageUrl.text?.toString()?.trim()?.takeIf { it.isNotBlank() },
+    ): SecondarySearchVariables = SecondarySearchVariables(
+        barcode = binding.editBarcode.text?.toString()?.trim().orEmpty().ifBlank { barcode },
+        notes = binding.editNotes.text?.toString().orEmpty(),
+        category = binding.editCategory.text?.toString().orEmpty(),
+        query = query,
+        coverUrl = coverUrl,
+    )
 
     private fun openInBrowser(url: String, pkg: String?, onDone: (success: Boolean) -> Unit) {
         val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
@@ -122,23 +188,15 @@ class SearchActivity : AppCompatActivity() {
 
     private fun openSecondaryUrl(
         secondaryUrl: String,
-        query: String,
         pkg: String?,
-        coverUrl: String? = null,
+        vars: SecondarySearchVariables,
     ) {
-        fun enc(s: String) = java.net.URLEncoder.encode(s, Charsets.UTF_8.name())
-        val parts = query.split(" - ", limit = 2)
-        val artist = parts.getOrNull(0)?.trim().orEmpty()
-        val album = parts.getOrNull(1)?.trim().orEmpty()
-        val url = secondaryUrl
-            .replace("%s", enc(query))
-            .replace("%artist%", enc(if (artist.isNotBlank()) artist else query))
-            .replace("%album%", enc(if (album.isNotBlank()) album else query))
+        val url = SecondarySearchSubstitution.substituteUrl(secondaryUrl, vars)
         SearchHistoryStore.add(
             this,
-            barcode = binding.editBarcode.text?.toString().orEmpty(),
-            title = query,
-            coverUrl = coverUrl,
+            barcode = vars.barcode,
+            title = vars.query,
+            coverUrl = vars.coverUrl,
         )
         openInBrowser(url, pkg) { finish() }
     }
@@ -158,7 +216,6 @@ class SearchActivity : AppCompatActivity() {
                     lookup = when (cmd) {
                         "discogs" -> PrimarySearchAssist.fetchDiscogs(barcode, null)
                         "theaudiodb" -> PrimarySearchAssist.fetchTheAudioDb(barcode, prefs.theAudioDbApiKey)
-                        "lastfm" -> PrimarySearchAssist.fetchLastFm(barcode, prefs.lastFmApiKey)
                         "musicbrainz" -> PrimarySearchAssist.fetchMusicBrainz(barcode)
                         else -> null
                     }
@@ -172,11 +229,19 @@ class SearchActivity : AppCompatActivity() {
             runOnUiThread {
                 applyCoverAssist(coverUrl)
                 if (!query.isNullOrBlank()) {
-                    openSecondaryUrl(secondaryUrl, query, pkg, coverUrl)
+                    openSecondaryUrl(
+                        secondaryUrl,
+                        pkg,
+                        secondaryVarsFromUi(
+                            barcode = barcode,
+                            query = query,
+                            coverUrl = coverUrl,
+                        ),
+                    )
                 } else {
                     val manual = binding.editSecondarySearchTerms.text?.toString()?.trim()
                     if (!manual.isNullOrBlank()) {
-                        openSecondaryUrl(secondaryUrl, manual, pkg, null)
+                        openSecondaryUrl(secondaryUrl, pkg, secondaryVarsFromUi(barcode, query = manual))
                     } else {
                         Toast.makeText(this, R.string.secondary_no_artist_title, Toast.LENGTH_SHORT).show()
                         finish()
@@ -255,18 +320,15 @@ class SearchActivity : AppCompatActivity() {
 
     private fun doPost(
         url: String,
-        barcode: String,
-        notes: String,
-        category: String,
-        prefs: SearchPrefs
+        prefs: SearchPrefs,
+        vars: SecondarySearchVariables,
     ) {
         Thread {
             try {
-                val body = (prefs.postBody ?: """{"code":"$barcode"}""")
-                    .replace("%s", barcode)
-                    .replace("\$code", barcode)
-                    .replace("\$notes", notes)
-                    .replace("\$category", category)
+                val body = SecondarySearchSubstitution.substitutePostBody(
+                    prefs.postBody ?: """{"code":"%s"}""",
+                    vars,
+                )
                 val contentType = prefs.postContentType ?: "application/json"
                 val headers = prefs.postHeaders?.lines()?.filter { it.contains(":") }
                     ?.associate { line ->

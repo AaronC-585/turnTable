@@ -17,6 +17,8 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.view.HapticFeedbackConstantsCompat
+import androidx.core.view.ViewCompat
 import com.turntable.barcodescanner.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -182,6 +184,15 @@ class MainActivity : AppCompatActivity() {
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
                 { toneGen.release() },
                 200
+            )
+        } catch (_: Exception) { }
+    }
+
+    private fun playScanHaptic() {
+        try {
+            ViewCompat.performHapticFeedback(
+                binding.previewView,
+                HapticFeedbackConstantsCompat.CONFIRM,
             )
         } catch (_: Exception) { }
     }

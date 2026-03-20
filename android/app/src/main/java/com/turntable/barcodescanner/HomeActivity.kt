@@ -2,7 +2,6 @@ package com.turntable.barcodescanner
 
 import android.Manifest
 import android.content.Intent
-import android.view.MenuItem
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Typeface
@@ -76,10 +75,9 @@ class HomeActivity : AppCompatActivity() {
             ContextCompat.getColor(this, R.color.home_ratio_ok),
         )
         binding.swipeRefresh.setOnRefreshListener {
+            AppBottomBars.refreshTrackerNow(this)
             loadProfile(isPullRefresh = true)
         }
-
-        wireShortcutButtons()
 
         binding.buttonAddApiKey.setOnClickListener { showApiKeyDialog(allowDismissToNoKey = true) }
 
@@ -106,28 +104,10 @@ class HomeActivity : AppCompatActivity() {
         )
     }
 
-    private fun wireShortcutButtons() {
-        binding.buttonHomeScan.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
-        }
-        binding.buttonHomeHistory.setOnClickListener {
-            startActivity(Intent(this, SearchHistoryActivity::class.java))
-        }
-        binding.buttonHomeSettings.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
-        binding.buttonHomeRedacted.setOnClickListener {
-            if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
-                Toast.makeText(this, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
-            } else {
-                startActivity(Intent(this, RedactedBrowseActivity::class.java))
-            }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         maybeRequestNotificationPermissionOnce()
+        UpdateCheckCoordinator.requestBackgroundCheckIfDue(this)
         if (!SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
             scheduleAutoRefresh()
         }
@@ -187,7 +167,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun showNoKeyState() {
-        binding.progress.visibility = View.GONE
+        binding.loadingTopBar.visibility = View.GONE
         binding.swipeRefresh.isRefreshing = false
         binding.swipeRefresh.visibility = View.GONE
         binding.textError.visibility = View.GONE
@@ -254,7 +234,7 @@ class HomeActivity : AppCompatActivity() {
         }
 
         if (!isPullRefresh) {
-            binding.progress.visibility = View.VISIBLE
+            binding.loadingTopBar.visibility = View.VISIBLE
             binding.swipeRefresh.visibility = View.GONE
         } else {
             binding.swipeRefresh.isRefreshing = true
@@ -269,7 +249,7 @@ class HomeActivity : AppCompatActivity() {
             val idx = api.index()
             when (idx) {
                 is RedactedResult.Failure -> runOnUiThread {
-                    binding.progress.visibility = View.GONE
+                    binding.loadingTopBar.visibility = View.GONE
                     binding.swipeRefresh.isRefreshing = false
                     binding.swipeRefresh.visibility = View.GONE
                     binding.textError.visibility = View.VISIBLE
@@ -298,7 +278,7 @@ class HomeActivity : AppCompatActivity() {
                     val sections = RedactedProfileUiBuilder.build(indexResp, userObj, commObj)
 
                     runOnUiThread {
-                        binding.progress.visibility = View.GONE
+                        binding.loadingTopBar.visibility = View.GONE
                         binding.swipeRefresh.isRefreshing = false
                         binding.textError.visibility = View.GONE
                         binding.layoutNoKey.visibility = View.GONE
@@ -315,7 +295,7 @@ class HomeActivity : AppCompatActivity() {
                     }
                 }
                 else -> runOnUiThread {
-                    binding.progress.visibility = View.GONE
+                    binding.loadingTopBar.visibility = View.GONE
                     binding.swipeRefresh.isRefreshing = false
                     binding.swipeRefresh.visibility = View.GONE
                     binding.textError.visibility = View.VISIBLE

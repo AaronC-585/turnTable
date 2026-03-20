@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1a1a1a"
+    android:background="@color/app_bg_main"
     android:fillViewport="true">
 
     <LinearLayout
@@ -15,19 +15,19 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#2a2a2a"
+            android:background="@color/app_surface_input"
             app:title="@string/redacted_logchecker"
-            app:titleTextColor="#eeeeee"
-            app:navigationIconTint="#eeeeee" />
+            app:titleTextColor="@color/app_text_primary"
+            app:navigationIconTint="@color/app_text_primary" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:hint="@string/redacted_paste_log"
-            app:boxBackgroundColor="#2a2a2a"
+            app:boxBackgroundColor="@color/app_surface_input"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5">
+            app:boxStrokeColor="@color/app_accent">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editLog"
@@ -36,7 +36,7 @@
                 android:gravity="top"
                 android:inputType="textMultiLine"
                 android:minLines="10"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
@@ -45,14 +45,14 @@
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:text="@string/redacted_check_log"
-            app:backgroundTint="#3a7bd5" />
+            app:backgroundTint="@color/app_accent" />
 
         <TextView
             android:id="@+id/textResult"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="12dp"
-            android:textColor="#cccccc"
+            android:textColor="@color/app_text_secondary"
             android:fontFamily="monospace"
             android:textIsSelectable="true" />
     </LinearLayout>

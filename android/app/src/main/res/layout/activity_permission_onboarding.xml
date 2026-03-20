@@ -5,15 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_main">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#202020"
+        android:background="@color/app_bg_toolbar"
         app:title="@string/permission_onboarding_title"
-        app:titleTextColor="#eeeeee" />
+        app:titleTextColor="@color/app_text_primary" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -31,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/permission_onboarding_intro"
-            android:textColor="#aaaaaa"
+            android:textColor="@color/app_text_help"
             android:textSize="14sp"
             android:layout_marginBottom="24dp" />
 
@@ -40,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/permission_internet_title"
-            android:textColor="#eeeeee"
+            android:textColor="@color/app_text_primary"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
@@ -48,7 +48,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/permission_internet_why"
-            android:textColor="#aaaaaa"
+            android:textColor="@color/app_text_help"
             android:textSize="14sp"
             android:layout_marginBottom="4dp" />
         <TextView
@@ -56,7 +56,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/permission_internet_status"
-            android:textColor="#88cc88"
+            android:textColor="@color/app_permission_ok"
             android:textSize="14sp"
             android:layout_marginBottom="20dp" />
 
@@ -65,7 +65,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/permission_camera_title"
-            android:textColor="#eeeeee"
+            android:textColor="@color/app_text_primary"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
@@ -73,7 +73,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/permission_camera_why"
-            android:textColor="#aaaaaa"
+            android:textColor="@color/app_text_help"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
         <Button
@@ -81,15 +81,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/permission_request_camera"
-            android:textColor="#ffffff"
-            app:backgroundTint="#3a7bd5"
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_accent"
             android:layout_marginBottom="8dp" />
         <TextView
             android:id="@+id/textCameraStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text=""
-            android:textColor="#88cc88"
+            android:textColor="@color/app_permission_ok"
             android:textSize="14sp"
             android:visibility="gone"
             android:layout_marginBottom="24dp" />
@@ -99,8 +99,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/permission_continue"
-            android:textColor="#ffffff"
-            app:backgroundTint="#3a7bd5" />
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_accent" />
     </LinearLayout>
     </ScrollView>
 </LinearLayout>

@@ -15,6 +15,8 @@ class EditSecondaryListActivity : AppCompatActivity() {
     private var selectedIndex = 0
     private var ignoreSpinnerSelection = false
 
+    private val httpMethods = listOf(SearchPrefs.METHOD_GET, SearchPrefs.METHOD_POST)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEditSecondaryListBinding.inflate(layoutInflater)
@@ -25,6 +27,39 @@ class EditSecondaryListActivity : AppCompatActivity() {
         binding.textHelp.setText(R.string.edit_secondary_list_help)
 
         val prefs = SearchPrefs(this)
+
+        binding.editContentType.setText(prefs.postContentType ?: "application/json")
+        binding.editPostBody.setText(prefs.postBody ?: """{"code":"%s"}""")
+        binding.editPostHeaders.setText(prefs.postHeaders ?: "")
+
+        binding.spinnerMethod.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            httpMethods,
+        )
+        val methodIndex = httpMethods.indexOf(prefs.method).coerceAtLeast(0)
+        binding.spinnerMethod.setSelection(methodIndex)
+        updatePostOptionsVisibility(httpMethods[methodIndex] == SearchPrefs.METHOD_POST)
+
+        binding.spinnerMethod.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updatePostOptionsVisibility(httpMethods[position] == SearchPrefs.METHOD_POST)
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        binding.textSecondaryVariablesHelp.text = buildString {
+            appendLine(getString(R.string.secondary_variables_get_header))
+            SecondarySearchSubstitution.urlVariableRows.forEach { (k, d) ->
+                append(k).append(" → ").appendLine(d)
+            }
+            appendLine()
+            appendLine(getString(R.string.secondary_variables_post_header))
+            SecondarySearchSubstitution.postVariableRows.forEach { (k, d) ->
+                append(k).append(" → ").appendLine(d)
+            }
+        }
+
         val saved = SearchPresets.parseSecondaryListText(prefs.secondaryListText)
         list.clear()
         list.addAll(saved ?: SearchPresets.secondaryTrackersDefault)
@@ -84,13 +119,18 @@ class EditSecondaryListActivity : AppCompatActivity() {
 
         binding.buttonSave.setOnClickListener {
             val name = binding.editName.text?.toString()?.trim().orEmpty()
-            val url = binding.editUrl.text?.toString()?.trim().orEmpty()
+            val url = binding.editUrl.text.normalizeUrlInput()
             if (name.isBlank() || url.isBlank() || !url.contains("%s")) {
                 Toast.makeText(this, R.string.secondary_edit_invalid, Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             if (selectedIndex in list.indices) list[selectedIndex] = list[selectedIndex].copy(name = name, url = url)
             prefs.secondaryListText = SearchPresets.serializeSecondaryList(list)
+            val mPos = binding.spinnerMethod.selectedItemPosition.coerceIn(0, httpMethods.lastIndex)
+            prefs.method = httpMethods[mPos]
+            prefs.postContentType = binding.editContentType.text?.toString()?.trim()
+            prefs.postBody = binding.editPostBody.text?.toString()?.trim()
+            prefs.postHeaders = binding.editPostHeaders.text?.toString()?.trim()
             setResult(RESULT_OK)
             finish()
         }
@@ -104,7 +144,7 @@ class EditSecondaryListActivity : AppCompatActivity() {
     private fun saveCurrentToIndex(index: Int) {
         if (index !in list.indices) return
         val name = binding.editName.text?.toString()?.trim().orEmpty()
-        val url = binding.editUrl.text?.toString()?.trim().orEmpty()
+        val url = binding.editUrl.text.normalizeUrlInput()
         list[index] = list[index].copy(name = name.ifBlank { list[index].name }, url = url.ifBlank { list[index].url })
     }
 
@@ -126,5 +166,9 @@ class EditSecondaryListActivity : AppCompatActivity() {
         )
         binding.spinnerPresets.setSelection(selectedIndex.coerceIn(0, list.size - 1))
         ignoreSpinnerSelection = false
+    }
+
+    private fun updatePostOptionsVisibility(show: Boolean) {
+        binding.postOptionsContainer.visibility = if (show) View.VISIBLE else View.GONE
     }
 }

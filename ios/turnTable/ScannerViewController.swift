@@ -195,6 +195,11 @@ final class ScannerViewController: UIViewController {
             if self.searchPrefs.beepOnScan {
                 AudioServicesPlaySystemSound(1108)
             }
+            if self.searchPrefs.hapticOnScan {
+                let h = UINotificationFeedbackGenerator()
+                h.prepare()
+                h.notificationOccurred(.success)
+            }
             self.resultLabel.text = result
             self.resultLabel.isHidden = false
             self.delegate?.scanner(self, didScan: result)

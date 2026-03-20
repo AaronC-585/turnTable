@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1a1a1a"
+    android:background="@color/app_bg_main"
     android:fillViewport="true">
 
     <LinearLayout
@@ -16,25 +16,25 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#2a2a2a"
+            android:background="@color/app_surface_input"
             app:title="@string/redacted_send_pm"
-            app:titleTextColor="#eeeeee"
-            app:navigationIconTint="#eeeeee" />
+            app:titleTextColor="@color/app_text_primary"
+            app:navigationIconTint="@color/app_text_primary" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/redacted_user_id"
-            app:boxBackgroundColor="#2a2a2a"
+            app:boxBackgroundColor="@color/app_surface_input"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5">
+            app:boxStrokeColor="@color/app_accent">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editToId"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="number"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -42,16 +42,16 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="@string/redacted_subject"
-            app:boxBackgroundColor="#2a2a2a"
+            app:boxBackgroundColor="@color/app_surface_input"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5">
+            app:boxStrokeColor="@color/app_accent">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editSubject"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="text"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -59,9 +59,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="@string/redacted_message_body"
-            app:boxBackgroundColor="#2a2a2a"
+            app:boxBackgroundColor="@color/app_surface_input"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="#3a7bd5">
+            app:boxStrokeColor="@color/app_accent">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editBody"
@@ -70,7 +70,7 @@
                 android:gravity="top"
                 android:inputType="textMultiLine"
                 android:minLines="5"
-                android:textColor="#eeeeee" />
+                android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
@@ -79,6 +79,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/redacted_send"
-            app:backgroundTint="#3a7bd5" />
+            app:backgroundTint="@color/app_accent" />
     </LinearLayout>
 </ScrollView>

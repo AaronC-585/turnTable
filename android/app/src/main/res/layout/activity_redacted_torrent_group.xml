@@ -3,19 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1a1a1a">
+    android:background="@color/app_bg_main">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#2a2a2a">
+        android:background="@color/app_surface_input">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:titleTextColor="#eeeeee"
-            app:navigationIconTint="#eeeeee" />
+            app:titleTextColor="@color/app_text_primary"
+            app:navigationIconTint="@color/app_text_primary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -43,7 +43,7 @@
                 android:id="@+id/textMeta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#cccccc"
+                android:textColor="@color/app_text_secondary"
                 android:textSize="14sp"
                 android:layout_marginTop="8dp" />
 
@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/redacted_open_on_site"
-                    app:backgroundTint="#444444" />
+                    app:backgroundTint="@color/app_button_secondary" />
 
                 <Button
                     android:id="@+id/buttonAddTag"
@@ -67,7 +67,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/redacted_add_tag"
-                    app:backgroundTint="#3a7bd5" />
+                    app:backgroundTint="@color/app_accent" />
             </LinearLayout>
 
             <Button
@@ -75,13 +75,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/redacted_edit_group"
-                app:backgroundTint="#555555" />
+                app:backgroundTint="@color/app_chip_stroke" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/redacted_torrents"
-                android:textColor="#eeeeee"
+                android:textColor="@color/app_text_primary"
                 android:textStyle="bold"
                 android:layout_marginTop="16dp" />
 

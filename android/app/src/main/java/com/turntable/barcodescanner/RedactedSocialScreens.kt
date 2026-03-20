@@ -6,7 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.turntable.barcodescanner.databinding.ActivityRedactedBrowseBinding
+import com.turntable.barcodescanner.databinding.ActivityRedactedSimpleListBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedDetailBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedGenericListBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedPagedListBinding
@@ -496,7 +496,7 @@ class RedactedAnnouncementsActivity : AppCompatActivity() {
 }
 
 class RedactedUserSearchActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityRedactedBrowseBinding
+    private lateinit var binding: ActivityRedactedSimpleListBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private val userIds = mutableListOf<Int>()
 
@@ -504,14 +504,14 @@ class RedactedUserSearchActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val c = RedactedUiHelper.requireApi(this) ?: return
         api = c
-        binding = ActivityRedactedBrowseBinding.inflate(layoutInflater)
+        binding = ActivityRedactedSimpleListBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_user_search)
-        binding.editSearch.hint = getString(R.string.redacted_search_users_hint)
+        binding.inputQueryLayout.hint = getString(R.string.redacted_search_users_hint)
 
         val adapter = TwoLineRowsAdapter { pos ->
             val uid = userIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
@@ -532,7 +532,7 @@ class RedactedUserSearchActivity : AppCompatActivity() {
     }
 
     private fun search(adapter: TwoLineRowsAdapter) {
-        val q = binding.editSearch.text?.toString()?.trim().orEmpty()
+        val q = binding.editQuery.text?.toString()?.trim().orEmpty()
         if (q.isBlank()) {
             Toast.makeText(this, R.string.redacted_search_users_hint, Toast.LENGTH_SHORT).show()
             return
