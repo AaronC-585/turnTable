@@ -1,0 +1,52 @@
+---
+description: Every GitHub release must attach Android APK and iOS IPA as release assets
+alwaysApply: true
+---
+
+# Releases: Android APK + iOS IPA
+
+For **every** GitHub release in this repo (production or ad-hoc), attach **both** installable artifacts:
+
+1. **Android** — release **APK** (`assembleRelease`).
+2. **iOS** — exported **IPA** (Xcode archive → Distribute App), built on **macOS**.
+
+Prefer publishing **both** assets on the same tag. If the APK is built first (e.g. on Linux CI), create the release with the APK, then **`gh release upload <tag> <ipa>`** from macOS when the IPA is ready—so the release page ends up with **both** files before you announce it. For an intentional **Android-only** or **iOS-only** hotfix, say so in the title and notes.
+
+## Paths (this project)
+
+| Platform | Build | Output (typical) |
+|----------|--------|-------------------|
+| Android | Release | `android/app/build/outputs/apk/release/turnTable.release-<version>.apk` |
+| iOS | Archive + export | `turnTable-ios-<version>.ipa` (or path you pass to `scripts/release-github.sh`) |
+
+- Android `<version>`: `year.month.day.minutesSinceMidnight` from `./gradlew printAppVersion` (run from `android/`).
+- Before exporting iOS IPA, set **Marketing Version** in Xcode to match the same `<version>` string as Android for that release (`ios/turnTable.xcodeproj` → target **turnTable** → **General**).
+
+See **`RELEASE.md`** for the full checklist and Xcode export steps.
+
+## Checklist (before publishing any release)
+
+1. **Android:** `cd android && ./gradlew assembleRelease` — confirm APK path above.
+2. **iOS (macOS):** `make ios` (native lib), open `ios/turnTable.xcodeproj`, bump version, **Product → Archive**, **Distribute App** → Ad Hoc or Development (or App Store Connect), export **IPA**.
+3. Create the tag/release and upload **both** files (`scripts/release-github.sh`, `gh release upload`, or GitHub UI **Attach binaries**).
+4. Note filenames and version in release notes.
+
+## Example (GitHub CLI)
+
+From repo root (both files ready):
+
+```bash
+./scripts/release-github.sh v2026.3.19.1219 \
+  android/app/build/outputs/apk/release/turnTable.release-2026.3.19.1219.apk \
+  path/to/turnTable-ios-2026.3.19.1219.ipa
+```
+
+APK first, IPA when Xcode is available:
+
+```bash
+./scripts/release-github.sh v2026.3.19.1219 android/app/build/outputs/apk/release/turnTable.release-2026.3.19.1219.apk
+# later (macOS):
+gh release upload v2026.3.19.1219 path/to/turnTable-ios-2026.3.19.1219.ipa
+```
+
+Before announcing a **full** release, confirm **both** APK and IPA appear on the GitHub release page (unless the release is explicitly single-platform).

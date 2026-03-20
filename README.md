@@ -17,6 +17,10 @@ make help         # list targets: cpp, android, android-release, ios, clean
 
 The **iOS app binary** is built in **Xcode** (`open ios/turnTable.xcodeproj`); `make all` only produces the iOS **native library** on macOS.
 
+### GitHub releases
+
+Publish **Android APK** and **iOS IPA** on each release (attach both to the same tag). See **`RELEASE.md`** and **`scripts/release-github.sh`**.
+
 ## Android
 
 **Requirements:** Android Studio (or CLI), **NDK 28** (16 KB page-size–friendly libc++ and defaults), CMake 3.22+, **AGP 8.5+** (aligned JNI packaging).

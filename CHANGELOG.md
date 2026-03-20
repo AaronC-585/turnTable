@@ -4,6 +4,8 @@ All notable changes to the turnTable / 1D Barcode Scanner project are documented
 
 ## [Unreleased]
 
+- **Releases (policy):** GitHub releases should include **Android** (`turnTable.release-<version>.apk`) and **iOS** (`turnTable-ios-<version>.ipa`) as assets. See **`RELEASE.md`**, **`scripts/release-github.sh`**, and Cursor rule **releases-include-mobile-apps**. APK may be published first; upload IPA from macOS with `gh release upload` when ready.
+
 ## [2026.3.19.1219] — Android production release
 
 - **Versioning:** Each Gradle build sets `versionName` to `year.month.day.minutesSinceMidnight` and `versionCode` to `epochDay * 10000 + minutes` (monotonic, Play-safe). APKs: `turnTable.release-<version>.apk` / `turnTable.debug-<version>.apk`. Task: `./gradlew printAppVersion`.
