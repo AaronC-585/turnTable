@@ -29,6 +29,8 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        setupToolbarHome(binding.toolbar)
 
         val prefs = SearchPrefs(this)
 
@@ -81,14 +83,6 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.buttonEditSecondaryList.setOnClickListener {
             editListLauncher.launch(Intent(this, EditSecondaryListActivity::class.java))
-        }
-
-        binding.buttonRedactedHub.setOnClickListener {
-            if (prefs.redactedApiKey.isNullOrBlank()) {
-                Toast.makeText(this, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
-            } else {
-                startActivity(Intent(this, RedactedHubActivity::class.java))
-            }
         }
 
         binding.buttonSave.setOnClickListener {

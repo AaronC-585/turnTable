@@ -22,6 +22,8 @@ class SearchActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        setupToolbarHome(binding.toolbar)
 
         val barcode = intent.getStringExtra(EXTRA_BARCODE).orEmpty()
         binding.editBarcode.setText(barcode)

@@ -19,8 +19,9 @@ class EditSecondaryListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityEditSecondaryListBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        setupToolbarHome(binding.toolbar)
 
-        binding.textTitle.setText(R.string.edit_secondary_list_title)
         binding.textHelp.setText(R.string.edit_secondary_list_help)
 
         val prefs = SearchPrefs(this)

@@ -18,9 +18,10 @@ class EditSearchListActivity : AppCompatActivity() {
         }
         binding = ActivityEditSearchListBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        setupToolbarHome(binding.toolbar)
 
         val prefs = SearchPrefs(this)
-        binding.textTitle.setText(R.string.edit_list_title_secondary)
         binding.textHelp.setText(R.string.edit_list_help_secondary)
         binding.editList.setText(prefs.secondaryListText ?: defaultSecondaryText())
 

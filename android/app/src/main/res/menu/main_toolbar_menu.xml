@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/action_home"
+        android:icon="@drawable/ic_home"
+        android:title="@string/nav_home"
+        android:showAsAction="always" />
+    <item
         android:id="@+id/action_history"
         android:icon="@android:drawable/ic_menu_recent_history"
         android:title="@string/history"
-        android:showAsAction="always" />
-    <item
-        android:id="@+id/action_stats"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:title="@string/stats"
         android:showAsAction="always" />
     <item
         android:id="@+id/action_flashlight"
@@ -22,6 +22,6 @@
         android:showAsAction="always" />
     <item
         android:id="@+id/action_redacted"
-        android:title="@string/redacted_menu"
+        android:title="@string/redacted_torrent_search"
         android:showAsAction="never" />
 </menu>

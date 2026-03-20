@@ -24,6 +24,8 @@ class PermissionOnboardingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityPermissionOnboardingBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        setupToolbarHome(binding.toolbar)
 
         updateCameraStatusFromOs()
 

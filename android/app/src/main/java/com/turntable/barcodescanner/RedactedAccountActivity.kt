@@ -18,6 +18,7 @@ class RedactedAccountActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_account)
 
         binding.progress.visibility = View.VISIBLE

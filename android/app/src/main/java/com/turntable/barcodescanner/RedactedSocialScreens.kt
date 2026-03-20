@@ -32,6 +32,7 @@ class RedactedInboxActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_inbox)
 
         val adapter = TwoLineRowsAdapter { pos ->
@@ -102,6 +103,7 @@ class RedactedConversationActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_inbox)
 
         binding.progress.visibility = View.VISIBLE
@@ -150,6 +152,7 @@ class RedactedForumMainActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_forums)
 
         val adapter = TwoLineRowsAdapter { pos ->
@@ -225,6 +228,7 @@ class RedactedForumThreadsActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = intent.getStringExtra(RedactedExtras.FORUM_NAME)
             ?: getString(R.string.redacted_threads)
 
@@ -305,6 +309,7 @@ class RedactedForumThreadActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_thread)
 
         binding.progress.visibility = View.VISIBLE
@@ -356,6 +361,7 @@ class RedactedNotificationsActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_notifications)
 
         val adapter = TwoLineRowsAdapter { pos ->
@@ -436,6 +442,7 @@ class RedactedAnnouncementsActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_announcements)
 
         val adapter = TwoLineRowsAdapter { /* no-op */ }
@@ -502,6 +509,7 @@ class RedactedUserSearchActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_user_search)
         binding.editSearch.hint = getString(R.string.redacted_search_users_hint)
 
@@ -572,6 +580,7 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_subscriptions)
 
         binding.progress.visibility = View.VISIBLE

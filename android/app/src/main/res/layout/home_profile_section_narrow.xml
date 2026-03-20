@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compact card for Personal column under avatar (narrow width). -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="@color/home_card_bg"
+    app:cardCornerRadius="4dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#444444">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/home_section_header_bg"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="6dp"
+            android:textColor="@color/home_text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="Personal" />
+
+        <LinearLayout
+            android:id="@+id/layoutSectionRows"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="6dp" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

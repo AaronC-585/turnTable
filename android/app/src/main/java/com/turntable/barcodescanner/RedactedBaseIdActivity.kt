@@ -35,6 +35,7 @@ abstract class RedactedBaseIdActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = screenTitle()
 
         val preset = intent.getIntExtra(idExtraKey(), 0)

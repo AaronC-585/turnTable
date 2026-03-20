@@ -26,6 +26,7 @@ class RedactedWikiActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         binding.buttonByName.setOnClickListener {
             val name = binding.editName.text?.toString()?.trim().orEmpty()
@@ -78,6 +79,7 @@ class RedactedLogcheckerActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         binding.buttonCheck.setOnClickListener {
             val log = binding.editLog.text?.toString().orEmpty()
@@ -124,6 +126,7 @@ class RedactedRipLogActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         binding.buttonLoad.setOnClickListener {
             val tid = binding.editTorrentId.text?.toString()?.toIntOrNull() ?: 0
@@ -164,6 +167,7 @@ class RedactedGroupEditActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         val gid = intent.getIntExtra(RedactedExtras.GROUP_ID, 0)
         if (gid > 0) binding.editGroupId.setText(gid.toString())
@@ -203,6 +207,7 @@ class RedactedTorrentEditActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         val tid = intent.getIntExtra(RedactedExtras.TORRENT_ID, 0)
         if (tid > 0) binding.editTorrentId.setText(tid.toString())
@@ -246,6 +251,7 @@ class RedactedAddToCollageActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         binding.buttonSubmit.setOnClickListener {
             val cid = binding.editCollageId.text?.toString()?.toIntOrNull() ?: 0
@@ -277,6 +283,7 @@ class RedactedSendPmActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         binding.buttonSend.setOnClickListener {
             val to = binding.editToId.text?.toString()?.toIntOrNull() ?: 0
@@ -313,5 +320,6 @@ class RedactedUploadInfoActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
     }
 }

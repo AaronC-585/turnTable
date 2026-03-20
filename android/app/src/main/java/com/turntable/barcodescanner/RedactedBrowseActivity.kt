@@ -31,6 +31,7 @@ class RedactedBrowseActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         val initial = intent.getStringExtra(RedactedExtras.INITIAL_QUERY).orEmpty()
         if (initial.isNotBlank()) binding.editSearch.setText(initial)

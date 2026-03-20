@@ -43,6 +43,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         val adapter = TwoLineRowsAdapter { pos ->
             val tid = torrentIds.getOrNull(pos) ?: return@TwoLineRowsAdapter

@@ -5,18 +5,18 @@ alwaysApply: true
 
 # Releases: Always Attach the APK
 
-For **every** GitHub release in this repo (alpha, beta, production, or ad-hoc), **attach the installable Android APK** as a release asset. Do not publish a release with only source or notes—users must be able to download and install from the release page.
+For **every** GitHub release in this repo (production or ad-hoc), **attach the installable Android APK** as a release asset. Do not publish a release with only source or notes—users must be able to download and install from the release page.
 
 ## APK paths (this project)
 
-After building from `android/`:
+Version is embedded in the filename (`year.month.day.minutesSinceMidnight`). After building from `android/`:
 
 | Build        | Output file |
 |-------------|-------------|
-| Debug       | `android/app/build/outputs/apk/debug/turnTable.debug.apk` |
-| Release     | `android/app/build/outputs/apk/release/turnTable.release.apk` (requires release signing) |
+| Debug       | `android/app/build/outputs/apk/debug/turnTable.debug-<version>.apk` |
+| Release     | `android/app/build/outputs/apk/release/turnTable.release-<version>.apk` |
 
-Use **debug** for quick/prerelease drops if release signing is not configured; use **release** for store-quality signed builds.
+Run `./gradlew printAppVersion` to print `<version>` and `versionCode`. Use **release** (`assembleRelease`) for distribution; configure `keystore.properties` or env vars for store signing (otherwise Gradle warns and signs the release variant with the debug keystore).
 
 ## Checklist (before publishing any release)
 
@@ -28,10 +28,11 @@ Use **debug** for quick/prerelease drops if release signing is not configured; u
 ## Example (GitHub CLI)
 
 ```bash
-cd android && ./gradlew assembleDebug
-gh release create "v1.0.0-alpha1" \
-  app/build/outputs/apk/debug/turnTable.debug.apk \
-  --title "v1.0.0-alpha1" --notes "..." --prerelease
+cd android && ./gradlew assembleRelease
+VER=$(./gradlew -q printAppVersion | cut -d' ' -f1)
+gh release create "v${VER}" \
+  "app/build/outputs/apk/release/turnTable.release-${VER}.apk" \
+  --title "turnTable ${VER}" --notes-file CHANGELOG.md
 ```
 
 **Never** ship a release without at least one APK asset for this Android app.

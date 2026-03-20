@@ -1,15 +1,22 @@
 package com.turntable.barcodescanner
 
+import android.Manifest
 import android.content.Intent
+import android.view.MenuItem
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -17,9 +24,12 @@ import com.turntable.barcodescanner.databinding.ActivityHomeBinding
 import com.turntable.barcodescanner.redacted.RedactedApiClient
 import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
 import com.turntable.barcodescanner.redacted.RedactedHomeStatsFormatter
+import com.turntable.barcodescanner.redacted.RedactedIndexNotifications
 import com.turntable.barcodescanner.redacted.RedactedProfileUiBuilder
 import com.turntable.barcodescanner.redacted.RedactedResult
+import com.turntable.barcodescanner.redacted.RedactedSiteNotificationHelper
 import com.turntable.barcodescanner.redacted.responseOrNull
+import org.json.JSONObject
 
 /**
  * App **home page** after the splash screen: Redacted profile summary when an API key is set,
@@ -30,11 +40,36 @@ class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
 
+    private val autoRefreshHandler = Handler(Looper.getMainLooper())
+    private val autoRefreshRunnable = Runnable {
+        if (!SearchPrefs(this).redactedApiKey.isNullOrBlank() &&
+            binding.swipeRefresh.visibility == View.VISIBLE
+        ) {
+            loadProfile(isPullRefresh = true)
+        }
+        scheduleAutoRefresh()
+    }
+
+    private val requestNotifPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { /* optional: could toast if denied */ }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (intent.hasExtra(EXTRA_POST_SCAN_BARCODE)) {
+            dispatchPendingSearchFromScanner(intent)
+        } else if (!SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
+            loadProfile(isPullRefresh = true)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
+        supportActionBar?.title = getString(R.string.home_title)
 
         binding.swipeRefresh.setColorSchemeColors(
             ContextCompat.getColor(this, R.color.home_token_label),
@@ -53,6 +88,22 @@ class HomeActivity : AppCompatActivity() {
         } else {
             loadProfile(isPullRefresh = false)
         }
+
+        binding.root.post { dispatchPendingSearchFromScanner(intent) }
+    }
+
+    /**
+     * After a scan, [MainActivity] brings Home to the front with this extra; we open [SearchActivity]
+     * with the barcode so the user leaves the camera and lands on home with search on top.
+     */
+    private fun dispatchPendingSearchFromScanner(intent: Intent?) {
+        val barcode = intent?.getStringExtra(EXTRA_POST_SCAN_BARCODE)?.trim().orEmpty()
+        if (barcode.isEmpty()) return
+        intent?.removeExtra(EXTRA_POST_SCAN_BARCODE)
+        startActivity(
+            Intent(this, SearchActivity::class.java)
+                .putExtra(SearchActivity.EXTRA_BARCODE, barcode),
+        )
     }
 
     private fun wireShortcutButtons() {
@@ -62,9 +113,6 @@ class HomeActivity : AppCompatActivity() {
         binding.buttonHomeHistory.setOnClickListener {
             startActivity(Intent(this, SearchHistoryActivity::class.java))
         }
-        binding.buttonHomeStats.setOnClickListener {
-            startActivity(Intent(this, UserStatsActivity::class.java))
-        }
         binding.buttonHomeSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
@@ -72,9 +120,36 @@ class HomeActivity : AppCompatActivity() {
             if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
                 Toast.makeText(this, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
             } else {
-                startActivity(Intent(this, RedactedHubActivity::class.java))
+                startActivity(Intent(this, RedactedBrowseActivity::class.java))
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        maybeRequestNotificationPermissionOnce()
+        if (!SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
+            scheduleAutoRefresh()
+        }
+    }
+
+    /** Ask for POST_NOTIFICATIONS at most once (avoid prompting every resume). */
+    private fun maybeRequestNotificationPermissionOnce() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        val sp = getPreferences(MODE_PRIVATE)
+        if (sp.getBoolean(PREF_ASKED_NOTIF_PERMISSION, false)) return
+        sp.edit().putBoolean(PREF_ASKED_NOTIF_PERMISSION, true).apply()
+        requestNotifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    override fun onPause() {
+        cancelAutoRefresh()
+        super.onPause()
     }
 
     override fun onRestart() {
@@ -82,6 +157,33 @@ class HomeActivity : AppCompatActivity() {
         if (!SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
             loadProfile(isPullRefresh = false)
         }
+    }
+
+    private fun scheduleAutoRefresh() {
+        autoRefreshHandler.removeCallbacks(autoRefreshRunnable)
+        autoRefreshHandler.postDelayed(autoRefreshRunnable, AUTO_REFRESH_INTERVAL_MS)
+    }
+
+    private fun cancelAutoRefresh() {
+        autoRefreshHandler.removeCallbacks(autoRefreshRunnable)
+    }
+
+    private fun handleNotificationsFromIndex(indexResp: JSONObject) {
+        val notifJson = indexResp.optJSONObject("notifications") ?: run {
+            SearchPrefs(this).lastRedactedNotificationsSnapshot = ""
+            return
+        }
+        val eval = RedactedIndexNotifications.evaluate(notifJson)
+        val prefs = SearchPrefs(this)
+        if (eval.shouldNotify && eval.snapshot != prefs.lastRedactedNotificationsSnapshot) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                RedactedSiteNotificationHelper.showSiteAlerts(this, eval.reasons)
+            }
+        }
+        prefs.lastRedactedNotificationsSnapshot = eval.snapshot
     }
 
     private fun showNoKeyState() {
@@ -92,12 +194,12 @@ class HomeActivity : AppCompatActivity() {
         binding.layoutNoKey.visibility = View.VISIBLE
         clearProfileContainers()
         binding.imageProfile.setImageResource(android.R.drawable.ic_menu_myplaces)
-        binding.textUsername.text = ""
+        supportActionBar?.title = getString(R.string.home_title)
     }
 
     private fun clearProfileContainers() {
-        binding.containerHeaderSection1.removeAllViews()
-        binding.containerHeaderSection2.removeAllViews()
+        binding.containerHeaderPersonal.removeAllViews()
+        binding.containerHeaderStatistics.removeAllViews()
         binding.containerProfileSections.removeAllViews()
     }
 
@@ -173,6 +275,7 @@ class HomeActivity : AppCompatActivity() {
                     binding.textError.visibility = View.VISIBLE
                     binding.textError.text = idx.message
                     binding.layoutNoKey.visibility = View.VISIBLE
+                    supportActionBar?.title = getString(R.string.home_title)
                 }
                 is RedactedResult.Success -> {
                     val indexResp = idx.response ?: idx.root
@@ -200,9 +303,10 @@ class HomeActivity : AppCompatActivity() {
                         binding.textError.visibility = View.GONE
                         binding.layoutNoKey.visibility = View.GONE
                         binding.swipeRefresh.visibility = View.VISIBLE
-                        binding.textUsername.text =
+                        supportActionBar?.title =
                             username.ifBlank { getString(R.string.home_user_fallback) }
                         inflateProfileSections(sections)
+                        handleNotificationsFromIndex(indexResp)
                         if (bmp != null) {
                             binding.imageProfile.setImageBitmap(bmp)
                         } else {
@@ -217,6 +321,7 @@ class HomeActivity : AppCompatActivity() {
                     binding.textError.visibility = View.VISIBLE
                     binding.textError.text = getString(R.string.redacted_unexpected)
                     binding.layoutNoKey.visibility = View.VISIBLE
+                    supportActionBar?.title = getString(R.string.home_title)
                 }
             }
         }.start()
@@ -225,24 +330,39 @@ class HomeActivity : AppCompatActivity() {
     private fun inflateProfileSections(sections: List<RedactedProfileUiBuilder.ProfileSection>) {
         clearProfileContainers()
 
-        val header = sections.take(2)
-        val rest = sections.drop(2)
+        val statistics = sections.find { it.titleRes == R.string.home_section_statistics }
+        val personal = sections.find { it.titleRes == R.string.home_section_personal }
+        val rest = sections.filter {
+            it.titleRes != R.string.home_section_statistics &&
+                it.titleRes != R.string.home_section_personal
+        }
 
-        header.getOrNull(0)?.let { inflateStaticSection(it, binding.containerHeaderSection1) }
-        header.getOrNull(1)?.let { inflateStaticSection(it, binding.containerHeaderSection2) }
+        statistics?.let { inflateStaticSection(it, binding.containerHeaderStatistics, narrow = false) }
+        personal?.let { inflateStaticSection(it, binding.containerHeaderPersonal, narrow = true) }
 
-        binding.containerHeaderSection2.visibility =
-            if (header.size >= 2) View.VISIBLE else View.GONE
+        binding.containerHeaderStatistics.visibility =
+            if (statistics != null) View.VISIBLE else View.GONE
+        binding.containerHeaderPersonal.visibility =
+            if (personal != null) View.VISIBLE else View.GONE
 
         for (section in rest) {
             inflateCollapsibleSection(section, binding.containerProfileSections)
         }
     }
 
-    private fun inflateStaticSection(section: RedactedProfileUiBuilder.ProfileSection, parent: FrameLayout) {
+    private fun inflateStaticSection(
+        section: RedactedProfileUiBuilder.ProfileSection,
+        parent: FrameLayout,
+        narrow: Boolean,
+    ) {
         parent.removeAllViews()
-        val secView = layoutInflater.inflate(R.layout.home_profile_section, parent, false)
-        bindSectionTitleAndRows(secView, section)
+        val layoutRes = if (narrow) {
+            R.layout.home_profile_section_narrow
+        } else {
+            R.layout.home_profile_section
+        }
+        val secView = layoutInflater.inflate(layoutRes, parent, false)
+        bindSectionTitleAndRows(secView, section, compactRows = narrow)
         parent.addView(secView)
     }
 
@@ -264,7 +384,7 @@ class HomeActivity : AppCompatActivity() {
         rowsLayout.visibility = View.GONE
         chevron.text = getString(R.string.home_section_collapsed_icon)
 
-        addProfileRows(rowsLayout, section.rows)
+        addProfileRows(rowsLayout, section.rows, compactRows = false)
 
         headerRow.setOnClickListener {
             val open = rowsLayout.visibility != View.VISIBLE
@@ -279,6 +399,7 @@ class HomeActivity : AppCompatActivity() {
     private fun bindSectionTitleAndRows(
         secView: View,
         section: RedactedProfileUiBuilder.ProfileSection,
+        compactRows: Boolean = false,
     ) {
         val title = if (section.titleArg != null) {
             getString(section.titleRes, section.titleArg)
@@ -287,16 +408,25 @@ class HomeActivity : AppCompatActivity() {
         }
         secView.findViewById<TextView>(R.id.textSectionTitle).text = title
         val rowsLayout = secView.findViewById<LinearLayout>(R.id.layoutSectionRows)
-        addProfileRows(rowsLayout, section.rows)
+        addProfileRows(rowsLayout, section.rows, compactRows)
     }
 
-    private fun addProfileRows(rowsLayout: LinearLayout, rows: List<RedactedProfileUiBuilder.ProfileRow>) {
+    private fun addProfileRows(
+        rowsLayout: LinearLayout,
+        rows: List<RedactedProfileUiBuilder.ProfileRow>,
+        compactRows: Boolean = false,
+    ) {
         val colorMuted = ContextCompat.getColor(this, R.color.home_text_muted)
         val colorSecondary = ContextCompat.getColor(this, R.color.home_text_secondary)
         val colorPrimary = ContextCompat.getColor(this, R.color.home_text_primary)
 
+        val rowLayout = if (compactRows) {
+            R.layout.home_profile_row_compact
+        } else {
+            R.layout.home_profile_row
+        }
         for (row in rows) {
-            val rv = layoutInflater.inflate(R.layout.home_profile_row, rowsLayout, false)
+            val rv = layoutInflater.inflate(rowLayout, rowsLayout, false)
             val labelTv = rv.findViewById<TextView>(R.id.textLabel)
             val valueTv = rv.findViewById<TextView>(R.id.textValue)
             val fullTv = rv.findViewById<TextView>(R.id.textFullWidth)
@@ -331,5 +461,13 @@ class HomeActivity : AppCompatActivity() {
             }
             rowsLayout.addView(rv)
         }
+    }
+
+    companion object {
+        /** Set by [MainActivity] after a scan; [HomeActivity] opens [SearchActivity] with this barcode. */
+        const val EXTRA_POST_SCAN_BARCODE = "com.turntable.barcodescanner.EXTRA_POST_SCAN_BARCODE"
+
+        private const val AUTO_REFRESH_INTERVAL_MS = 60_000L
+        private const val PREF_ASKED_NOTIF_PERMISSION = "asked_post_notifications_permission"
     }
 }

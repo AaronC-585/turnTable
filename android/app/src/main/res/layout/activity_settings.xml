@@ -1,11 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1a1a1a"
-    android:fillViewport="true">
+    android:orientation="vertical"
+    android:background="#1a1a1a">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#202020"
+        app:title="@string/settings"
+        app:titleTextColor="#eeeeee" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -95,15 +109,6 @@
                 android:inputType="textPassword"
                 android:textColor="#eeeeee" />
         </com.google.android.material.textfield.TextInputLayout>
-
-        <Button
-            android:id="@+id/buttonRedactedHub"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="@string/redacted_open_hub"
-            android:textColor="#ffffff"
-            app:backgroundTint="#6a4a9e" />
 
         <TextView
             android:layout_width="match_parent"
@@ -341,4 +346,5 @@
             android:textColor="#ffffff"
             app:backgroundTint="#3a7bd5" />
     </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</LinearLayout>

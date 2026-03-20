@@ -31,28 +31,12 @@
         android:divider="#333333"
         android:dividerHeight="1dp" />
 
-    <LinearLayout
+    <Button
+        android:id="@+id/buttonScan"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="12dp">
-
-        <Button
-            android:id="@+id/buttonScan"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            android:text="@string/scan"
-            android:textColor="#ffffff" />
-
-        <Button
-            android:id="@+id/buttonStats"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/stats"
-            android:textColor="#ffffff" />
-    </LinearLayout>
+        android:layout_margin="12dp"
+        android:text="@string/scan"
+        android:textColor="#ffffff" />
 
 </LinearLayout>

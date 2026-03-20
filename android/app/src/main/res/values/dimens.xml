@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ~1 physical inch on typical phone density (160 dp ≈ 1 in at ~160 dpi baseline). -->
-    <dimen name="home_profile_icon_size">160dp</dimen>
+    <!-- Narrow column: avatar + Personal card; keeps Statistics area wider. -->
+    <dimen name="home_profile_column_width">124dp</dimen>
+    <dimen name="home_profile_icon_size">112dp</dimen>
+    <dimen name="home_action_button_height">72dp</dimen>
+    <dimen name="home_action_icon_size">32dp</dimen>
 </resources>

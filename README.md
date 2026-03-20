@@ -1,6 +1,6 @@
 # turnTable — 1D Barcode Scanner (Android & iOS, C++)
 
-Native **Android** and **iOS** apps that show the camera and scan **1D barcodes** (Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, Codabar, ITF). The decoding core is shared **C++** (ZXing-cpp), with platform UI and camera on each side. The Android app (turnTable) opens a **Home** screen after the splash (Redacted profile/stats or API-key prompt), then configurable **primary** (music-info APIs, e.g. MusicBrainz/Discogs) and **secondary** (e.g. tracker) search flows from the scanner, plus an optional in-app **Redacted** JSON API browser when you add your API key; see **CHANGELOG.md** for features.
+Native **Android** and **iOS** apps that show the camera and scan **1D barcodes** (Code 128, EAN-13, EAN-8, UPC-A, UPC-E, Code 39, Code 93, Codabar, ITF). The decoding core is shared **C++** (ZXing-cpp), with platform UI and camera on each side. The Android app (turnTable) opens a **Home** screen after the splash (Redacted profile/stats or API-key prompt), then configurable **primary** (music-info APIs, e.g. MusicBrainz/Discogs) and **secondary** (e.g. tracker) search flows from the scanner, plus optional **Redacted** JSON API features (in-app torrent search and more) when you add your API key; see **CHANGELOG.md** and **`android/REDACTED_FEATURES.md`**.
 
 ## Structure
 
@@ -18,11 +18,11 @@ Native **Android** and **iOS** apps that show the camera and scan **1D barcodes*
 
 If you use [Redacted](https://redacted.sh), generate an **API key** on the site (with the scopes you need) and paste it under **Settings → Redacted API key** (or when prompted on **Home**). The app sends it as the `Authorization` header to `https://redacted.sh/ajax.php` (per the site’s JSON API docs). **User** and **torrents** permissions are required for core Redacted features.
 
-- **Home** shows your avatar and API `userstats` when a key is set; use the toolbar **Scan** camera button for barcode scanning.
-- **Toolbar (⋮) → Redacted** or **Settings → Redacted API browser** opens the **hub** (account, torrent search, top 10, bookmarks, requests, inbox, forums, notifications, wiki, logchecker, edits, etc.).
+- **Home** shows your avatar and API `userstats` when a key is set; shortcuts include **Scan** and **Torrent search** (opens `RedactedBrowseActivity`).
+- **Scanner overflow (⋮) → Torrent search** opens the same in-app Redacted browse when a key is set (no separate hub screen).
 - On the **Search** screen, **Search Redacted** appears when a key is set; it opens in-app torrent search and can prefill from the artist/album field.
 
-Implementation lives under `android/app/src/main/java/com/turntable/barcodescanner/` (`Redacted*Activity`, `redacted/RedactedApiClient.kt`). **OkHttp** is used for HTTP. Downloaded `.torrent` files are shared via **`FileProvider`** (`res/xml/file_paths.xml`). Multipart **upload** is not fully wired in the UI; the client exposes `postUpload` for extensions—see the upload note in the hub.
+Implementation lives under `android/app/src/main/java/com/turntable/barcodescanner/` (`Redacted*Activity`, `redacted/RedactedApiClient.kt`). **OkHttp** is used for HTTP. Downloaded `.torrent` files are shared via **`FileProvider`** (`res/xml/file_paths.xml`). Multipart **upload** is not fully wired in the UI; the client exposes `postUpload` for extensions. See **`android/REDACTED_FEATURES.md`** for the full list of screens and API actions.
 
 1. Open the `android/` folder in Android Studio (or use it as the project root).
 2. Sync Gradle and build. The app’s CMake build will pull and build the `cpp/` project (including ZXing-cpp) for the selected ABI.
@@ -30,12 +30,15 @@ Implementation lives under `android/app/src/main/java/com/turntable/barcodescann
 
 ```bash
 cd android
+# Version is stamped every build: year.month.day.minutesSinceMidnight (see app/build.gradle).
+./gradlew printAppVersion   # e.g. 2026.3.19.1213 (205311213)
+
 ./gradlew assembleDebug
-# Debug APK: app/build/outputs/apk/debug/turnTable.debug.apk
-adb install -r app/build/outputs/apk/debug/turnTable.debug.apk
+# Debug APK: app/build/outputs/apk/debug/turnTable.debug-<version>.apk
 
 ./gradlew assembleRelease
-# Release APK: app/build/outputs/apk/release/turnTable.release.apk
+# Release APK: app/build/outputs/apk/release/turnTable.release-<version>.apk
+# (Release build type; use keystore.properties or ANDROID_KEYSTORE_* for store signing.)
 ```
 
 ## iOS

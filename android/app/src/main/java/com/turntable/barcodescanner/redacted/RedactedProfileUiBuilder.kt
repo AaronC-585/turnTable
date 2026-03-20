@@ -65,9 +65,7 @@ object RedactedProfileUiBuilder {
 
         buildDonorSection(u)?.let { out.add(it) }
 
-        index?.optJSONObject("notifications")?.let { n ->
-            buildNotificationsSection(n)?.let { out.add(it) }
-        }
+        // Index `notifications` is not shown on Home (OS alerts handled in HomeActivity).
 
         // Remaining top-level objects on user (site-specific extensions)
         val consumed = setOf(
@@ -329,12 +327,6 @@ object RedactedProfileUiBuilder {
         }
         if (rows.isEmpty()) return null
         return ProfileSection(R.string.home_section_donor, rows)
-    }
-
-    private fun buildNotificationsSection(n: JSONObject): ProfileSection? {
-        val rows = flattenObject(n, 1)
-        if (rows.isEmpty()) return null
-        return ProfileSection(R.string.home_section_notifications, rows)
     }
 
     private fun buildGenericSection(titleRes: Int, o: JSONObject): ProfileSection {

@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">turnTable</string>
+    <string name="nav_home">Home</string>
     <string name="settings">Settings</string>
     <string name="history">History</string>
     <string name="history_empty">No search history yet.</string>
     <string name="history_barcode_format">Barcode: %1$s</string>
     <string name="flashlight">Flashlight</string>
     <string name="scan">Scan</string>
-    <string name="stats">Stats</string>
-    <string name="stats_total_scans">Total scans: %1$d</string>
-    <string name="stats_unique_barcodes">Unique barcodes: %1$d</string>
-    <string name="stats_with_cover">With cover art: %1$d</string>
-    <string name="stats_last_scan">Last scan: %1$s</string>
     <string name="search_url">Search URL</string>
     <string name="search_url_hint">https://example.com/search?q=%s</string>
     <string name="method_get">GET</string>
@@ -40,7 +36,7 @@
     <string name="discogs_token_hint">Discogs token (optional)</string>
     <string name="discogs_token_help">Create at discogs.com → Settings → Developers. Sent as Authorization: Discogs token=… using Discogs API v2.0 JSON endpoints.</string>
     <string name="redacted_api_key_hint">Redacted API key (optional)</string>
-    <string name="redacted_api_key_help">Sent as Authorization on https://redacted.sh/ajax.php (JSON API). Use Redacted API browser from the menu or Settings to search and browse.</string>
+    <string name="redacted_api_key_help">Sent as Authorization on https://redacted.sh/ajax.php (JSON API). Use Home or the scanner menu to open in-app torrent search when a key is set.</string>
     <string name="lastfm_api_key_hint">Last.fm API key (optional)</string>
     <string name="lastfm_api_key_help">For Last.fm primary source: last.fm/api — method album.getinfobymbid.</string>
     <string name="theaudiodb_api_key_hint">TheAudioDB API key (optional)</string>
@@ -98,8 +94,6 @@
 
     <!-- Redacted API -->
     <string name="redacted_need_api_key">Add your Redacted API key in Settings (Authorization header).</string>
-    <string name="redacted_hub_title">Redacted API</string>
-    <string name="redacted_open_hub">Redacted API browser</string>
     <string name="redacted_search_in_app">Search Redacted</string>
     <string name="redacted_share_torrent">Share .torrent</string>
     <string name="redacted_torrent_search">Torrent search</string>
@@ -191,7 +185,6 @@
     <string name="redacted_enter_wiki_name">Enter a wiki article name</string>
     <string name="redacted_one_field_required">Enter at least one torrent field to change</string>
     <string name="redacted_pm_invalid">Recipient user ID and message body are required</string>
-    <string name="redacted_menu">Redacted</string>
     <string name="redacted_api_key_dialog_title">Redacted API key</string>
     <string name="redacted_api_key_permissions_message">The API key permissions user and torrents are required for the app to function.\n\nPaste your API key below.</string>
 
@@ -208,14 +201,16 @@
     <string name="home_section_next_class">Next userclass</string>
     <string name="home_section_percentile_rankings">Percentile rankings</string>
     <string name="home_section_donor">Donor statistics</string>
-    <string name="home_section_notifications">Notifications</string>
     <string name="home_section_dynamic_title">%1$s</string>
     <string name="home_actions_shortcuts">Shortcuts</string>
     <string name="home_content_cd_scan">Open scanner</string>
     <string name="home_content_cd_history">Search history</string>
-    <string name="home_content_cd_stats">Local scan stats</string>
     <string name="home_content_cd_settings">Settings</string>
     <string name="home_content_cd_redacted">Redacted hub</string>
+    <string name="notif_channel_redacted_name">Redacted alerts</string>
+    <string name="notif_channel_redacted_description">Alerts when your Redacted index notifications show new activity</string>
+    <string name="notif_redacted_title">turnTable · Redacted</string>
+    <string name="notif_redacted_open_site">Open site</string>
     <string name="home_section_collapsed_icon" translatable="false">▸</string>
     <string name="home_section_expanded_icon" translatable="false">▾</string>
 </resources>

@@ -32,6 +32,7 @@ class RedactedTop10Activity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         binding.spinnerType.adapter = ArrayAdapter(
             this,
@@ -118,6 +119,7 @@ class RedactedBookmarksActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         binding.spinnerType.adapter = ArrayAdapter(
             this,
@@ -215,6 +217,7 @@ class RedactedRequestsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = getString(R.string.redacted_requests)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         binding.editSearch.hint = getString(R.string.redacted_requests_search_hint)
 
         val adapter = TwoLineRowsAdapter { pos ->
@@ -295,6 +298,7 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
 
         binding.spinnerType.adapter = ArrayAdapter(
             this,

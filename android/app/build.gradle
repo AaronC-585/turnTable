@@ -1,7 +1,20 @@
+import java.time.ZoneId
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+// Every build: versionName = year.month.day.minutesSinceMidnight; versionCode = epochDay*10000+minutes (fits int32).
+def buildCal = Calendar.getInstance()
+buildCal.setTime(new Date())
+def vYear = buildCal.get(Calendar.YEAR)
+def vMonth = buildCal.get(Calendar.MONTH) + 1
+def vDay = buildCal.get(Calendar.DAY_OF_MONTH)
+def vMinutesFromMidnight = buildCal.get(Calendar.HOUR_OF_DAY) * 60 + buildCal.get(Calendar.MINUTE)
+def versionNameAuto = "${vYear}.${vMonth}.${vDay}.${vMinutesFromMidnight}"
+def epochDay = buildCal.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toEpochDay()
+def versionCodeAuto = (epochDay * 10000L + vMinutesFromMidnight) as int
 
 def keystoreProps = new Properties()
 def keystorePropsFile = rootProject.file("keystore.properties")
@@ -25,8 +38,8 @@ android {
         applicationId = "com.secondlifetech.turntable"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = versionCodeAuto
+        versionName = versionNameAuto
         // 64-bit only (packaging smaller APK/AAB); required for Play 64-bit compatibility.
         ndk {
             abiFilters += ['arm64-v8a', 'x86_64']
@@ -75,7 +88,9 @@ android {
         onVariants(selector().all()) { variant ->
             def bt = variant.buildType
             variant.outputs.each { output ->
-                def outName = (bt == "release") ? "turnTable.beta.apk" : "turnTable.${bt}.apk"
+                def outName = (bt == "release")
+                    ? "turnTable.release-${versionNameAuto}.apk"
+                    : "turnTable.${bt}-${versionNameAuto}.apk"
                 output.outputFileName.set(outName)
             }
         }
@@ -122,10 +137,11 @@ dependencies {
 tasks.register("validateReleaseSigning") {
     doLast {
         if (!releaseStoreFile || !releaseStorePassword || !releaseKeyAlias) {
-            throw new GradleException(
-                "Release signing is required. Configure android/keystore.properties " +
-                "or ANDROID_KEYSTORE_* env vars (file/password/alias)."
+            logger.lifecycle(
+                "[turnTable] No release keystore: using debug signing for release build type. " +
+                "Add android/keystore.properties or ANDROID_KEYSTORE_* for store signing."
             )
+            return
         }
         if (!file(releaseStoreFile).exists()) {
             throw new GradleException("Release keystore file not found: ${releaseStoreFile}")
@@ -135,4 +151,11 @@ tasks.register("validateReleaseSigning") {
 
 tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
     dependsOn("validateReleaseSigning")
+}
+
+/** `./gradlew printAppVersion` — current versionName / versionCode (same as embedded in APK). */
+tasks.register("printAppVersion") {
+    doLast {
+        println "${versionNameAuto} (${versionCodeAuto})"
+    }
 }

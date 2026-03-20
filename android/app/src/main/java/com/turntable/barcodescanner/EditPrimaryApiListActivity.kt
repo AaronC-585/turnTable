@@ -23,8 +23,9 @@ class EditPrimaryApiListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityEditPrimaryApiListBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        setupToolbarHome(binding.toolbar)
 
-        binding.textTitle.setText(R.string.edit_primary_list_title)
         binding.textHelp.setText(R.string.edit_primary_list_help)
 
         entries = SearchPresets.primaryApiEntries(this).toMutableList()

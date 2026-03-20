@@ -36,16 +36,16 @@ class MainActivity : AppCompatActivity() {
         binding.topToolbar.inflateMenu(R.menu.main_toolbar_menu)
         binding.topToolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
+                R.id.action_home -> {
+                    navigateToHome()
+                    true
+                }
                 R.id.action_settings -> {
                     startActivity(Intent(this, SettingsActivity::class.java))
                     true
                 }
                 R.id.action_history -> {
                     startActivity(Intent(this, SearchHistoryActivity::class.java))
-                    true
-                }
-                R.id.action_stats -> {
-                    startActivity(Intent(this, UserStatsActivity::class.java))
                     true
                 }
                 R.id.action_flashlight -> {
@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity() {
                             android.widget.Toast.LENGTH_LONG,
                         ).show()
                     } else {
-                        startActivity(Intent(this, RedactedHubActivity::class.java))
+                        startActivity(Intent(this, RedactedBrowseActivity::class.java))
                     }
                     true
                 }
@@ -160,10 +160,16 @@ class MainActivity : AppCompatActivity() {
                     if (SearchPrefs(this).beepOnScan) {
                         playScanBeep()
                     }
+                    // Return to home and open search from there (closes scanner).
                     startActivity(
-                        Intent(this, SearchActivity::class.java)
-                            .putExtra(SearchActivity.EXTRA_BARCODE, result)
+                        Intent(this, HomeActivity::class.java).apply {
+                            addFlags(
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP,
+                            )
+                            putExtra(HomeActivity.EXTRA_POST_SCAN_BARCODE, result)
+                        },
                     )
+                    finish()
                 }
             }
         }

@@ -79,6 +79,13 @@ class SearchPrefs(context: Context) {
         get() = prefs.getString(KEY_REDACTED_API_KEY, null)?.takeIf { it.isNotBlank() }
         set(value) = prefs.edit { putString(KEY_REDACTED_API_KEY, value) }
 
+    /**
+     * Serialized snapshot of [index] `notifications` JSON for deduplicating OS alerts.
+     */
+    var lastRedactedNotificationsSnapshot: String
+        get() = prefs.getString(KEY_REDACTED_NOTIF_SNAPSHOT, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_REDACTED_NOTIF_SNAPSHOT, value) }
+
     companion object {
         const val PREFS_NAME = "search_prefs"
         const val KEY_PRIMARY_API_LIST = "primary_api_list"
@@ -95,6 +102,7 @@ class SearchPrefs(context: Context) {
         const val KEY_LASTFM_API_KEY = "lastfm_api_key"
         const val KEY_THEAUDIODB_API_KEY = "theaudiodb_api_key"
         const val KEY_REDACTED_API_KEY = "redacted_api_key"
+        const val KEY_REDACTED_NOTIF_SNAPSHOT = "redacted_notifications_snapshot"
         const val METHOD_GET = "GET"
         const val METHOD_POST = "POST"
     }

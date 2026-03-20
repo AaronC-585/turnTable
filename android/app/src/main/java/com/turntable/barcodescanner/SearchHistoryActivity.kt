@@ -26,12 +26,10 @@ class SearchHistoryActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.toolbar.setNavigationOnClickListener { finish() }
+        setupToolbarHome(binding.toolbar)
         binding.buttonScan.setOnClickListener {
             startActivity(android.content.Intent(this, MainActivity::class.java))
             finish()
-        }
-        binding.buttonStats.setOnClickListener {
-            startActivity(android.content.Intent(this, UserStatsActivity::class.java))
         }
         renderList()
     }

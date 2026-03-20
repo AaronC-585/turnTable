@@ -11,17 +11,12 @@
         android:title="@string/history"
         android:showAsAction="ifRoom" />
     <item
-        android:id="@+id/action_stats"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:title="@string/stats"
-        android:showAsAction="ifRoom" />
-    <item
         android:id="@+id/action_settings"
         android:icon="@drawable/ic_settings_gear"
         android:title="@string/settings"
         android:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_redacted"
-        android:title="@string/redacted_menu"
+        android:title="@string/redacted_torrent_search"
         android:showAsAction="never" />
 </menu>
