@@ -9,12 +9,29 @@
 		/* File references */
 		A10000000000000100000001 = {isa = PBXFileReference; lastKnownFileType = folder; path = build; sourceTree = "<group>"; };
 		A10000000000000200000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A10000000000000300000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		A10000000000000900000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigation.swift; sourceTree = "<group>"; };
+		A10000000000001000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewController.swift; sourceTree = "<group>"; };
+		A10000000000001100000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
+		A10000000000001200000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactedAccountViewController.swift; sourceTree = "<group>"; };
+		A10000000000001300000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactedApiClient.swift; sourceTree = "<group>"; };
+		A10000000000001400000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactedBrowseViewController.swift; sourceTree = "<group>"; };
+		A10000000000001500000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactedJsonLoaderViewController.swift; sourceTree = "<group>"; };
+		A10000000000001600000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactedModels.swift; sourceTree = "<group>"; };
+		A10000000000001700000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactedMoreViewController.swift; sourceTree = "<group>"; };
+		A10000000000001800000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactedTorrentGroupViewController.swift; sourceTree = "<group>"; };
+		A10000000000001900000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerViewController.swift; sourceTree = "<group>"; };
+		A10000000000002000000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistoryStore.swift; sourceTree = "<group>"; };
+		A10000000000002100000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistoryViewController.swift; sourceTree = "<group>"; };
+		A10000000000002200000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPrefs.swift; sourceTree = "<group>"; };
+		A10000000000002300000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
+		A10000000000002400000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		A10000000000002500000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		A10000000000000400000001 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A10000000000000500000001 = {isa = PBXFileReference; lastKnownFileType = wrapper.app; path = BarcodeScanner.app; sourceTree = "BUILT_PRODUCTS_DIR"; };
+		A10000000000000500000001 = {isa = PBXFileReference; lastKnownFileType = wrapper.app; path = turnTable.app; sourceTree = "BUILT_PRODUCTS_DIR"; };
 		A10000000000000600000001 = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libbarcode_scanner_core.a; sourceTree = "<group>"; };
-		A10000000000000700000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BarcodeScanner-Bridging-Header.h"; sourceTree = "<group>"; };
+		A10000000000000700000001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "turnTable-Bridging-Header.h"; sourceTree = "<group>"; };
 		A10000000000000800000001 = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A10000000000002600000001 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 
 		/* Groups */
 		A20000000000000100000001 = {
@@ -30,12 +47,29 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000200000001,
-				A10000000000000300000001,
+				A10000000000000900000001,
+				A10000000000001000000001,
+				A10000000000001100000001,
+				A10000000000001200000001,
+				A10000000000001300000001,
+				A10000000000001400000001,
+				A10000000000001500000001,
+				A10000000000001600000001,
+				A10000000000001700000001,
+				A10000000000001800000001,
+				A10000000000001900000001,
+				A10000000000002000000001,
+				A10000000000002100000001,
+				A10000000000002200000001,
+				A10000000000002300000001,
+				A10000000000002400000001,
+				A10000000000002500000001,
 				A10000000000000400000001,
 				A10000000000000700000001,
+				A10000000000002600000001,
 				A20000000000000500000001,
 			);
-			path = BarcodeScanner;
+			path = turnTable;
 			sourceTree = "<group>";
 		};
 		A20000000000000500000001 = {
@@ -69,13 +103,45 @@
 			buildActionMask = 255;
 			files = (
 				A30000000000000200000001,
-				A30000000000000300000001,
+				A30000000000000800000001,
+				A30000000000000900000001,
+				A30000000000001000000001,
+				A30000000000001100000001,
+				A30000000000001200000001,
+				A30000000000001300000001,
+				A30000000000001400000001,
+				A30000000000001500000001,
+				A30000000000001600000001,
+				A30000000000001700000001,
+				A30000000000001800000001,
+				A30000000000001900000001,
+				A30000000000002000000001,
+				A30000000000002100000001,
+				A30000000000002200000001,
+				A30000000000002300000001,
+				A30000000000002400000001,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			sourceTree = "<group>";
 		};
 		A30000000000000200000001 = {isa = PBXBuildFile; fileRef = A10000000000000200000001; };
-		A30000000000000300000001 = {isa = PBXBuildFile; fileRef = A10000000000000300000001; };
+		A30000000000000800000001 = {isa = PBXBuildFile; fileRef = A10000000000000900000001; };
+		A30000000000000900000001 = {isa = PBXBuildFile; fileRef = A10000000000001000000001; };
+		A30000000000001000000001 = {isa = PBXBuildFile; fileRef = A10000000000001100000001; };
+		A30000000000001100000001 = {isa = PBXBuildFile; fileRef = A10000000000001200000001; };
+		A30000000000001200000001 = {isa = PBXBuildFile; fileRef = A10000000000001300000001; };
+		A30000000000001300000001 = {isa = PBXBuildFile; fileRef = A10000000000001400000001; };
+		A30000000000001400000001 = {isa = PBXBuildFile; fileRef = A10000000000001500000001; };
+		A30000000000001500000001 = {isa = PBXBuildFile; fileRef = A10000000000001600000001; };
+		A30000000000001600000001 = {isa = PBXBuildFile; fileRef = A10000000000001700000001; };
+		A30000000000001700000001 = {isa = PBXBuildFile; fileRef = A10000000000001800000001; };
+		A30000000000001800000001 = {isa = PBXBuildFile; fileRef = A10000000000001900000001; };
+		A30000000000001900000001 = {isa = PBXBuildFile; fileRef = A10000000000002000000001; };
+		A30000000000002000000001 = {isa = PBXBuildFile; fileRef = A10000000000002100000001; };
+		A30000000000002100000001 = {isa = PBXBuildFile; fileRef = A10000000000002200000001; };
+		A30000000000002200000001 = {isa = PBXBuildFile; fileRef = A10000000000002300000001; };
+		A30000000000002300000001 = {isa = PBXBuildFile; fileRef = A10000000000002400000001; };
+		A30000000000002400000001 = {isa = PBXBuildFile; fileRef = A10000000000002500000001; };
 
 		/* Build phases - Frameworks */
 		A30000000000000400000001 = {
@@ -95,11 +161,13 @@
 			buildActionMask = 255;
 			files = (
 				A30000000000000700000001,
+				A30000000000002500000001,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			sourceTree = "<group>";
 		};
 		A30000000000000700000001 = {isa = PBXBuildFile; fileRef = A10000000000000800000001; };
+		A30000000000002500000001 = {isa = PBXBuildFile; fileRef = A10000000000002600000001; };
 
 		/* Native target */
 		A40000000000000100000001 = {
@@ -112,8 +180,8 @@
 			);
 			buildRules = ();
 			dependencies = ();
-			name = BarcodeScanner;
-			productName = BarcodeScanner;
+			name = turnTable;
+			productName = turnTable;
 			productReference = A10000000000000500000001;
 			productType = "com.apple.product-type.application";
 			sourceTree = "<group>";
@@ -168,14 +236,14 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = BarcodeScanner/Info.plist;
+				INFOPLIST_FILE = turnTable/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.2ndlifetech.turntable;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_BRIDGING_HEADER = "BarcodeScanner/BarcodeScanner-Bridging-Header.h";
+				SWIFT_BRIDGING_HEADER = "turnTable/turnTable-Bridging-Header.h";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -200,14 +268,14 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = BarcodeScanner/Info.plist;
+				INFOPLIST_FILE = turnTable/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks");
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.2ndlifetech.turntable;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_BRIDGING_HEADER = "BarcodeScanner/BarcodeScanner-Bridging-Header.h";
+				SWIFT_BRIDGING_HEADER = "turnTable/turnTable-Bridging-Header.h";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

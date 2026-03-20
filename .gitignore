@@ -40,7 +40,7 @@ cpp/build/
 **/CMakeFiles/
 **/cmake_install.cmake
 **/CMakeCache.txt
-**/Makefile
+# CMake writes Makefiles under ignored build dirs (e.g. cpp/build/); do not ignore repo-root Makefile
 **/*.o
 **/*.obj
 **/*.a

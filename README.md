@@ -6,7 +6,16 @@ Native **Android** and **iOS** apps that show the camera and scan **1D barcodes*
 
 - **`cpp/`** — Shared C++ library (ZXing-cpp + thin wrapper). Builds for Android NDK and for iOS.
 - **`android/`** — Android app (Kotlin, CameraX, JNI). Uses `cpp/` via NDK/CMake.
-- **`ios/`** — iOS app (Swift, AVFoundation). Uses `cpp/` via a prebuilt static lib and bridging header.
+- **`ios/`** — iOS app (Swift, AVFoundation); Xcode project **`ios/turnTable.xcodeproj`**. Uses `cpp/` via a prebuilt static lib and bridging header.
+
+### Build everything (from repo root)
+
+```bash
+make all          # C++ standalone lib + Android debug APK; on macOS also iOS static libs
+make help         # list targets: cpp, android, android-release, ios, clean
+```
+
+The **iOS app binary** is built in **Xcode** (`open ios/turnTable.xcodeproj`); `make all` only produces the iOS **native library** on macOS.
 
 ## Android
 
@@ -45,11 +54,11 @@ cd android
 
 **Requirements:** Xcode 14+, CMake 3.16+, macOS.
 
-1. **Build the C++ library** (device and simulator) from the **repo root**:
+1. **Build the C++ library** (device and simulator) from the **repo root** (requires **macOS** with Xcode; CMake uses the iOS toolchain):
 
    ```bash
-   chmod +x ios/scripts/build_lib.sh
-   ./ios/scripts/build_lib.sh
+   make ios
+   # or: chmod +x ios/scripts/build_lib.sh && ./ios/scripts/build_lib.sh
    ```
 
    This builds `cpp/` (and ZXing-cpp) for iOS and puts:
@@ -59,10 +68,10 @@ cd android
 2. **Open the Xcode project** and run the app:
 
    ```bash
-   open ios/BarcodeScanner.xcodeproj
+   open ios/turnTable.xcodeproj
    ```
 
-   In Xcode: choose a device or simulator, set your **Development Team** in Signing & Capabilities, then Run. The app shows the camera and displays the last scanned 1D barcode at the bottom.
+   In Xcode: choose a device or simulator, set your **Development Team** in Signing & Capabilities, then Run. The app follows the same flow as Android: **splash** → **onboarding** (first launch) → **Home** (shortcuts to scan, history, settings, Redacted browse/account/more when an API key is set), then **scanner** → **search** after a decode. Settings and search prefs use the same `UserDefaults` suite keys as Android’s `search_prefs` where applicable. The **App icon** uses the same foreground as Android (`drawable/ic_launcher.png`) with an opaque **#2B2B2B** fill (same as Android `home_card_bg`) in `ios/turnTable/Assets.xcassets`. After changing the Android icon, regenerate with **`./ios/scripts/sync_app_icon_from_android.sh`** (requires [Pillow](https://pypi.org/project/Pillow/): `pip install Pillow`).
 
 If the iOS toolchain doesn’t find the right SDK, set `CMAKE_OSX_SYSROOT` in `ios/ios.toolchain.cmake` or use [ios-cmake](https://github.com/leetal/ios-cmake) and point the script at it.
 

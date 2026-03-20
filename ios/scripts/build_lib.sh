@@ -4,9 +4,15 @@
 # Output: ios/build/Release-iphoneos/ and ios/build/Release-iphonesimulator/
 
 set -e
+if [[ "$(uname -s)" != "Darwin" ]]; then
+	echo "iOS library build requires macOS with Xcode (iOS SDK + CMake)." >&2
+	echo "Run: make ios   (or ./ios/scripts/build_lib.sh) on a Mac after installing Xcode." >&2
+	exit 1
+fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IOS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPO_ROOT="$(cd "$IOS_DIR/../.." && pwd)"
+# Repo root is the parent of the ios/ directory
+REPO_ROOT="$(cd "$IOS_DIR/.." && pwd)"
 CPP_DIR="$REPO_ROOT/cpp"
 TOOLCHAIN="$IOS_DIR/ios.toolchain.cmake"
 BUILD_DIR="$IOS_DIR/build"
