@@ -131,8 +131,7 @@ object UpdateCheckCoordinator {
         }
         rows.add(
             Row(activity.getString(R.string.github_update_open_release)) {
-                OutgoingUrlLog.log("VIEW", info.htmlUrl)
-                activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(info.htmlUrl)))
+                BrowserLaunch.openHttpUrl(activity, info.htmlUrl)
             },
         )
         rows.add(

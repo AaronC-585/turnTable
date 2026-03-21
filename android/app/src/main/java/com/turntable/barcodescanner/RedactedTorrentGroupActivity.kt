@@ -40,6 +40,7 @@ import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedFormatters
+import com.turntable.barcodescanner.redacted.RedactedFreeleechTokens
 import com.turntable.barcodescanner.redacted.RedactedGazelleEdition
 import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentParse
 import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentUser
@@ -70,6 +71,8 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
     private val torrentIds = mutableListOf<Int>()
     /** Parallel to [torrentIds] — full torrent JSON from [torrentgroup]. */
     private val torrentObjects = mutableListOf<JSONObject>()
+    /** From [index] `userstats` while loading this group; FL token UI only if &gt; 0. */
+    private var freeleechTokenCount: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -194,14 +197,25 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
 
     private fun loadGroup(adapter: RedactedTorrentGroupRowsAdapter) {
         prepareAlbumPageMemory(adapter)
+        freeleechTokenCount = 0
         binding.progress.visibility = View.VISIBLE
         Thread {
             val result = api.torrentGroup(groupId)
+            val tokens = when (val idx = api.index()) {
+                is RedactedResult.Success -> RedactedFreeleechTokens.countFromIndexRoot(idx.root)
+                else -> 0
+            }
             runOnUiThread {
                 binding.progress.visibility = View.GONE
                 when (result) {
-                    is RedactedResult.Failure -> Toast.makeText(this, result.message, Toast.LENGTH_LONG).show()
-                    is RedactedResult.Success -> bindGroup(result.response, adapter)
+                    is RedactedResult.Failure -> {
+                        freeleechTokenCount = 0
+                        Toast.makeText(this, result.message, Toast.LENGTH_LONG).show()
+                    }
+                    is RedactedResult.Success -> {
+                        freeleechTokenCount = tokens
+                        bindGroup(result.response, adapter)
+                    }
                     else -> {}
                 }
             }
@@ -432,6 +446,15 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         labels.add(getString(R.string.redacted_download))
         actions.add { downloadTorrent(torrentId, false) }
 
+        if (SearchPrefs(this).isQbittorrentConfigured()) {
+            labels.add(getString(R.string.redacted_send_qbittorrent))
+            actions.add { sendTorrentToQbittorrent(torrentId, false) }
+            if (freeleechTokenCount > 0) {
+                labels.add(getString(R.string.redacted_send_qbittorrent_with_token))
+                actions.add { confirmTokenSendToQbittorrent(torrentId) }
+            }
+        }
+
         if (hasFiles) {
             labels.add(getString(R.string.redacted_file_list_title))
             actions.add { showFileListDialog(files) }
@@ -453,8 +476,10 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
                     .putExtra(RedactedExtras.TORRENT_ID, torrentId)
             )
         }
-        labels.add(getString(R.string.redacted_use_token))
-        actions.add { confirmTokenDownload(torrentId) }
+        if (freeleechTokenCount > 0) {
+            labels.add(getString(R.string.redacted_use_token))
+            actions.add { confirmTokenDownload(torrentId) }
+        }
         labels.add(getString(R.string.redacted_edit_torrent_short))
         actions.add {
             startActivity(
@@ -526,6 +551,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         val useTokenSwitch = SwitchMaterial(this).apply {
             text = getString(R.string.redacted_use_token)
         }
+        val showFlSwitch = freeleechTokenCount > 0
         val btnRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
         }
@@ -541,6 +567,14 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             text = getString(R.string.redacted_permalink)
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         }
+        val showQbt = SearchPrefs(this).isQbittorrentConfigured()
+        val qbtSend = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = getString(R.string.redacted_send_qbittorrent)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+        }
         root.addView(fmtLabel)
         val lpSpinner = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -548,12 +582,14 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         )
         lpSpinner.topMargin = pad / 2
         root.addView(spinner, lpSpinner)
-        val lpSw = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-        )
-        lpSw.topMargin = pad / 2
-        root.addView(useTokenSwitch, lpSw)
+        if (showFlSwitch) {
+            val lpSw = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+            lpSw.topMargin = pad / 2
+            root.addView(useTokenSwitch, lpSw)
+        }
         btnRow.addView(dl)
         btnRow.addView(edit)
         val lpRow = LinearLayout.LayoutParams(
@@ -562,6 +598,14 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         )
         lpRow.topMargin = pad
         root.addView(btnRow, lpRow)
+        if (showQbt) {
+            val lpQbt = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+            lpQbt.topMargin = pad / 2
+            root.addView(qbtSend, lpQbt)
+        }
         val lpPl = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -582,7 +626,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         dl.setOnClickListener {
             val tid = selectedTorrentId() ?: return@setOnClickListener
             dialog.dismiss()
-            if (useTokenSwitch.isChecked) {
+            if (showFlSwitch && useTokenSwitch.isChecked) {
                 confirmTokenDownload(tid)
             } else {
                 downloadTorrent(tid, false)
@@ -602,6 +646,14 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             cm.setPrimaryClip(ClipData.newPlainText("Permalink", url))
             Toast.makeText(this, R.string.redacted_permalink_copied, Toast.LENGTH_SHORT).show()
+        }
+        if (showQbt) {
+            qbtSend.setOnClickListener {
+                val tid = selectedTorrentId() ?: return@setOnClickListener
+                dialog.dismiss()
+                val ut = showFlSwitch && useTokenSwitch.isChecked
+                sendTorrentToQbittorrent(tid, ut)
+            }
         }
         dialog.show()
     }
@@ -827,6 +879,10 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
     }
 
     private fun confirmTokenDownload(torrentId: Int) {
+        if (freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
         AlertDialog.Builder(this)
             .setTitle(R.string.redacted_use_token_confirm_title)
             .setMessage(R.string.redacted_use_token_confirm_message)
@@ -835,7 +891,66 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun confirmTokenSendToQbittorrent(torrentId: Int) {
+        if (freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.redacted_send_qbt_token_confirm_title)
+            .setMessage(R.string.redacted_send_qbt_token_confirm_message)
+            .setPositiveButton(android.R.string.ok) { _, _ -> sendTorrentToQbittorrent(torrentId, true) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    /** Fetches `.torrent` from Redacted then POSTs to qBittorrent Web API ([QbittorrentWebClient]). */
+    private fun sendTorrentToQbittorrent(torrentId: Int, useToken: Boolean) {
+        val prefs = SearchPrefs(this)
+        val client = QbittorrentWebClient.fromPrefs(prefs)
+        if (client == null) {
+            Toast.makeText(this, R.string.qbt_not_configured, Toast.LENGTH_LONG).show()
+            return
+        }
+        if (useToken && freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
+        Toast.makeText(this, R.string.qbt_sending, Toast.LENGTH_SHORT).show()
+        Thread {
+            when (val r = api.downloadTorrent(torrentId, useToken)) {
+                is RedactedResult.Binary -> {
+                    val result = client.addTorrentFile("redacted_$torrentId.torrent", r.bytes)
+                    runOnUiThread {
+                        result.fold(
+                            onSuccess = {
+                                Toast.makeText(this, R.string.qbt_sent, Toast.LENGTH_LONG).show()
+                            },
+                            onFailure = { e ->
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.qbt_failed_fmt, e.message ?: e.javaClass.simpleName),
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                            },
+                        )
+                    }
+                }
+                is RedactedResult.Failure -> runOnUiThread {
+                    Toast.makeText(this, r.message, Toast.LENGTH_LONG).show()
+                }
+                else -> runOnUiThread {
+                    Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
     private fun downloadTorrent(torrentId: Int, useToken: Boolean) {
+        if (useToken && freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
         Thread {
             val r = api.downloadTorrent(torrentId, useToken)
             runOnUiThread {

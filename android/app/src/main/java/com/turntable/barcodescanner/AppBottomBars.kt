@@ -3,7 +3,6 @@ package com.turntable.barcodescanner
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
@@ -11,7 +10,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import com.turntable.barcodescanner.TrackerStatusClient.Service
 
 /**
@@ -91,10 +89,7 @@ object AppBottomBars {
 
     private fun wireDock(activity: AppCompatActivity, dock: View) {
         val openStatus = View.OnClickListener {
-            OutgoingUrlLog.log("VIEW", TrackerStatusClient.STATUS_PAGE_URL)
-            activity.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse(TrackerStatusClient.STATUS_PAGE_URL)),
-            )
+            BrowserLaunch.openHttpUrl(activity, TrackerStatusClient.STATUS_PAGE_URL)
         }
         listOf(
             R.id.imageTrackerWebsite,
@@ -107,6 +102,20 @@ object AppBottomBars {
             dock.findViewById<ImageView>(id).setOnClickListener(openStatus)
         }
 
+        dock.findViewById<View>(R.id.buttonHomeNews).setOnClickListener {
+            if (SearchPrefs(activity).redactedApiKey.isNullOrBlank()) {
+                Toast.makeText(activity, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
+            } else {
+                activity.startActivity(Intent(activity, RedactedAnnouncementsActivity::class.java))
+            }
+        }
+        dock.findViewById<View>(R.id.buttonHomeMail).setOnClickListener {
+            if (SearchPrefs(activity).redactedApiKey.isNullOrBlank()) {
+                Toast.makeText(activity, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
+            } else {
+                activity.startActivity(Intent(activity, RedactedInboxActivity::class.java))
+            }
+        }
         dock.findViewById<View>(R.id.buttonHomeHome).setOnClickListener {
             activity.navigateToHome()
         }

@@ -146,9 +146,39 @@
         android:paddingHorizontal="8dp">
 
         <LinearLayout
+            android:id="@+id/homeActionNews"
+            style="@style/HomeActionColumn"
+            android:contentDescription="@string/home_content_cd_news">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonHomeNews"
+                style="@style/HomeIconActionButton"
+                app:icon="@drawable/ic_newspaper" />
+
+            <TextView
+                style="@style/HomeActionLabel"
+                android:text="@string/nav_news" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/homeActionMail"
+            style="@style/HomeActionColumn"
+            android:contentDescription="@string/home_content_cd_mail">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonHomeMail"
+                style="@style/HomeIconActionButton"
+                app:icon="@drawable/ic_mail" />
+
+            <TextView
+                style="@style/HomeActionLabel"
+                android:text="@string/nav_mail" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/homeActionHome"
             style="@style/HomeActionColumn"
-            android:contentDescription="@string/home_content_cd_home">
+            android:contentDescription="@string/home_content_cd_profile">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonHomeHome"
@@ -157,7 +187,7 @@
 
             <TextView
                 style="@style/HomeActionLabel"
-                android:text="@string/nav_home" />
+                android:text="@string/nav_profile" />
         </LinearLayout>
 
         <LinearLayout

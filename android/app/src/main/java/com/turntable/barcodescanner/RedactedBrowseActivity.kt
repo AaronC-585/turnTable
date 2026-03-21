@@ -75,6 +75,7 @@ class RedactedBrowseActivity : AppCompatActivity() {
         val initial = intent.getStringExtra(RedactedExtras.INITIAL_QUERY).orEmpty()
         if (initial.isNotBlank()) {
             binding.editSearchStr.setText(initial)
+            applyInitialQueryToAdvancedFields(initial)
         }
 
         binding.buttonSearch.setOnClickListener { openResults() }
@@ -92,6 +93,23 @@ class RedactedBrowseActivity : AppCompatActivity() {
             Intent(this, RedactedBrowseResultsActivity::class.java)
                 .putExtra(RedactedExtras.BROWSE_PARAMS_JSON, json),
         )
+    }
+
+    /**
+     * Fills advanced fields when opening with [RedactedExtras.INITIAL_QUERY] (e.g. from Search).
+     * Splits on `" - "` like RedactedSearchAssist secondary terms when present.
+     */
+    private fun applyInitialQueryToAdvancedFields(initial: String) {
+        val s = initial.trim()
+        if (s.isEmpty()) return
+        val sep = " - "
+        val idx = s.indexOf(sep)
+        if (idx >= 0) {
+            binding.editArtistName.setText(s.substring(0, idx).trim())
+            binding.editGroupName.setText(s.substring(idx + sep.length).trim())
+        } else {
+            binding.editArtistName.setText(s)
+        }
     }
 
     private fun bindSpinner(spinner: Spinner, arrayRes: Int) {
@@ -124,7 +142,7 @@ class RedactedBrowseActivity : AppCompatActivity() {
         binding.checkCat5.isChecked = false
         binding.checkCat6.isChecked = false
         binding.checkCat7.isChecked = false
-        binding.toggleSearchMode.check(R.id.btnModeBasic)
+        binding.toggleSearchMode.check(R.id.btnModeAdvanced)
         binding.spinnerOrderBy.setSelection(1.coerceAtMost(orderByValues.size - 1))
         binding.spinnerOrderWay.setSelection(1.coerceAtMost(orderWayValues.size - 1))
         binding.spinnerEncoding.setSelection(0)

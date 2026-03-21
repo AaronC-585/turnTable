@@ -55,4 +55,5 @@
     <color name="debug_log_system">#90A4AE</color>
     <color name="debug_log_error">#EF9A9A</color>
     <color name="debug_log_timestamp">#90A4AE</color>
+    <color name="inbox_unread_row_bg">#1A2A3D</color>
 </resources>

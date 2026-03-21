@@ -117,6 +117,11 @@ class SettingsActivity : AppCompatActivity() {
             updateTorrentDirSummary()
         }
         updateTorrentDirSummary()
+        updateQbtSummary()
+
+        binding.buttonQbittorrentSettings.setOnClickListener {
+            startActivity(Intent(this, QbittorrentSettingsActivity::class.java))
+        }
 
         binding.buttonSave.setOnClickListener {
             val themePos = binding.spinnerTheme.selectedItemPosition.coerceIn(0, themeChoices.size - 1)
@@ -136,9 +141,14 @@ class SettingsActivity : AppCompatActivity() {
             prefs.secondarySearchAutoFromMusicBrainz = binding.checkSecondaryAutoMusicBrainz.isChecked
             val secondaryBrowserPos = binding.spinnerSecondaryBrowser.selectedItemPosition.coerceIn(0, browserEntries.size - 1)
             prefs.secondaryBrowserPackage = browserEntries.getOrNull(secondaryBrowserPos)?.packageName
-            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.settings_saved_toast, Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateQbtSummary()
     }
 
     private fun loadListsAndBind() {
@@ -184,6 +194,16 @@ class SettingsActivity : AppCompatActivity() {
             true
         } catch (_: Exception) {
             false
+        }
+    }
+
+    private fun updateQbtSummary() {
+        val prefs = SearchPrefs(this)
+        val url = prefs.qbittorrentBaseUrl?.trim().orEmpty()
+        binding.textQbtSummary.text = if (url.isEmpty()) {
+            getString(R.string.qbt_summary_not_configured)
+        } else {
+            getString(R.string.qbt_summary_fmt, url)
         }
     }
 

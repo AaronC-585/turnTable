@@ -34,7 +34,7 @@ class SearchPrefs(context: Context) {
         get() = prefs.getString(KEY_POST_HEADERS, null)?.takeIf { it.isNotBlank() }
         set(value) = prefs.edit { putString(KEY_POST_HEADERS, value) }
 
-    /** Package for opening secondary (tracker) links in browser; null = default. */
+    /** Package for opening external http(s) links in a browser; null = system default. */
     var secondaryBrowserPackage: String?
         get() = prefs.getString(KEY_SECONDARY_BROWSER_PACKAGE, null)?.takeIf { it.isNotBlank() }
         set(value) = prefs.edit { putString(KEY_SECONDARY_BROWSER_PACKAGE, value) }
@@ -101,6 +101,36 @@ class SearchPrefs(context: Context) {
         get() = prefs.getString(KEY_REDACTED_NOTIF_SNAPSHOT, "") ?: ""
         set(value) = prefs.edit { putString(KEY_REDACTED_NOTIF_SNAPSHOT, value) }
 
+    /**
+     * qBittorrent Web UI base URL, e.g. `http://192.168.1.5:8080` (no `/api/v2` path).
+     * See [QbittorrentWebClient].
+     */
+    var qbittorrentBaseUrl: String?
+        get() = prefs.getString(KEY_QBT_BASE_URL, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_QBT_BASE_URL)
+            else putString(KEY_QBT_BASE_URL, value.trim())
+        }
+
+    var qbittorrentUsername: String?
+        get() = prefs.getString(KEY_QBT_USERNAME, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_QBT_USERNAME)
+            else putString(KEY_QBT_USERNAME, value.trim())
+        }
+
+    /** Stored like other app secrets (device backup may include it). */
+    var qbittorrentPassword: String?
+        get() = prefs.getString(KEY_QBT_PASSWORD, null)
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_QBT_PASSWORD)
+            else putString(KEY_QBT_PASSWORD, value)
+        }
+
+    /** True when a usable Web UI base URL is set (credentials optional if auth is off). */
+    fun isQbittorrentConfigured(): Boolean =
+        QbittorrentWebClient.normalizeBaseUrl(qbittorrentBaseUrl) != null
+
     companion object {
         const val PREFS_NAME = "search_prefs"
         const val KEY_PRIMARY_API_LIST = "primary_api_list"
@@ -123,6 +153,9 @@ class SearchPrefs(context: Context) {
         const val KEY_REDACTED_API_KEY = "redacted_api_key"
         const val KEY_REDACTED_TORRENT_DOWNLOAD_TREE_URI = "redacted_torrent_download_tree_uri"
         const val KEY_REDACTED_NOTIF_SNAPSHOT = "redacted_notifications_snapshot"
+        const val KEY_QBT_BASE_URL = "qbittorrent_base_url"
+        const val KEY_QBT_USERNAME = "qbittorrent_username"
+        const val KEY_QBT_PASSWORD = "qbittorrent_password"
         const val METHOD_GET = "GET"
         const val METHOD_POST = "POST"
     }

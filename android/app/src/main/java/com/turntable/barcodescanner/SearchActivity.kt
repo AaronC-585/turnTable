@@ -139,7 +139,6 @@ class SearchActivity : AppCompatActivity() {
         when (prefs.method) {
             SearchPrefs.METHOD_GET -> {
                 val secondaryUrl = prefs.secondarySearchUrl?.takeIf { it.isNotBlank() }
-                val secondaryPkg = prefs.secondaryBrowserPackage
                 val secondaryQuery = binding.editSecondarySearchTerms.text?.toString()?.trim()
                 if (secondaryUrl.isNullOrBlank()) {
                     if (preferRedactedOverBrowser() && barcode.isNotBlank()) {
@@ -150,12 +149,12 @@ class SearchActivity : AppCompatActivity() {
                     return
                 }
                 if (prefs.secondarySearchAutoFromMusicBrainz) {
-                    fetchPrimaryInfoAndOpenSecondary(barcode, secondaryUrl, secondaryPkg, prefs)
+                    fetchPrimaryInfoAndOpenSecondary(barcode, secondaryUrl, prefs)
                 } else if (!secondaryQuery.isNullOrBlank()) {
                     if (preferRedactedOverBrowser()) {
                         fillFromRedactedBrowse(barcode, secondaryQuery, coverFromUi(), quietIfNoHit = false)
                     } else {
-                        openSecondaryUrl(secondaryUrl, secondaryPkg, secondaryVarsFromUi(barcode))
+                        openSecondaryUrl(secondaryUrl, secondaryVarsFromUi(barcode))
                         finish()
                     }
                 } else {
@@ -185,44 +184,8 @@ class SearchActivity : AppCompatActivity() {
         coverUrl = coverUrl,
     )
 
-    private fun openInBrowser(url: String, pkg: String?, onDone: (success: Boolean) -> Unit) {
-        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
-            pkg?.let { setPackage(it) }
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        try {
-            startActivity(intent)
-            onDone(true)
-        } catch (_: Exception) {
-            val playStoreUrl = KnownBrowsers.findByPackage(pkg)?.playStoreUrl
-                ?: "https://play.google.com/store/apps/details?id=${pkg?.let { java.net.URLEncoder.encode(it, "UTF-8") } ?: ""}"
-            val displayName = KnownBrowsers.findByPackage(pkg)?.name ?: pkg ?: ""
-            if (!pkg.isNullOrBlank()) {
-                try {
-                    OutgoingUrlLog.log("VIEW", playStoreUrl)
-                    startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(playStoreUrl)))
-                    Toast.makeText(this, getString(R.string.browser_open_play_store, displayName.ifBlank { pkg }), Toast.LENGTH_SHORT).show()
-                    onDone(false)
-                } catch (_: Exception) {
-                    Toast.makeText(this, R.string.could_not_open_link, Toast.LENGTH_SHORT).show()
-                    onDone(false)
-                }
-            } else {
-                try {
-                    intent.setPackage(null)
-                    startActivity(intent)
-                    onDone(true)
-                } catch (_: Exception) {
-                    Toast.makeText(this, R.string.could_not_open_link, Toast.LENGTH_SHORT).show()
-                    onDone(false)
-                }
-            }
-        }
-    }
-
     private fun openSecondaryUrl(
         secondaryUrl: String,
-        pkg: String?,
         vars: SecondarySearchVariables,
     ) {
         if (preferRedactedOverBrowser()) {
@@ -236,13 +199,12 @@ class SearchActivity : AppCompatActivity() {
             title = vars.query,
             coverUrl = vars.coverUrl,
         )
-        openInBrowser(url, pkg) { finish() }
+        BrowserLaunch.openHttpUrl(this, url) { finish() }
     }
 
     private fun fetchPrimaryInfoAndOpenSecondary(
         barcode: String,
         secondaryUrl: String,
-        pkg: String?,
         prefs: SearchPrefs
     ) {
         val orderedCmds = SearchPresets.primaryApiCmdsOrderedEnabled(this)
@@ -277,7 +239,6 @@ class SearchActivity : AppCompatActivity() {
                 if (!query.isNullOrBlank()) {
                     openSecondaryUrl(
                         secondaryUrl,
-                        pkg,
                         secondaryVarsFromUi(
                             barcode = barcode,
                             query = query,
@@ -287,7 +248,7 @@ class SearchActivity : AppCompatActivity() {
                 } else {
                     val manual = binding.editSecondarySearchTerms.text?.toString()?.trim()
                     if (!manual.isNullOrBlank()) {
-                        openSecondaryUrl(secondaryUrl, pkg, secondaryVarsFromUi(barcode, query = manual))
+                        openSecondaryUrl(secondaryUrl, secondaryVarsFromUi(barcode, query = manual))
                     } else {
                         Toast.makeText(this, R.string.secondary_no_artist_title, Toast.LENGTH_SHORT).show()
                         finish()

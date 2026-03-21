@@ -7,8 +7,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
+import com.turntable.barcodescanner.BrowserLaunch
 import com.turntable.barcodescanner.SearchPrefs
-import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import java.io.File
 
 object RedactedUiHelper {
@@ -102,7 +102,6 @@ object RedactedUiHelper {
 
     fun openSite(context: Context, path: String) {
         val url = if (path.startsWith("http")) path else "https://redacted.sh/$path"
-        OutgoingUrlLog.log("VIEW", url)
-        context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
+        BrowserLaunch.openHttpUrl(context, url)
     }
 }

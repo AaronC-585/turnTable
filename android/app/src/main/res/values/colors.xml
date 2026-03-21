@@ -58,4 +58,6 @@
     <color name="debug_log_system">#546E7A</color>
     <color name="debug_log_error">#C62828</color>
     <color name="debug_log_timestamp">#78909C</color>
+    <!-- Inbox: subtle highlight for unread threads -->
+    <color name="inbox_unread_row_bg">#E3F2FD</color>
 </resources>

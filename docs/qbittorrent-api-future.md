@@ -1,6 +1,8 @@
-# qBittorrent Web API — future implementation notes
+# qBittorrent Web API — notes
 
-**Not implemented in turnTable yet.** This document records the intended API surface for future work (e.g. companion scripts, home-lab automation, or in-app HTTP calls to a local qBittorrent Web UI).
+**In-app (Android):** **Settings → qBittorrent Web UI** stores base URL + optional credentials; on a **release** (torrent group) screen, **Send to qBittorrent** downloads the `.torrent` from Redacted and POSTs it to `/api/v2/torrents/add` (see [QbittorrentWebClient.kt](../android/app/src/main/java/com/turntable/barcodescanner/QbittorrentWebClient.kt)). Cleartext HTTP is allowed for typical LAN URLs (`network_security_config`).
+
+This document also records the **Python** client for scripts and automation.
 
 ## References
 
@@ -34,11 +36,10 @@ with qbittorrentapi.Client(**conn_info) as client:
 
 See the upstream docs (**API Reference → Torrents**, `torrents_add`, etc.) for full endpoint coverage.
 
-## Possible turnTable integration directions
+## Possible extra integration directions
 
-1. **Companion service (LAN)** — Small Python (or other) service using `qbittorrent-api` that accepts `.torrent` bytes or magnet links from the phone (HTTPS + token) and calls `torrents_add`.
-2. **Direct Web API from Android** — Mirror the same HTTP endpoints the Web UI uses (OkHttp, multipart for files). The Python client’s behavior and request shapes are a useful reference; no Python runtime required on device.
-3. **Export flow** — Keep current “save / share `.torrent`” behavior; document a user workflow: save to a watched folder or trigger a script that uses `qbittorrent-api`.
+1. **Companion service (LAN)** — Small Python service using `qbittorrent-api` for richer workflows (magnets, categories, etc.).
+2. **Export flow** — Save to a watched folder or trigger a script that uses `qbittorrent-api`.
 
 ## Security
 

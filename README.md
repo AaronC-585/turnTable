@@ -39,9 +39,10 @@ If you use [Redacted](https://redacted.sh), generate an **API key** on the site 
 
 Implementation lives under `android/app/src/main/java/com/turntable/barcodescanner/` (`Redacted*Activity`, `redacted/RedactedApiClient.kt`). **OkHttp** is used for HTTP. Downloaded `.torrent` files are shared via **`FileProvider`** (`res/xml/file_paths.xml`). Multipart **upload** is not fully wired in the UI; the client exposes `postUpload` for extensions. See **`android/REDACTED_FEATURES.md`** for the full list of screens and API actions.
 
-### qBittorrent Web API (future)
+### qBittorrent Web API
 
-Planned / exploratory integration with **qBittorrent’s Web UI API** is documented in **`docs/qbittorrent-api-future.md`**. It points at the Python client **[qbittorrent-api](https://qbittorrent-api.readthedocs.io/en/latest/)** (`pip install qbittorrent-api`) as the reference implementation for scripts or a LAN companion; the app does not bundle Python. Optional pin file: **`docs/requirements-qbittorrent.txt`**.
+- **Android:** **Settings → qBittorrent Web UI** (base URL, optional username/password). On a **Redacted release** screen, **Send to qBittorrent** fetches the `.torrent` and adds it via the Web API v2 (`QbittorrentWebClient`). HTTP on LAN is supported.
+- **Docs / Python:** **`docs/qbittorrent-api-future.md`** and **`docs/requirements-qbittorrent.txt`** for the **[qbittorrent-api](https://qbittorrent-api.readthedocs.io/en/latest/)** client and scripting.
 
 1. Open the `android/` folder in Android Studio (or use it as the project root).
 2. Sync Gradle and build. The app’s CMake build will pull and build the `cpp/` project (including ZXing-cpp) for the selected ABI.

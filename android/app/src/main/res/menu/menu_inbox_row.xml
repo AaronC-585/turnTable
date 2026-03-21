@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/inbox_menu_open"
+        android:title="@string/redacted_inbox_menu_open" />
+    <item
+        android:id="@+id/inbox_menu_browser"
+        android:title="@string/redacted_inbox_menu_open_browser" />
+    <item
+        android:id="@+id/inbox_menu_copy_subject"
+        android:title="@string/redacted_inbox_menu_copy_subject" />
+</menu>

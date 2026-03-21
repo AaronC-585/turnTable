@@ -1,15 +1,23 @@
 package com.turntable.barcodescanner
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.turntable.barcodescanner.databinding.ActivityRedactedSimpleListBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedDetailBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedGenericListBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedPagedListBinding
+import com.turntable.barcodescanner.redacted.InboxRow
+import com.turntable.barcodescanner.redacted.InboxRowsAdapter
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
@@ -21,7 +29,7 @@ import org.json.JSONObject
 class RedactedInboxActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRedactedGenericListBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
-    private val convIds = mutableListOf<Int>()
+    private lateinit var inboxAdapter: InboxRowsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,21 +42,68 @@ class RedactedInboxActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_inbox)
+        supportActionBar?.subtitle = getString(R.string.redacted_inbox_hints)
 
-        val adapter = TwoLineRowsAdapter { pos ->
-            val id = convIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
-            startActivity(
-                Intent(this, RedactedConversationActivity::class.java)
-                    .putExtra(RedactedExtras.CONV_ID, id),
-            )
-        }
+        inboxAdapter = InboxRowsAdapter { convId -> openInboxConversation(convId) }
         binding.recycler.layoutManager = LinearLayoutManager(this)
-        binding.recycler.adapter = adapter
+        binding.recycler.adapter = inboxAdapter
 
-        loadInbox(adapter)
+        ItemTouchHelper(
+            object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder,
+                ): Boolean = false
+
+                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                    val pos = viewHolder.bindingAdapterPosition
+                    if (pos != RecyclerView.NO_POSITION) {
+                        showInboxSwipeMenu(viewHolder.itemView, pos)
+                        // Reset swipe translation after menu (next frame so anchor stays valid).
+                        viewHolder.itemView.post { inboxAdapter.notifyItemChanged(pos) }
+                    }
+                }
+            },
+        ).attachToRecyclerView(binding.recycler)
+
+        loadInbox()
     }
 
-    private fun loadInbox(adapter: TwoLineRowsAdapter) {
+    private fun openInboxConversation(convId: Int) {
+        startActivity(
+            Intent(this, RedactedConversationActivity::class.java)
+                .putExtra(RedactedExtras.CONV_ID, convId),
+        )
+    }
+
+    private fun showInboxSwipeMenu(anchor: View, position: Int) {
+        val row = inboxAdapter.rows.getOrNull(position) ?: return
+        val popup = PopupMenu(this, anchor)
+        popup.menuInflater.inflate(R.menu.menu_inbox_row, popup.menu)
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.inbox_menu_open -> {
+                    openInboxConversation(row.convId)
+                    true
+                }
+                R.id.inbox_menu_browser -> {
+                    RedactedUiHelper.openSite(this, "inbox.php?action=viewconv&id=${row.convId}")
+                    true
+                }
+                R.id.inbox_menu_copy_subject -> {
+                    val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    cm.setPrimaryClip(ClipData.newPlainText("subject", row.subject))
+                    Toast.makeText(this, R.string.redacted_inbox_subject_copied, Toast.LENGTH_SHORT).show()
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    private fun loadInbox() {
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.inbox(sort = "unread")
@@ -62,24 +117,25 @@ class RedactedInboxActivity : AppCompatActivity() {
                     is RedactedResult.Success -> {
                         val resp = r.response ?: return@runOnUiThread
                         val arr = resp.optJSONArray("messages")
-                        val rows = mutableListOf<TwoLineRow>()
-                        convIds.clear()
+                        val rows = mutableListOf<InboxRow>()
                         if (arr != null) {
                             for (i in 0 until arr.length()) {
                                 val o = arr.optJSONObject(i) ?: continue
                                 val cid = o.optInt("convId")
                                 val unread = o.optBoolean("unread")
+                                val sticky = o.optBoolean("sticky")
                                 rows.add(
-                                    TwoLineRow(
-                                        o.optString("subject"),
-                                        "${o.optString("username")} · ${o.optString("date")}" +
-                                            if (unread) " · unread" else "",
+                                    InboxRow(
+                                        convId = cid,
+                                        subject = o.optString("subject"),
+                                        subtitle = "${o.optString("username")} · ${o.optString("date")}",
+                                        unread = unread,
+                                        sticky = sticky,
                                     ),
                                 )
-                                convIds.add(cid)
                             }
                         }
-                        adapter.rows = rows
+                        inboxAdapter.rows = rows
                         binding.textEmpty.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
                     }
                     else -> {}
