@@ -8,6 +8,7 @@ import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import android.text.format.DateFormat
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivitySearchHistoryBinding
 import java.net.HttpURLConnection
@@ -25,13 +26,39 @@ class SearchHistoryActivity : AppCompatActivity() {
         binding = ActivitySearchHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setSupportActionBar(binding.toolbar)
         binding.toolbar.setNavigationOnClickListener { finish() }
-        setupToolbarHome(binding.toolbar)
+        binding.toolbar.inflateMenu(R.menu.menu_search_history)
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_home -> {
+                    navigateToHome()
+                    true
+                }
+                R.id.action_clear_history -> {
+                    confirmClearHistory()
+                    true
+                }
+                else -> false
+            }
+        }
         binding.buttonScan.setOnClickListener {
             startActivity(android.content.Intent(this, MainActivity::class.java))
             finish()
         }
         renderList()
+    }
+
+    private fun confirmClearHistory() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.history_clear)
+            .setMessage(R.string.history_clear_confirm)
+            .setPositiveButton(R.string.history_clear_confirm_positive) { _, _ ->
+                SearchHistoryStore.clear(this)
+                renderList()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun renderList() {

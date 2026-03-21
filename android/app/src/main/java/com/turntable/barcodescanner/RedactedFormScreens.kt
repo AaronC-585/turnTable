@@ -253,6 +253,10 @@ class RedactedAddToCollageActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
 
+        intent.getStringExtra(RedactedExtras.GROUP_IDS_CSV)?.trim()?.takeIf { it.isNotEmpty() }?.let {
+            binding.editGroupIds.setText(it)
+        }
+
         binding.buttonSubmit.setOnClickListener {
             val cid = binding.editCollageId.text?.toString()?.toIntOrNull() ?: 0
             val gids = binding.editGroupIds.text?.toString()?.trim().orEmpty()

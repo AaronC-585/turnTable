@@ -93,7 +93,11 @@ final class ScannerViewController: UIViewController {
         torchOn.toggle()
         try? d.lockForConfiguration()
         if torchOn {
-            try? d.setTorchModeOn(level: 1.0)
+            if #available(iOS 15.4, *) {
+                try? d.setTorchModeOn(level: 1.0)
+            } else {
+                d.torchMode = .on
+            }
         } else {
             d.torchMode = .off
         }

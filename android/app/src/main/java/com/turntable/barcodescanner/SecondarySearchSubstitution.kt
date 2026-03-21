@@ -3,6 +3,7 @@ package com.turntable.barcodescanner
 import org.json.JSONObject
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 
 /**
  * All values that can be substituted into secondary search **GET** URLs and **POST** bodies.
@@ -16,15 +17,69 @@ data class SecondarySearchVariables(
     val coverUrl: String?,
 ) {
     private val queryParts: List<String> by lazy {
-        query.split(" - ", limit = 2).map { it.trim() }
+        splitArtistAlbumQuery(query)
     }
 
-    val artist: String get() = queryParts.getOrNull(0).orEmpty()
-    val album: String get() = queryParts.getOrNull(1).orEmpty()
+    private val segArtist: String get() = queryParts.getOrNull(0).orEmpty()
+    private val segAlbum: String get() = queryParts.getOrNull(1).orEmpty()
 
-    /** Matches legacy [SearchActivity.openSecondaryUrl] behavior. */
-    fun artistOrQuery(): String = artist.ifBlank { query }
-    fun albumOrQuery(): String = album.ifBlank { query }
+    /** First segment unless it is a compilation placeholder (“Various”); then empty. */
+    val artist: String get() = if (isPlaceholderCompilationArtist(segArtist)) "" else segArtist
+
+    /** Second segment (album/title after “ - ” / “ — ”). */
+    val album: String get() = segAlbum
+
+    /**
+     * For `%artist%`: never use “Various*” as the artist token; use empty so trackers get album-only or `%album%`.
+     * If the first segment is empty (no delimiter), falls back to full [query] (unchanged legacy).
+     */
+    fun artistOrQuery(): String {
+        if (isPlaceholderCompilationArtist(segArtist)) return ""
+        return segArtist.ifBlank { query.trim() }
+    }
+
+    /**
+     * For `%album%`: when the artist is a compilation placeholder, prefer the title segment only
+     * (do not fall back to the full string, which would repeat “Various”).
+     */
+    fun albumOrQuery(): String {
+        if (isPlaceholderCompilationArtist(segArtist)) {
+            return segAlbum.ifBlank { "" }
+        }
+        return segAlbum.ifBlank { query.trim() }
+    }
+
+    /**
+     * For `%query%`, `%s` (GET), and JSON `%query%` — drops “Various* - ” so the tracker search is album/title only.
+     */
+    fun queryForTracker(): String {
+        if (isPlaceholderCompilationArtist(segArtist)) {
+            return segAlbum.ifBlank { "" }
+        }
+        return query.trim()
+    }
+
+    companion object {
+        /** True when the credited artist is a non-specific compilation label (do not send to tracker as artist). */
+        fun isPlaceholderCompilationArtist(artist: String): Boolean {
+            val s = artist.trim().lowercase(Locale.US)
+            return when (s) {
+                "various", "various artists", "various artist", "va" -> true
+                else -> false
+            }
+        }
+
+        /**
+         * Split “Artist - Album” or “Artist — Album” into at most two segments (trimmed).
+         */
+        fun splitArtistAlbumQuery(raw: String): List<String> {
+            val t = raw.trim()
+            if (t.isEmpty()) return listOf("")
+            val em = t.split(" — ", limit = 2).map { it.trim() }
+            if (em.size == 2) return em
+            return t.split(" - ", limit = 2).map { it.trim() }
+        }
+    }
 }
 
 /**
@@ -41,7 +96,7 @@ object SecondarySearchSubstitution {
         URLEncoder.encode(s, StandardCharsets.UTF_8.name())
 
     fun substituteUrl(template: String, v: SecondarySearchVariables): String {
-        val q = v.query
+        val q = v.queryForTracker()
         val art = v.artistOrQuery()
         val alb = v.albumOrQuery()
         val cover = v.coverUrl.orEmpty()
@@ -58,7 +113,7 @@ object SecondarySearchSubstitution {
     }
 
     fun substitutePostBody(template: String, v: SecondarySearchVariables): String {
-        val q = v.query
+        val q = v.queryForTracker()
         val art = v.artistOrQuery()
         val alb = v.albumOrQuery()
         val cover = v.coverUrl.orEmpty()
@@ -87,11 +142,11 @@ object SecondarySearchSubstitution {
 
     /** Ordered list for help UI: placeholder → short description. */
     val urlVariableRows: List<Pair<String, String>> = listOf(
-        "%s" to "Full search query (URL-encoded)",
+        "%s" to "Search query for tracker (URL-encoded); omits “Various*” as sole artist",
         "%query%" to "Same as %s",
         "%barcode%" to "Scanned barcode (URL-encoded)",
-        "%artist%" to "Text before \" - \" in query, else full query (URL-encoded)",
-        "%album%" to "Text after \" - \" in query, else full query (URL-encoded)",
+        "%artist%" to "Text before \" - \" / \" — \"; empty if artist is Various*; else segment or full query",
+        "%album%" to "Text after delimiter; if Various*, album only (no fallback to full query)",
         "%notes%" to "Notes field (URL-encoded)",
         "%category%" to "Category field (URL-encoded)",
         "%cover%" to "Cover image URL (URL-encoded)",
@@ -104,9 +159,9 @@ object SecondarySearchSubstitution {
         "\$notes" to "Notes field",
         "\$category" to "Category field",
         "%barcode%" to "Scanned barcode",
-        "%query%" to "Full search query",
-        "%artist%" to "Artist / first segment of query",
-        "%album%" to "Album / second segment of query",
+        "%query%" to "Tracker query (Various* artist omitted)",
+        "%artist%" to "First segment; empty for Various*",
+        "%album%" to "Second segment; Various* → album only",
         "%notes%" to "Notes",
         "%category%" to "Category",
         "%cover%" to "Cover image URL",

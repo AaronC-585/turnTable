@@ -33,8 +33,8 @@ Publish **Android APK** and **iOS IPA** on each release (attach both to the same
 
 If you use [Redacted](https://redacted.sh), generate an **API key** on the site (with the scopes you need) and paste it under **Settings → Redacted API key** (or when prompted on **Home**). The app sends it as the `Authorization` header to `https://redacted.sh/ajax.php` (per the site’s JSON API docs). **User** and **torrents** permissions are required for core Redacted features.
 
-- **Home** shows your avatar and API `userstats` when a key is set; shortcuts include **Scan** and **Torrent search** (opens `RedactedBrowseActivity`).
-- **Scanner overflow (⋮) → Torrent search** opens the same in-app Redacted browse when a key is set (no separate hub screen).
+- **Home** shows your avatar and API `userstats` when a key is set; shortcuts include **Scan** and **Torrent search** (opens `RedactedBrowseActivity`, then `RedactedBrowseResultsActivity` after you search).
+- **Scanner overflow (⋮) → Torrent search** opens the same two-step flow (search form, then results) when a key is set (no separate hub screen).
 - On the **Search** screen, **Search Redacted** appears when a key is set; it opens in-app torrent search and can prefill from the artist/album field.
 
 Implementation lives under `android/app/src/main/java/com/turntable/barcodescanner/` (`Redacted*Activity`, `redacted/RedactedApiClient.kt`). **OkHttp** is used for HTTP. Downloaded `.torrent` files are shared via **`FileProvider`** (`res/xml/file_paths.xml`). Multipart **upload** is not fully wired in the UI; the client exposes `postUpload` for extensions. See **`android/REDACTED_FEATURES.md`** for the full list of screens and API actions.

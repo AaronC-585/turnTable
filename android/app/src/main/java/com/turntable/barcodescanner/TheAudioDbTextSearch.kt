@@ -135,7 +135,7 @@ object TheAudioDbTextSearch {
         return TheAudioDbSearchItem(
             title = name,
             subtitle = subtitle,
-            secondarySearchQuery = name,
+            secondarySearchQuery = if (SecondarySearchVariables.isPlaceholderCompilationArtist(name)) "" else name,
             coverImageUrl = thumb,
         )
     }
@@ -155,9 +155,11 @@ object TheAudioDbTextSearch {
             .ifBlank { o.optString("yearReleased", "").trim() }
         val subtitle = year.takeIf { it.isNotBlank() }
         val query = when {
-            artist.isNotBlank() && album.isNotBlank() -> "$artist - $album"
+            artist.isNotBlank() && album.isNotBlank() &&
+                !SecondarySearchVariables.isPlaceholderCompilationArtist(artist) -> "$artist - $album"
             album.isNotBlank() -> album
-            else -> artist
+            !SecondarySearchVariables.isPlaceholderCompilationArtist(artist) && artist.isNotBlank() -> artist
+            else -> album
         }
         val thumb = o.optString("strAlbumThumb", "").trim()
             .ifBlank { o.optString("strAlbumThumbHQ", "").trim() }

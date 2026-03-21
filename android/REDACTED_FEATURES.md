@@ -24,7 +24,7 @@ Helpers: `RedactedUiHelper`, `RedactedExtras`, `RedactedResult`, profile UI buil
 
 Reachable from **browse → group** chains, **Search → Search Redacted**, **Settings** (API key only), **Home** (profile + shortcuts), or **Main ⋮ → Torrent search** (formerly hub):
 
-- `RedactedBrowseActivity` — torrent search / results (site-style Basic + Advanced filters; `browse` params). `RedactedRequestsActivity` / `RedactedUserSearchActivity` use `activity_redacted_simple_list.xml` instead.  
+- `RedactedBrowseActivity` — torrent **search form** (Basic + Advanced filters). **`RedactedBrowseResultsActivity`** — **results** list + paging (receives encoded `browse` params). `RedactedRequestsActivity` / `RedactedUserSearchActivity` use `activity_redacted_simple_list.xml` instead.  
 - `RedactedTorrentGroupActivity`, `RedactedTorrentDetailActivity`  
 - `RedactedAccountActivity`  
 - `RedactedTop10Activity`, `RedactedBookmarksActivity`, `RedactedRequestsActivity`, `RedactedRequestDetailActivity`  

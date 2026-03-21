@@ -9,8 +9,6 @@ final class SearchViewController: UIViewController {
     private let scroll = UIScrollView()
     private let barcodeField = UITextField()
     private let secondaryField = UITextField()
-    private let notesField = UITextField()
-    private let categoryField = UITextField()
 
     init(barcode: String) {
         self.barcode = barcode
@@ -41,14 +39,6 @@ final class SearchViewController: UIViewController {
         secondaryField.textColor = .white
         secondaryField.borderStyle = .roundedRect
 
-        notesField.placeholder = "Notes (optional)"
-        notesField.textColor = .white
-        notesField.borderStyle = .roundedRect
-
-        categoryField.placeholder = "Category (optional)"
-        categoryField.textColor = .white
-        categoryField.borderStyle = .roundedRect
-
         let submit = UIButton(type: .system)
         submit.setTitle("Submit", for: .normal)
         submit.addTarget(self, action: #selector(submitTapped), for: .touchUpInside)
@@ -58,7 +48,7 @@ final class SearchViewController: UIViewController {
         red.addTarget(self, action: #selector(redactedTapped), for: .touchUpInside)
         red.isHidden = prefs.redactedApiKey == nil
 
-        [barcodeField, secondaryField, notesField, categoryField, submit, red].forEach { stack.addArrangedSubview($0) }
+        [barcodeField, secondaryField, submit, red].forEach { stack.addArrangedSubview($0) }
 
         scroll.addSubview(stack)
         view.addSubview(scroll)
@@ -73,6 +63,48 @@ final class SearchViewController: UIViewController {
             stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -24),
             stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -32),
         ])
+
+        if !barcode.isEmpty, preferRedactedOverBrowser() {
+            DispatchQueue.main.async { [weak self] in self?.prefetchRedactedFromScan() }
+        }
+    }
+
+    private func preferRedactedOverBrowser() -> Bool {
+        guard let k = prefs.redactedApiKey?.trimmingCharacters(in: .whitespacesAndNewlines), !k.isEmpty else { return false }
+        return true
+    }
+
+    private func prefetchRedactedFromScan() {
+        fillFromRedactedBrowse(searchStr: barcode, fallbackCover: nil, quietIfNoHit: true)
+    }
+
+    /// Fills secondary field from first Redacted `browse` hit; does not open Safari/browser.
+    private func fillFromRedactedBrowse(searchStr: String, fallbackCover: String?, quietIfNoHit: Bool) {
+        guard let apiKey = prefs.redactedApiKey?.trimmingCharacters(in: .whitespacesAndNewlines), !apiKey.isEmpty else { return }
+        let bc = barcodeField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? barcode
+        let q = searchStr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? bc : searchStr.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else {
+            if !quietIfNoHit { showAlert("Enter artist/album or scan a barcode") }
+            return
+        }
+        DispatchQueue.global(qos: .userInitiated).async {
+            let hit = RedactedSearchAssistIOS.firstBrowseHit(apiKey: apiKey, searchStr: q)
+            DispatchQueue.main.async {
+                if let hit = hit {
+                    self.secondaryField.text = hit.terms
+                    let coverHist = hit.coverRaw.map { RedactedSearchAssistIOS.absoluteCoverURL($0) } ?? fallbackCover
+                    SearchHistoryStore.add(barcode: bc, title: hit.terms, coverUrl: coverHist)
+                    if !quietIfNoHit {
+                        self.showAlert("Filled from Redacted (first match)")
+                    }
+                } else {
+                    if quietIfNoHit { return }
+                    self.secondaryField.text = q
+                    SearchHistoryStore.add(barcode: bc, title: q, coverUrl: fallbackCover)
+                    self.showAlert("No Redacted match; kept your search text")
+                }
+            }
+        }
     }
 
     @objc private func goHome() {
@@ -90,25 +122,38 @@ final class SearchViewController: UIViewController {
     @objc private func submitTapped() {
         let bc = barcodeField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let terms = secondaryField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let notes = notesField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let category = categoryField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
         if prefs.method == SearchPrefs.Method.post {
             guard let urlStr = prefs.secondarySearchUrl, let url = URL(string: urlStr) else {
                 showAlert("Configure secondary URL in Settings")
                 return
             }
-            doPost(url: url, barcode: bc, notes: notes, category: category)
+            doPost(url: url, barcode: bc, notes: "", category: "")
             return
         }
 
-        guard let secondaryUrl = prefs.secondarySearchUrl, !secondaryUrl.isEmpty else {
-            showAlert("Configure secondary URL in Settings")
+        let secondaryUrl = prefs.secondarySearchUrl?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if secondaryUrl.isEmpty {
+            if preferRedactedOverBrowser(), !bc.isEmpty {
+                fillFromRedactedBrowse(searchStr: bc, fallbackCover: nil, quietIfNoHit: false)
+            } else {
+                showAlert("Configure secondary URL in Settings")
+            }
             return
         }
 
         if prefs.secondarySearchAutoFromMusicBrainz {
             showAlert("MusicBrainz auto-fill is not wired on iOS yet. Enter secondary terms manually.")
+            return
+        }
+
+        if preferRedactedOverBrowser() {
+            let q = terms.isEmpty ? bc : terms
+            guard !q.isEmpty else {
+                showAlert("Enter secondary search terms (artist - title).")
+                return
+            }
+            fillFromRedactedBrowse(searchStr: q, fallbackCover: nil, quietIfNoHit: false)
             return
         }
 
@@ -125,17 +170,47 @@ final class SearchViewController: UIViewController {
         }
     }
 
+    /// Matches Android `SecondarySearchVariables.isPlaceholderCompilationArtist`.
+    private func isPlaceholderCompilationArtist(_ name: String) -> Bool {
+        let s = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        switch s {
+        case "various", "various artists", "various artist", "va": return true
+        default: return false
+        }
+    }
+
     private func buildSecondaryUrl(template: String, query: String) -> URL {
         let enc: (String) -> String = { q in
             q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? q
         }
-        let parts = query.components(separatedBy: " - ")
-        let artist = parts.first?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let album = parts.count > 1 ? parts[1].trimmingCharacters(in: .whitespacesAndNewlines) : ""
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let parts: [String] = {
+            if let r = trimmed.range(of: " — ") {
+                return [String(trimmed[..<r.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines),
+                        String(trimmed[r.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)]
+            }
+            return trimmed.components(separatedBy: " - ")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        }()
+        let segArtist = parts.first ?? ""
+        let segAlbum = parts.count > 1 ? parts[1] : ""
+        let artistToken: String = {
+            if isPlaceholderCompilationArtist(segArtist) { return "" }
+            return segArtist.isEmpty ? trimmed : segArtist
+        }()
+        let albumToken: String = {
+            if isPlaceholderCompilationArtist(segArtist) { return segAlbum }
+            return segAlbum.isEmpty ? trimmed : segAlbum
+        }()
+        let queryToken: String = {
+            if isPlaceholderCompilationArtist(segArtist) { return segAlbum }
+            return trimmed
+        }()
         var s = template
-            .replacingOccurrences(of: "%s", with: enc(query))
-            .replacingOccurrences(of: "%artist%", with: enc(artist.isEmpty ? query : artist))
-            .replacingOccurrences(of: "%album%", with: enc(album.isEmpty ? query : album))
+            .replacingOccurrences(of: "%s", with: enc(queryToken))
+            .replacingOccurrences(of: "%query%", with: enc(queryToken))
+            .replacingOccurrences(of: "%artist%", with: enc(artistToken))
+            .replacingOccurrences(of: "%album%", with: enc(albumToken))
         if s.range(of: "://") == nil { s = "https://" + s }
         return URL(string: s) ?? URL(string: "about:blank")!
     }
@@ -175,5 +250,60 @@ final class SearchViewController: UIViewController {
         let a = UIAlertController(title: nil, message: msg, preferredStyle: .alert)
         a.addAction(UIAlertAction(title: "OK", style: .default))
         present(a, animated: true)
+    }
+}
+
+// MARK: - Redacted browse → search field (mirrors Android [RedactedSearchAssist])
+
+private enum RedactedSearchAssistIOS {
+    struct Hit {
+        var terms: String
+        var coverRaw: String?
+    }
+
+    static func firstBrowseHit(apiKey: String, searchStr: String) -> Hit? {
+        let t = searchStr.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !t.isEmpty else { return nil }
+        let api = RedactedApiClient(apiKey: apiKey)
+        let r = api.browse(params: [
+            ("searchstr", t),
+            ("page", "1"),
+            ("group_results", "1"),
+        ])
+        guard case .success(let root) = r,
+            let resp = root["response"] as? [String: Any],
+            let arr = resp["results"] as? [[String: Any]],
+            let o = arr.first
+        else { return nil }
+        let artist = (o["artist"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let groupName = (o["groupName"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let terms: String
+        if !artist.isEmpty && !groupName.isEmpty {
+            terms = "\(artist) - \(groupName)"
+        } else if !groupName.isEmpty {
+            terms = groupName
+        } else if !artist.isEmpty {
+            terms = artist
+        } else {
+            return nil
+        }
+        let cover = (o["cover"] as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmptySearchAssist
+        return Hit(terms: terms, coverRaw: cover)
+    }
+
+    static func absoluteCoverURL(_ raw: String) -> String {
+        let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if t.lowercased().hasPrefix("http") { return t }
+        let p = t.hasPrefix("/") ? String(t.dropFirst()) : t
+        return "https://redacted.sh/\(p)"
+    }
+}
+
+private extension String {
+    var nilIfEmptySearchAssist: String? {
+        let s = trimmingCharacters(in: .whitespacesAndNewlines)
+        return s.isEmpty ? nil : s
     }
 }

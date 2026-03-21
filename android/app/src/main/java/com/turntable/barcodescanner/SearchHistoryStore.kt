@@ -59,6 +59,14 @@ object SearchHistoryStore {
         }
     }
 
+    /** Removes all stored history entries. */
+    fun clear(context: Context) {
+        context.getSharedPreferences(SearchPrefs.PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .remove(KEY_HISTORY_JSON)
+            .apply()
+    }
+
     private fun save(context: Context, entries: List<SearchHistoryEntry>) {
         val arr = JSONArray()
         for (e in entries) {

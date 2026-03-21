@@ -98,18 +98,6 @@
             android:src="@drawable/tracker_status_userid_bad" />
     </LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="6dp"
-        android:gravity="center"
-        android:letterSpacing="0.05"
-        android:text="@string/home_actions_shortcuts"
-        android:textAllCaps="true"
-        android:textColor="@color/home_text_muted"
-        android:textSize="12sp" />
-
     <LinearLayout
         android:id="@+id/layoutHomeActions"
         android:layout_width="match_parent"

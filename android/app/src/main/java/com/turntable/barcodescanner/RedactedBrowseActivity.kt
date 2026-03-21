@@ -5,29 +5,19 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Spinner
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.textfield.TextInputEditText
 import com.turntable.barcodescanner.databinding.ActivityRedactedBrowseBinding
+import com.turntable.barcodescanner.redacted.RedactedBrowseParamsCodec
 import com.turntable.barcodescanner.redacted.RedactedExtras
-import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
-import com.turntable.barcodescanner.redacted.TwoLineRow
-import com.turntable.barcodescanner.redacted.TwoLineRowsAdapter
-import org.json.JSONArray
 
 /**
- * In-app torrent browse modeled on the site **Torrents → Basic / Advanced search** form
- * (`torrents.php?action=advanced`). Parameters are sent to the JSON `browse` action.
+ * First step of in-app torrent search: filter form only. Results open in [RedactedBrowseResultsActivity].
  */
 class RedactedBrowseActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRedactedBrowseBinding
-    private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
-    private var currentPage = 1
-    private var totalPages = 1
-    private val groupIds = mutableListOf<Int>()
 
     private lateinit var orderByValues: Array<String>
     private lateinit var orderWayValues: Array<String>
@@ -41,8 +31,7 @@ class RedactedBrowseActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val c = RedactedUiHelper.requireApi(this) ?: return
-        api = c
+        RedactedUiHelper.requireApi(this) ?: return
         binding = ActivityRedactedBrowseBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -72,7 +61,6 @@ class RedactedBrowseActivity : AppCompatActivity() {
         bindSpinner(binding.spinnerVanityHouse, R.array.redacted_browse_yesno)
         bindSpinner(binding.spinnerFreeTorrent, R.array.redacted_browse_freetorrent)
 
-        // Defaults: time added, descending (matches site defaults)
         binding.spinnerOrderBy.setSelection(1.coerceAtMost(orderByValues.size - 1))
         binding.spinnerOrderWay.setSelection(1.coerceAtMost(orderWayValues.size - 1))
 
@@ -88,34 +76,20 @@ class RedactedBrowseActivity : AppCompatActivity() {
             binding.editSearchStr.setText(initial)
         }
 
-        val adapter = TwoLineRowsAdapter { pos ->
-            val gid = groupIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
-            startActivity(
-                Intent(this, RedactedTorrentGroupActivity::class.java)
-                    .putExtra(RedactedExtras.GROUP_ID, gid),
-            )
-        }
-        binding.recycler.layoutManager = LinearLayoutManager(this)
-        binding.recycler.adapter = adapter
-
-        binding.buttonSearch.setOnClickListener { currentPage = 1; load(adapter) }
+        binding.buttonSearch.setOnClickListener { openResults() }
         binding.buttonReset.setOnClickListener { resetForm() }
-        binding.buttonPrev.setOnClickListener {
-            if (currentPage > 1) {
-                currentPage--
-                load(adapter)
-            }
-        }
-        binding.buttonNext.setOnClickListener {
-            if (currentPage < totalPages) {
-                currentPage++
-                load(adapter)
-            }
-        }
 
         if (initial.isNotBlank()) {
-            binding.root.post { load(adapter) }
+            binding.root.post { openResults() }
         }
+    }
+
+    private fun openResults() {
+        val json = RedactedBrowseParamsCodec.encode(buildBrowseParams(page = 1))
+        startActivity(
+            Intent(this, RedactedBrowseResultsActivity::class.java)
+                .putExtra(RedactedExtras.BROWSE_PARAMS_JSON, json),
+        )
     }
 
     private fun bindSpinner(spinner: Spinner, arrayRes: Int) {
@@ -173,8 +147,8 @@ class RedactedBrowseActivity : AppCompatActivity() {
         if (!v.isNullOrEmpty()) add(key to v)
     }
 
-    private fun buildBrowseParams(): List<Pair<String, String?>> = buildList {
-        add("page" to currentPage.toString())
+    private fun buildBrowseParams(page: Int): List<Pair<String, String?>> = buildList {
+        add("page" to page.toString())
         when (binding.toggleSearchMode.checkedButtonId) {
             R.id.btnModeBasic -> {
                 val s = binding.editSearchStr.text?.toString()?.trim()
@@ -225,55 +199,5 @@ class RedactedBrowseActivity : AppCompatActivity() {
         for ((cb, key) in checks) {
             if (cb.isChecked) add(key to "1")
         }
-    }
-
-    private fun load(adapter: TwoLineRowsAdapter) {
-        binding.progress.visibility = View.VISIBLE
-        Thread {
-            val params = buildBrowseParams()
-            val result = api.browse(params)
-            runOnUiThread {
-                binding.progress.visibility = View.GONE
-                when (result) {
-                    is RedactedResult.Failure -> {
-                        Toast.makeText(this, result.message, Toast.LENGTH_LONG).show()
-                    }
-                    is RedactedResult.Success -> {
-                        val resp = result.response ?: return@runOnUiThread
-                        totalPages = resp.optInt("pages", 1).coerceAtLeast(1)
-                        currentPage = resp.optInt("currentPage", currentPage).coerceAtLeast(1)
-                        binding.textPage.text = getString(
-                            R.string.redacted_page_fmt,
-                            currentPage,
-                            totalPages,
-                        )
-                        val arr: JSONArray? = resp.optJSONArray("results")
-                        val rows = mutableListOf<TwoLineRow>()
-                        groupIds.clear()
-                        if (arr != null) {
-                            for (i in 0 until arr.length()) {
-                                val o = arr.optJSONObject(i) ?: continue
-                                val gid = o.optInt("groupId")
-                                val name = o.optString("groupName")
-                                val artist = o.optString("artist")
-                                val year = o.optInt("groupYear", 0)
-                                val sub = buildString {
-                                    append(artist)
-                                    if (year > 0) append(" · ").append(year)
-                                    append(" · id ").append(gid)
-                                }
-                                rows.add(TwoLineRow(name.ifBlank { "(no title)" }, sub))
-                                groupIds.add(gid)
-                            }
-                        }
-                        adapter.rows = rows
-                        if (rows.isEmpty()) {
-                            Toast.makeText(this, R.string.redacted_no_results, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    else -> {}
-                }
-            }
-        }.start()
     }
 }

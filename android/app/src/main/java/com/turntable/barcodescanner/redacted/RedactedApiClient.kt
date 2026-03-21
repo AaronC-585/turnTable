@@ -20,6 +20,9 @@ import java.util.concurrent.TimeUnit
  */
 class RedactedApiClient(private val apiKey: String) {
 
+    /** Same value as the JSON API [Authorization] header — needed for gated cover URLs on redacted.sh. */
+    fun redactedAuthorizationValue(): String = apiKey.trim()
+
     private val http = OkHttpClient.Builder()
         .connectTimeout(45, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)

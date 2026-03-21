@@ -16,10 +16,13 @@ ehthumbs.db
 .settings/
 
 # Android
+android/debug-logcat.txt
+android/debug-logcat.run.pid
 android/local.properties
 android/.gradle/
 android/**/build/
 android/**/.cxx/
+android/REDACTED_FEATURES.md
 *.apk
 *.aab
 *.ap_

@@ -84,6 +84,7 @@
             android:exported="false"
             android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedBrowseActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedBrowseResultsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedTorrentGroupActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedAccountActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedTop10Activity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />

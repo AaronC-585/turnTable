@@ -4,20 +4,19 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivitySearchBinding
 import com.turntable.barcodescanner.redacted.RedactedExtras
-import java.net.HttpURLConnection
-import java.net.URL
-
+import com.turntable.barcodescanner.redacted.RedactedSearchAssist
 class SearchActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySearchBinding
+
+    /** Cover URL from primary/Redacted assist (no longer shown in UI; still used for %cover% substitution). */
+    private var assistedCoverUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,16 +32,18 @@ class SearchActivity : AppCompatActivity() {
             binding.editSecondarySearchTerms.setText(prefillTerms)
         }
 
-        val hasSecondary = !SearchPrefs(this).secondarySearchUrl.isNullOrBlank()
-        binding.secondarySearchTermsContainer.visibility = if (hasSecondary) View.VISIBLE else View.GONE
+        val prefsEarly = SearchPrefs(this)
+        val hasSecondary = !prefsEarly.secondarySearchUrl.isNullOrBlank()
+        val hasRedactedEarly = !prefsEarly.redactedApiKey.isNullOrBlank()
+        binding.secondarySearchTermsContainer.visibility =
+            if (hasSecondary || hasRedactedEarly) View.VISIBLE else View.GONE
 
         binding.buttonSubmit.setOnClickListener { submit(barcode) }
         if (intent.getBooleanExtra(EXTRA_AUTOSUBMIT, false)) {
             binding.buttonSubmit.post { submit(barcode) }
         }
 
-        val hasRedacted = !SearchPrefs(this).redactedApiKey.isNullOrBlank()
-        binding.buttonRedactedSearch.visibility = if (hasRedacted) View.VISIBLE else View.GONE
+        binding.buttonRedactedSearch.visibility = if (hasRedactedEarly) View.VISIBLE else View.GONE
         binding.buttonRedactedSearch.setOnClickListener {
             val q = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty()
             startActivity(
@@ -52,60 +53,74 @@ class SearchActivity : AppCompatActivity() {
             )
         }
 
-        binding.buttonAudioDbSearch.setOnClickListener { runTheAudioDbTextSearch() }
+        if (barcode.isNotBlank() && hasRedactedEarly) {
+            binding.root.post { prefetchRedactedFromScan(barcode) }
+        }
+    }
+
+    private fun redactedApiKeyOrNull(): String? =
+        SearchPrefs(this).redactedApiKey?.trim()?.takeIf { it.isNotEmpty() }
+
+    /** When a Redacted API key is set, Submit uses in-app browse instead of opening an external browser. */
+    private fun preferRedactedOverBrowser(): Boolean = redactedApiKeyOrNull() != null
+
+    private fun coverFromUi(): String? = assistedCoverUrl
+
+    /** Cover image from Redacted paths (needs Authorization). */
+    private fun applyRedactedCoverAssist(rawPathOrUrl: String) {
+        val abs = RedactedSearchAssist.absoluteCoverUrl(rawPathOrUrl)
+        assistedCoverUrl = abs
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        cm.setPrimaryClip(ClipData.newPlainText("Cover URL", abs))
+        Toast.makeText(this, R.string.cover_url_copied, Toast.LENGTH_SHORT).show()
     }
 
     /**
-     * TheAudioDB v2 `search/artist/{q}` and `search/album/{q}` via [TheAudioDbApi] (**X-API-KEY**).
-     * @see [TheAudioDbTextSearch]
+     * Fills secondary terms from the first Redacted `browse` hit. Never opens a browser.
+     * @param quietIfNoHit if true, no toast when there are zero results (e.g. scan prefetch).
      */
-    private fun runTheAudioDbTextSearch() {
-        val q = binding.editAudioDbQuery.text?.toString()?.trim().orEmpty()
+    private fun fillFromRedactedBrowse(
+        barcode: String,
+        searchStr: String,
+        fallbackCover: String? = null,
+        quietIfNoHit: Boolean = false,
+    ) {
+        val key = redactedApiKeyOrNull() ?: return
+        val q = searchStr.trim().ifEmpty { barcode.trim() }
         if (q.isEmpty()) {
-            Toast.makeText(this, R.string.theaudiodb_text_search_enter_query, Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.secondary_no_artist_title, Toast.LENGTH_SHORT).show()
             return
         }
-        val kindArtist = binding.spinnerAudioDbSearchKind.selectedItemPosition == 0
-        val prefs = SearchPrefs(this)
-        binding.buttonAudioDbSearch.isEnabled = false
         Thread {
-            val items = try {
-                if (kindArtist) {
-                    TheAudioDbTextSearch.searchArtists(prefs.theAudioDbApiKey, q)
-                } else {
-                    TheAudioDbTextSearch.searchAlbums(prefs.theAudioDbApiKey, q)
-                }
-            } catch (_: Exception) {
-                emptyList()
-            }
+            val hit = RedactedSearchAssist.firstHit(key, q)
             runOnUiThread {
-                binding.buttonAudioDbSearch.isEnabled = true
-                if (items.isEmpty()) {
-                    Toast.makeText(this, R.string.theaudiodb_text_search_empty, Toast.LENGTH_LONG).show()
+                val bcStore = binding.editBarcode.text?.toString()?.trim().orEmpty().ifBlank { barcode }
+                if (hit != null) {
+                    binding.editSecondarySearchTerms.setText(hit.secondaryTerms)
+                    if (hit.coverPathOrUrl != null) {
+                        applyRedactedCoverAssist(hit.coverPathOrUrl)
+                    } else {
+                        applyCoverAssist(fallbackCover)
+                    }
+                    val coverHist = hit.coverPathOrUrl?.let { RedactedSearchAssist.absoluteCoverUrl(it) }
+                        ?: fallbackCover
+                    SearchHistoryStore.add(this, bcStore, hit.secondaryTerms, coverHist)
+                    Toast.makeText(this, R.string.search_filled_from_redacted, Toast.LENGTH_SHORT).show()
                 } else {
-                    showTheAudioDbResultPicker(items)
+                    if (quietIfNoHit) {
+                        return@runOnUiThread
+                    }
+                    binding.editSecondarySearchTerms.setText(q)
+                    applyCoverAssist(fallbackCover)
+                    SearchHistoryStore.add(this, bcStore, q, fallbackCover)
+                    Toast.makeText(this, R.string.search_no_redacted_hit, Toast.LENGTH_SHORT).show()
                 }
             }
         }.start()
     }
 
-    private fun showTheAudioDbResultPicker(items: List<TheAudioDbSearchItem>) {
-        val lines = items.map { item ->
-            buildString {
-                append(item.title)
-                item.subtitle?.takeIf { it.isNotBlank() }?.let { append(" — ").append(it) }
-            }
-        }.toTypedArray()
-        AlertDialog.Builder(this)
-            .setTitle(R.string.theaudiodb_text_search_pick)
-            .setItems(lines) { _, which ->
-                val item = items[which]
-                binding.editSecondarySearchTerms.setText(item.secondarySearchQuery)
-                applyCoverAssist(item.coverImageUrl)
-                binding.secondarySearchTermsContainer.visibility = View.VISIBLE
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+    private fun prefetchRedactedFromScan(barcode: String) {
+        fillFromRedactedBrowse(barcode, barcode, fallbackCover = null, quietIfNoHit = true)
     }
 
     private fun submit(barcode: String) {
@@ -114,17 +129,25 @@ class SearchActivity : AppCompatActivity() {
         when (prefs.method) {
             SearchPrefs.METHOD_GET -> {
                 val secondaryUrl = prefs.secondarySearchUrl?.takeIf { it.isNotBlank() }
+                val secondaryPkg = prefs.secondaryBrowserPackage
+                val secondaryQuery = binding.editSecondarySearchTerms.text?.toString()?.trim()
                 if (secondaryUrl.isNullOrBlank()) {
+                    if (preferRedactedOverBrowser() && barcode.isNotBlank()) {
+                        fillFromRedactedBrowse(barcode, barcode, coverFromUi(), quietIfNoHit = false)
+                        return
+                    }
                     Toast.makeText(this, R.string.configure_secondary_url, Toast.LENGTH_LONG).show()
                     return
                 }
-                val secondaryPkg = prefs.secondaryBrowserPackage
-                val secondaryQuery = binding.editSecondarySearchTerms.text?.toString()?.trim()
                 if (prefs.secondarySearchAutoFromMusicBrainz) {
                     fetchPrimaryInfoAndOpenSecondary(barcode, secondaryUrl, secondaryPkg, prefs)
                 } else if (!secondaryQuery.isNullOrBlank()) {
-                    openSecondaryUrl(secondaryUrl, secondaryPkg, secondaryVarsFromUi(barcode))
-                    finish()
+                    if (preferRedactedOverBrowser()) {
+                        fillFromRedactedBrowse(barcode, secondaryQuery, coverFromUi(), quietIfNoHit = false)
+                    } else {
+                        openSecondaryUrl(secondaryUrl, secondaryPkg, secondaryVarsFromUi(barcode))
+                        finish()
+                    }
                 } else {
                     Toast.makeText(this, R.string.secondary_no_artist_title, Toast.LENGTH_SHORT).show()
                 }
@@ -143,11 +166,11 @@ class SearchActivity : AppCompatActivity() {
     private fun secondaryVarsFromUi(
         barcode: String,
         query: String = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty(),
-        coverUrl: String? = binding.editCoverImageUrl.text?.toString()?.trim()?.takeIf { it.isNotBlank() },
+        coverUrl: String? = assistedCoverUrl,
     ): SecondarySearchVariables = SecondarySearchVariables(
         barcode = binding.editBarcode.text?.toString()?.trim().orEmpty().ifBlank { barcode },
-        notes = binding.editNotes.text?.toString().orEmpty(),
-        category = binding.editCategory.text?.toString().orEmpty(),
+        notes = "",
+        category = "",
         query = query,
         coverUrl = coverUrl,
     )
@@ -191,6 +214,10 @@ class SearchActivity : AppCompatActivity() {
         pkg: String?,
         vars: SecondarySearchVariables,
     ) {
+        if (preferRedactedOverBrowser()) {
+            fillFromRedactedBrowse(vars.barcode, vars.query, vars.coverUrl, quietIfNoHit = false)
+            return
+        }
         val url = SecondarySearchSubstitution.substituteUrl(secondaryUrl, vars)
         SearchHistoryStore.add(
             this,
@@ -227,6 +254,14 @@ class SearchActivity : AppCompatActivity() {
             val query = lookup?.searchQuery
             val coverUrl = lookup?.coverImageUrl
             runOnUiThread {
+                if (preferRedactedOverBrowser()) {
+                    val q = when {
+                        !query.isNullOrBlank() -> query.trim()
+                        else -> binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty()
+                    }.ifBlank { barcode }
+                    fillFromRedactedBrowse(barcode, q, coverUrl, quietIfNoHit = false)
+                    return@runOnUiThread
+                }
                 applyCoverAssist(coverUrl)
                 if (!query.isNullOrBlank()) {
                     openSecondaryUrl(
@@ -251,71 +286,16 @@ class SearchActivity : AppCompatActivity() {
         }.start()
     }
 
-    /** Fill cover URL field, optional preview, clipboard (yadg-style assist). */
+    /** Store cover URL for substitution; copy to clipboard (yadg-style assist). */
     private fun applyCoverAssist(coverUrl: String?) {
         if (coverUrl.isNullOrBlank()) {
-            binding.editCoverImageUrl.text?.clear()
-            binding.imageCover.setImageDrawable(null)
-            binding.cardCoverPreview.visibility = View.GONE
+            assistedCoverUrl = null
             return
         }
-        binding.editCoverImageUrl.setText(coverUrl)
-        binding.cardCoverPreview.visibility = View.VISIBLE
-        loadCoverPreview(coverUrl)
+        assistedCoverUrl = coverUrl
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         cm.setPrimaryClip(ClipData.newPlainText("Cover URL", coverUrl))
         Toast.makeText(this, R.string.cover_url_copied, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun loadCoverPreview(imageUrl: String) {
-        Thread {
-            var bmp: android.graphics.Bitmap? = null
-            try {
-                val conn = URL(imageUrl).openConnection() as HttpURLConnection
-                conn.requestMethod = "GET"
-                conn.connectTimeout = 12000
-                conn.readTimeout = 12000
-                conn.setRequestProperty("User-Agent", "turnTable/1.0")
-                if (conn.responseCode in 200..299) {
-                    val bytes = conn.inputStream.use { it.readBytes() }
-                    conn.disconnect()
-                    if (bytes.isNotEmpty()) {
-                        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-                        bounds.inJustDecodeBounds = false
-                        bounds.inSampleSize = computeInSampleSize(bounds, 512, 512)
-                        bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-                    }
-                } else {
-                    conn.disconnect()
-                }
-            } catch (_: Exception) {
-                bmp = null
-            }
-            runOnUiThread {
-                if (bmp != null) {
-                    binding.imageCover.setImageBitmap(bmp)
-                } else {
-                    binding.imageCover.setImageDrawable(null)
-                }
-            }
-        }.start()
-    }
-
-    private fun computeInSampleSize(
-        options: BitmapFactory.Options,
-        reqWidth: Int,
-        reqHeight: Int,
-    ): Int {
-        var inSampleSize = 1
-        if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
-            var halfH = options.outHeight / 2
-            var halfW = options.outWidth / 2
-            while (halfH / inSampleSize >= reqHeight && halfW / inSampleSize >= reqWidth) {
-                inSampleSize *= 2
-            }
-        }
-        return inSampleSize.coerceAtLeast(1)
     }
 
     private fun doPost(

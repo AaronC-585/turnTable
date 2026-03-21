@@ -5,17 +5,21 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
+import android.widget.ScrollView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.turntable.barcodescanner.databinding.ActivityRedactedTorrentGroupBinding
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedFormatters
+import com.turntable.barcodescanner.redacted.RedactedGazelleEdition
+import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentParse
 import com.turntable.barcodescanner.redacted.RedactedResult
+import com.turntable.barcodescanner.redacted.RedactedTorrentGroupRowsAdapter
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
-import com.turntable.barcodescanner.redacted.TwoLineRow
-import com.turntable.barcodescanner.redacted.TwoLineRowsAdapter
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -27,6 +31,8 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private var groupId: Int = 0
     private val torrentIds = mutableListOf<Int>()
+    /** Parallel to [torrentIds] — full torrent JSON from [torrentgroup]. */
+    private val torrentObjects = mutableListOf<JSONObject>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,10 +51,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
 
-        val adapter = TwoLineRowsAdapter { pos ->
-            val tid = torrentIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
-            showTorrentActions(tid)
-        }
+        val adapter = RedactedTorrentGroupRowsAdapter { torrentIdx -> showTorrentActions(torrentIdx) }
         binding.recyclerTorrents.layoutManager = LinearLayoutManager(this)
         binding.recyclerTorrents.adapter = adapter
 
@@ -63,10 +66,29 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             )
         }
 
+        binding.buttonRequestFormat.setOnClickListener {
+            RedactedUiHelper.openSite(this, "requests.php?action=new&groupid=$groupId")
+        }
+        binding.buttonViewHistory.setOnClickListener {
+            RedactedUiHelper.openSite(this, "torrents.php?action=history&groupid=$groupId")
+        }
+        binding.buttonGroupLog.setOnClickListener {
+            RedactedUiHelper.openSite(this, "torrents.php?action=grouplog&groupid=$groupId")
+        }
+        binding.buttonAddToCollageFromGroup.setOnClickListener {
+            startActivity(
+                Intent(this, RedactedAddToCollageActivity::class.java)
+                    .putExtra(RedactedExtras.GROUP_IDS_CSV, groupId.toString())
+            )
+        }
+        binding.buttonCommentsOnSite.setOnClickListener {
+            RedactedUiHelper.openSite(this, "torrents.php?id=$groupId#comments")
+        }
+
         loadGroup(adapter)
     }
 
-    private fun loadGroup(adapter: TwoLineRowsAdapter) {
+    private fun loadGroup(adapter: RedactedTorrentGroupRowsAdapter) {
         binding.progress.visibility = View.VISIBLE
         Thread {
             val result = api.torrentGroup(groupId)
@@ -81,7 +103,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun bindGroup(resp: JSONObject?, adapter: TwoLineRowsAdapter) {
+    private fun bindGroup(resp: JSONObject?, adapter: RedactedTorrentGroupRowsAdapter) {
         if (resp == null) return
         val group = resp.optJSONObject("group") ?: return
         val name = group.optString("name")
@@ -109,20 +131,78 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         }
         binding.textMeta.text = meta
 
+        val wikiBody = group.optString("wikiBody").trim()
+        val wikiPlain = RedactedGazelleTorrentParse.stripBbCodeForPreview(wikiBody)
+        if (wikiPlain.isNotBlank()) {
+            binding.labelGroupInfo.visibility = View.VISIBLE
+            binding.textWikiBody.visibility = View.VISIBLE
+            binding.textWikiBody.text = wikiPlain
+        } else {
+            binding.labelGroupInfo.visibility = View.GONE
+            binding.textWikiBody.visibility = View.GONE
+            binding.textWikiBody.text = ""
+        }
+
         val torrents: JSONArray? = resp.optJSONArray("torrents")
-        val rows = mutableListOf<TwoLineRow>()
+        val torrentList = buildList {
+            if (torrents != null) {
+                for (i in 0 until torrents.length()) {
+                    torrents.optJSONObject(i)?.let { add(it) }
+                }
+            }
+        }
         torrentIds.clear()
-        if (torrents != null) {
-            for (i in 0 until torrents.length()) {
-                val t = torrents.optJSONObject(i) ?: continue
+        torrentObjects.clear()
+        val rows = mutableListOf<RedactedTorrentGroupRowsAdapter.Row>()
+        val buckets = RedactedGazelleEdition.groupTorrentsByEdition(group, torrentList)
+        for (bucket in buckets) {
+            val header = RedactedGazelleEdition.buildEditionHeaderTitle(group, bucket.first())
+            rows.add(RedactedTorrentGroupRowsAdapter.Row(title = header, subtitle = "", torrentIndex = null))
+            for (t in bucket) {
                 val tid = t.optInt("id")
-                val line = "${t.optString("format")} / ${t.optString("encoding")} / ${t.optString("media")}"
-                val sub = "${RedactedFormatters.bytes(t.optLong("size"))} · ↑${t.optInt("seeders")} ↓${t.optInt("leechers")} · id $tid"
-                rows.add(TwoLineRow(line, sub))
+                val line = buildTorrentTitleLine(t)
+                val sub = buildTorrentSubtitle(t, tid)
+                val idx = torrentIds.size
                 torrentIds.add(tid)
+                torrentObjects.add(t)
+                rows.add(RedactedTorrentGroupRowsAdapter.Row(title = line, subtitle = sub, torrentIndex = idx))
             }
         }
         adapter.rows = rows
+    }
+
+    private fun buildTorrentTitleLine(t: JSONObject): String {
+        val base = "${t.optString("format")} / ${t.optString("encoding")} / ${t.optString("media")}"
+        val status = t.optString("userStatus").trim()
+        return if (status.isNotBlank()) "$base — $status" else base
+    }
+
+    private fun buildTorrentSubtitle(t: JSONObject, tid: Int): String {
+        val snatched = t.optInt("snatched")
+        val parts = buildString {
+            append(RedactedFormatters.bytes(t.optLong("size")))
+            append(" · ↑").append(t.optInt("seeders"))
+            append(" ↓").append(t.optInt("leechers"))
+            append(" · ").append(getString(R.string.redacted_snatched_abbr, snatched))
+            append(" · id ").append(tid)
+        }
+        val uid = t.optInt("userId")
+        val uname = t.optString("username").trim()
+        val time = t.optString("time").trim()
+        val who = when {
+            uname.isNotBlank() -> uname
+            uid > 0 -> getString(R.string.redacted_user_id) + " $uid"
+            else -> ""
+        }
+        return if (who.isNotBlank() && time.isNotBlank()) {
+            parts + "\n" + getString(R.string.redacted_uploader_line, who, time)
+        } else if (time.isNotBlank()) {
+            parts + "\n" + time
+        } else if (who.isNotBlank()) {
+            parts + "\n" + who
+        } else {
+            parts
+        }
     }
 
     private fun extractArtists(musicInfo: JSONObject?): String {
@@ -161,28 +241,85 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showTorrentActions(torrentId: Int) {
-        val items = arrayOf(
-            getString(R.string.redacted_download),
-            getString(R.string.redacted_details),
-            getString(R.string.redacted_use_token),
-            getString(R.string.redacted_edit_torrent_short),
-        )
-        AlertDialog.Builder(this)
-            .setItems(items) { _, which ->
-                when (which) {
-                    0 -> downloadTorrent(torrentId, false)
-                    1 -> startActivity(
-                        Intent(this, RedactedTorrentDetailActivity::class.java)
-                            .putExtra(RedactedExtras.TORRENT_ID, torrentId)
-                    )
-                    2 -> downloadTorrent(torrentId, true)
-                    3 -> startActivity(
-                        Intent(this, RedactedTorrentEditActivity::class.java)
-                            .putExtra(RedactedExtras.TORRENT_ID, torrentId)
-                    )
-                }
+    private fun showTorrentActions(position: Int) {
+        val torrentId = torrentIds.getOrNull(position) ?: return
+        val t = torrentObjects.getOrNull(position) ?: return
+        val files = RedactedGazelleTorrentParse.parseFileList(t.optString("fileList"))
+        val hasFiles = files.isNotEmpty()
+        val descRaw = t.optString("description").trim()
+        val hasDesc = descRaw.isNotBlank()
+
+        val labels = mutableListOf<String>()
+        val actions = mutableListOf<() -> Unit>()
+
+        labels.add(getString(R.string.redacted_download))
+        actions.add { downloadTorrent(torrentId, false) }
+
+        if (hasFiles) {
+            labels.add(getString(R.string.redacted_file_list_title))
+            actions.add { showFileListDialog(files) }
+        }
+        if (hasDesc) {
+            labels.add(getString(R.string.redacted_release_description))
+            actions.add {
+                showScrollTextDialog(
+                    getString(R.string.redacted_release_description),
+                    RedactedGazelleTorrentParse.stripBbCodeForPreview(descRaw),
+                )
             }
+        }
+
+        labels.add(getString(R.string.redacted_details))
+        actions.add {
+            startActivity(
+                Intent(this, RedactedTorrentDetailActivity::class.java)
+                    .putExtra(RedactedExtras.TORRENT_ID, torrentId)
+            )
+        }
+        labels.add(getString(R.string.redacted_use_token))
+        actions.add { confirmTokenDownload(torrentId) }
+        labels.add(getString(R.string.redacted_edit_torrent_short))
+        actions.add {
+            startActivity(
+                Intent(this, RedactedTorrentEditActivity::class.java)
+                    .putExtra(RedactedExtras.TORRENT_ID, torrentId)
+            )
+        }
+
+        AlertDialog.Builder(this)
+            .setItems(labels.toTypedArray()) { _, which ->
+                actions.getOrNull(which)?.invoke()
+            }
+            .show()
+    }
+
+    private fun showFileListDialog(files: List<RedactedGazelleTorrentParse.ListedFile>) {
+        val body = buildString {
+            for (f in files) {
+                append(f.name)
+                append(" — ")
+                append(RedactedFormatters.bytes(f.sizeBytes))
+                append('\n')
+            }
+        }.trimEnd()
+        showScrollTextDialog(getString(R.string.redacted_file_list_title), body)
+    }
+
+    private fun showScrollTextDialog(title: CharSequence, body: CharSequence) {
+        val padPx = (20 * resources.displayMetrics.density).toInt()
+        val scroll = ScrollView(this)
+        val tv = TextView(this).apply {
+            text = body
+            setTextIsSelectable(true)
+            textSize = 13f
+            setPadding(padPx, padPx, padPx, padPx)
+            setTextColor(ContextCompat.getColor(this@RedactedTorrentGroupActivity, R.color.app_text_primary))
+        }
+        scroll.addView(tv)
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(scroll)
+            .setPositiveButton(android.R.string.ok, null)
             .show()
     }
 
@@ -210,6 +347,15 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
                 runOnUiThread { binding.imageCover.visibility = View.GONE }
             }
         }.start()
+    }
+
+    private fun confirmTokenDownload(torrentId: Int) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.redacted_use_token_confirm_title)
+            .setMessage(R.string.redacted_use_token_confirm_message)
+            .setPositiveButton(android.R.string.ok) { _, _ -> downloadTorrent(torrentId, true) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun downloadTorrent(torrentId: Int, useToken: Boolean) {

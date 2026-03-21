@@ -123,7 +123,8 @@ object PrimarySearchAssist {
             val album = a.optString("strAlbum", "").trim()
             if (artist.isBlank() && album.isBlank()) return null
             val query = when {
-                artist.isNotBlank() && album.isNotBlank() -> "$artist - $album"
+                artist.isNotBlank() && album.isNotBlank() ->
+                    if (SecondarySearchVariables.isPlaceholderCompilationArtist(artist)) album else "$artist - $album"
                 album.isNotBlank() -> album
                 else -> artist
             }
@@ -294,7 +295,9 @@ object PrimarySearchAssist {
             val title = root.optString("title", "").trim()
             if (title.isBlank()) return null
             val sort = root.optString("artists_sort", "").trim()
-            if (sort.isNotBlank()) return "$sort - $title"
+            if (sort.isNotBlank()) {
+                return if (SecondarySearchVariables.isPlaceholderCompilationArtist(sort)) title else "$sort - $title"
+            }
             val artists = root.optJSONArray("artists")
             if (artists != null && artists.length() > 0) {
                 val names = StringBuilder()
@@ -303,7 +306,9 @@ object PrimarySearchAssist {
                     names.append(artists.getJSONObject(i).optString("name", ""))
                 }
                 val a = names.toString().trim()
-                if (a.isNotBlank()) return "$a - $title"
+                if (a.isNotBlank()) {
+                    return if (SecondarySearchVariables.isPlaceholderCompilationArtist(a)) title else "$a - $title"
+                }
             }
             title
         } catch (_: Exception) {
@@ -388,7 +393,12 @@ object PrimarySearchAssist {
             }
             val artistStr = artist.toString().trim()
             if (artistStr.isBlank() && title.isBlank()) return null
-            val query = "$artistStr - $title"
+            val query = when {
+                SecondarySearchVariables.isPlaceholderCompilationArtist(artistStr) -> title
+                artistStr.isNotBlank() && title.isNotBlank() -> "$artistStr - $title"
+                title.isNotBlank() -> title
+                else -> artistStr
+            }
             MbParse(query, releaseMbid)
         } catch (_: Exception) {
             null
