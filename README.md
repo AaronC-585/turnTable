@@ -21,7 +21,7 @@ The **iOS app binary** is built in **Xcode** (`open ios/turnTable.xcodeproj`); `
 
 Publish **Android APK** and **iOS IPA** on each release (attach both to the same tag). See **`RELEASE.md`** and **`scripts/release-github.sh`**.
 
-**In-app update check (Android):** Set `github_update_owner` in **`android/app/src/main/res/values/github_update.xml`** to your GitHub user or org (same repo as releases). The app calls the public [latest release](https://docs.github.com/en/rest/releases/releases#get-the-latest-release) API, compares the release tag to `versionName`, and can prompt on the home screen (once per 24h) or from **Settings** / **About → Check for updates**. Tags should match the dotted version form (e.g. `v2026.3.19.1373`).
+**In-app update check (Android):** Set `github_update_owner` (and optionally `github_update_version_ref`, usually `main`) in **`android/app/src/main/res/values/github_update.xml`** to your GitHub user or org (same repo as releases). The app calls the public [latest release](https://docs.github.com/en/rest/releases/releases#get-the-latest-release) API when possible; if that fails (e.g. rate limit), it falls back to **`android/app/update-check-latest-version.txt`** via `raw.githubusercontent.com`. **`scripts/release-github.sh`** updates that file when you cut a release—commit and push it so the fallback stays in sync. Tags / version lines use the dotted form (e.g. `v2026.3.19.1373` on GitHub, `2026.3.19.1373` in the text file).
 
 ## Android
 
@@ -38,6 +38,10 @@ If you use [Redacted](https://redacted.sh), generate an **API key** on the site 
 - On the **Search** screen, **Search Redacted** appears when a key is set; it opens in-app torrent search and can prefill from the artist/album field.
 
 Implementation lives under `android/app/src/main/java/com/turntable/barcodescanner/` (`Redacted*Activity`, `redacted/RedactedApiClient.kt`). **OkHttp** is used for HTTP. Downloaded `.torrent` files are shared via **`FileProvider`** (`res/xml/file_paths.xml`). Multipart **upload** is not fully wired in the UI; the client exposes `postUpload` for extensions. See **`android/REDACTED_FEATURES.md`** for the full list of screens and API actions.
+
+### qBittorrent Web API (future)
+
+Planned / exploratory integration with **qBittorrent’s Web UI API** is documented in **`docs/qbittorrent-api-future.md`**. It points at the Python client **[qbittorrent-api](https://qbittorrent-api.readthedocs.io/en/latest/)** (`pip install qbittorrent-api`) as the reference implementation for scripts or a LAN companion; the app does not bundle Python. Optional pin file: **`docs/requirements-qbittorrent.txt`**.
 
 1. Open the `android/` folder in Android Studio (or use it as the project root).
 2. Sync Gradle and build. The app’s CMake build will pull and build the `cpp/` project (including ZXing-cpp) for the selected ABI.

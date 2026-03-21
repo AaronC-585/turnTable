@@ -17,6 +17,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            app:navigationIconTint="@color/app_icon_emphasis"
             app:titleTextColor="@color/app_toolbar_title" />
 
         <com.google.android.material.progressindicator.LinearProgressIndicator

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path name="redacted_cache" path="redacted/" />
+    <cache-path name="event_logs" path="event_logs/" />
+    <cache-path name="app_updates" path="updates/" />
 </paths>

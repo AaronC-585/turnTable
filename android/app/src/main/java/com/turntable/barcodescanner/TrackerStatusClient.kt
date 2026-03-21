@@ -1,6 +1,7 @@
 package com.turntable.barcodescanner
 
 import androidx.annotation.DrawableRes
+import com.turntable.barcodescanner.debug.OutgoingUrlInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -16,6 +17,7 @@ object TrackerStatusClient {
     private const val API_URL = "https://red.trackerstatus.info/api/all/"
 
     private val http = OkHttpClient.Builder()
+        .addInterceptor(OutgoingUrlInterceptor)
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .build()

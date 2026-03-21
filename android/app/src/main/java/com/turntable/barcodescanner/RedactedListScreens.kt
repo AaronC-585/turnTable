@@ -366,7 +366,13 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
                             val gid = o.optString("groupId").toIntOrNull() ?: o.optInt("groupId")
                             val name = o.optString("name").ifBlank { o.optString("groupName") }
                             val artist = o.optString("artistName").ifBlank { o.optString("artist") }
-                            rows.add(TwoLineRow(name, artist))
+                            rows.add(
+                                TwoLineRow(
+                                    title = name,
+                                    subtitle = artist,
+                                    showSeedingUtorrentIcon = type == "seeding",
+                                ),
+                            )
                             if (gid > 0) groupIds.add(gid)
                         }
                         adapter.rows = rows

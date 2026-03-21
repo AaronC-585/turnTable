@@ -9,6 +9,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.Response
+import com.turntable.barcodescanner.debug.OutgoingUrlInterceptor
 import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -24,6 +25,7 @@ class RedactedApiClient(private val apiKey: String) {
     fun redactedAuthorizationValue(): String = apiKey.trim()
 
     private val http = OkHttpClient.Builder()
+        .addInterceptor(OutgoingUrlInterceptor)
         .connectTimeout(45, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
         .writeTimeout(120, TimeUnit.SECONDS)

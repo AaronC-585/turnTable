@@ -1,0 +1,3 @@
+# Optional: Python client for qBittorrent Web API (see docs/qbittorrent-api-future.md).
+# Install: pip install -r docs/requirements-qbittorrent.txt
+qbittorrent-api>=2024.1.0

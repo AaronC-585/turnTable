@@ -26,6 +26,8 @@
     <color name="app_chip_stroke">#BDBDBD</color>
     <color name="app_toolbar_title">#212121</color>
     <color name="app_nav_icon">#212121</color>
+    <!-- Icons: maximum contrast on surfaces (toolbar, lists, vectors) -->
+    <color name="app_icon_emphasis">#FF000000</color>
     <color name="app_error">#C62828</color>
     <color name="app_text_on_button">#FFFFFF</color>
     <color name="app_button_secondary">#9E9E9E</color>
@@ -38,7 +40,6 @@
     <color name="app_paypal">#0070BA</color>
     <color name="app_cash_green">#00D632</color>
     <color name="app_permission_ok">#2E7D32</color>
-
     <color name="home_section_header_bg">#E0E0E0</color>
     <color name="home_card_bg">#ECECEC</color>
     <color name="home_text_primary">#212121</color>
@@ -49,4 +50,12 @@
     <color name="home_ratio_bad">#C62828</color>
     <color name="home_token_label">#1565C0</color>
     <color name="home_rank_highlight">#000000</color>
+
+    <!-- Debug event log (test overlay) category colors -->
+    <color name="debug_log_scan">#2E7D32</color>
+    <color name="debug_log_search">#1565C0</color>
+    <color name="debug_log_redacted">#6A1B9A</color>
+    <color name="debug_log_system">#546E7A</color>
+    <color name="debug_log_error">#C62828</color>
+    <color name="debug_log_timestamp">#78909C</color>
 </resources>

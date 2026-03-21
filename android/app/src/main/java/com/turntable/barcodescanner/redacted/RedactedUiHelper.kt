@@ -2,13 +2,27 @@ package com.turntable.barcodescanner.redacted
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.documentfile.provider.DocumentFile
 import com.turntable.barcodescanner.SearchPrefs
+import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import java.io.File
 
 object RedactedUiHelper {
+
+    enum class TorrentDownloadOutcome {
+        /** Saved under the user-chosen folder (Settings). */
+        SavedToPreferredFolder,
+
+        /** Wrote to app cache and opened the share chooser. */
+        Shared,
+
+        /** Could not write or open share. */
+        Failed,
+    }
 
     fun apiClientOrNull(context: Context): RedactedApiClient? {
         val key = SearchPrefs(context).redactedApiKey?.trim().orEmpty()
@@ -25,7 +39,46 @@ object RedactedUiHelper {
         return c
     }
 
-    fun shareTorrentFile(context: Context, torrentId: Int, bytes: ByteArray): Boolean {
+    /**
+     * If [SearchPrefs.redactedTorrentDownloadTreeUri] is set, writes the `.torrent` there.
+     * Otherwise copies to cache and opens the share sheet. If the folder write fails, falls back to share.
+     */
+    fun deliverDownloadedTorrent(context: Context, torrentId: Int, bytes: ByteArray): TorrentDownloadOutcome {
+        val treeStr = SearchPrefs(context).redactedTorrentDownloadTreeUri?.trim().orEmpty()
+        if (treeStr.isNotEmpty()) {
+            val treeUri = Uri.parse(treeStr)
+            if (saveTorrentToTree(context, treeUri, torrentId, bytes)) {
+                return TorrentDownloadOutcome.SavedToPreferredFolder
+            }
+        }
+        return if (shareTorrentViaChooser(context, torrentId, bytes)) {
+            TorrentDownloadOutcome.Shared
+        } else {
+            TorrentDownloadOutcome.Failed
+        }
+    }
+
+    private fun saveTorrentToTree(context: Context, treeUri: Uri, torrentId: Int, bytes: ByteArray): Boolean {
+        return try {
+            val tree = DocumentFile.fromTreeUri(context, treeUri) ?: return false
+            if (!tree.canWrite()) return false
+            val baseName = "redacted_$torrentId"
+            val withExt = "$baseName.torrent"
+            tree.findFile(withExt)?.delete()
+            tree.findFile(baseName)?.delete()
+            val doc = tree.createFile("application/x-bittorrent", baseName)
+                ?: tree.createFile("application/octet-stream", withExt)
+                ?: return false
+            context.contentResolver.openOutputStream(doc.uri)?.use { os ->
+                os.write(bytes)
+            } ?: return false
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private fun shareTorrentViaChooser(context: Context, torrentId: Int, bytes: ByteArray): Boolean {
         return try {
             val dir = File(context.cacheDir, "redacted").apply { mkdirs() }
             val f = File(dir, "redacted_$torrentId.torrent")
@@ -49,6 +102,7 @@ object RedactedUiHelper {
 
     fun openSite(context: Context, path: String) {
         val url = if (path.startsWith("http")) path else "https://redacted.sh/$path"
+        OutgoingUrlLog.log("VIEW", url)
         context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
     }
 }

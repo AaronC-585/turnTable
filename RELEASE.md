@@ -50,6 +50,8 @@ gh release create v<version> \
 
 **Option C:** Create the release in the GitHub UI and **Attach binaries** for both files.
 
+After **Option A**, the script updates **`android/app/update-check-latest-version.txt`** (used by the in-app update checker when the GitHub API is unavailable). **Commit and push** that file on your release branch (e.g. `main`) so the raw GitHub URL stays correct.
+
 ---
 
 ## One platform only (hotfix)

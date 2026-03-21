@@ -5,6 +5,10 @@
         <item name="android:statusBarColor">@color/app_bg_main</item>
         <item name="android:navigationBarColor">@color/app_bg_main</item>
         <item name="android:windowBackground">@color/app_bg_main</item>
+        <!-- Icons / controls follow light–dark (spinners, some system drawables, overflow where themed). -->
+        <item name="colorControlNormal">@color/app_icon_emphasis</item>
+        <item name="android:textColorPrimary">@color/app_text_primary</item>
+        <item name="android:textColorSecondary">@color/app_text_secondary</item>
     </style>
 
     <style name="HomeActionColumn">
@@ -16,12 +20,16 @@
         <item name="android:paddingHorizontal">2dp</item>
     </style>
 
+    <!-- Icon-only: centered in column (match_parent width was pinning the drawable to the start). -->
     <style name="HomeIconActionButton" parent="Widget.MaterialComponents.Button.TextButton">
-        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">@dimen/home_action_button_height</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:minHeight">48dp</item>
         <item name="backgroundTint">@color/home_card_bg</item>
-        <item name="android:minWidth">0dp</item>
-        <item name="android:minHeight">0dp</item>
+        <item name="iconTint">@color/app_icon_emphasis</item>
         <item name="iconSize">@dimen/home_action_icon_size</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>

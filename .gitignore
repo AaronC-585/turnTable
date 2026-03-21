@@ -5,6 +5,7 @@ Thumbs.db
 ehthumbs.db
 
 # Editors & IDEs
+.cursor/
 .idea/
 *.iml
 .vscode/

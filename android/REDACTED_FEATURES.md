@@ -40,6 +40,12 @@ Reachable from **browse → group** chains, **Search → Search Redacted**, **Se
 - `RedactedGroupEditActivity`, `RedactedTorrentEditActivity`, `RedactedAddToCollageActivity`, `RedactedUploadInfoActivity`  
 - `RedactedSubscriptionsActivity`  
 
+## Test event log (app-wide)
+
+- **`DebugEventLogActivity`** — in-memory colored log (timestamps, SCAN / SEARCH / REDACTED / SYSTEM / ERROR). **Shortcut:** press **Volume Up**, then within a few seconds **shake** the device (with the app in foreground). **Save / share:** toolbar writes UTF-8 text under app cache `event_logs/` and opens the system share sheet; **Copy all** copies plain text. Implementation: `debug/AppEventLog.kt`, `debug/DebugShortcutCoordinator.kt`.
+- **`CrashReporter`** — `Thread.setDefaultUncaughtExceptionHandler`: on crash, writes stack trace to private `files/turnTable_last_crash.txt`, logs a short **ERROR** line, then chains the previous handler. Next cold start, `TurnTableApp` ingests that file into **AppEventLog** as **ERROR** (then deletes the file).
+- **`OutgoingUrlLog` / `OutgoingUrlInterceptor`** — every outgoing **OkHttp** request and **`HttpURLConnection` / `VIEW`** open logs **SYSTEM** lines like `GET https://…` or `POST …` or `VIEW …`. Response bodies are **not** written to the event log (API error toasts may still show snippets).
+
 ## Removed
 
 - **`RedactedHubActivity`** — single menu of links to the above; no longer in the app.

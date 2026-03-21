@@ -10,16 +10,14 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
-import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import androidx.core.view.HapticFeedbackConstantsCompat
-import androidx.core.view.ViewCompat
 import com.turntable.barcodescanner.databinding.ActivityMainBinding
+import com.turntable.barcodescanner.debug.AppEventLog
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,48 +25,11 @@ class MainActivity : AppCompatActivity() {
     private var lastCode: String? = null
     private var lastCodeTime = 0L
     private val throttleMs = 1500L
-    private var camera: Camera? = null
-    private var torchEnabled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        binding.topToolbar.inflateMenu(R.menu.main_toolbar_menu)
-        binding.topToolbar.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_home -> {
-                    navigateToHome()
-                    true
-                }
-                R.id.action_settings -> {
-                    startActivity(Intent(this, SettingsActivity::class.java))
-                    true
-                }
-                R.id.action_history -> {
-                    startActivity(Intent(this, SearchHistoryActivity::class.java))
-                    true
-                }
-                R.id.action_flashlight -> {
-                    toggleFlashlight()
-                    true
-                }
-                R.id.action_redacted -> {
-                    if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
-                        android.widget.Toast.makeText(
-                            this,
-                            R.string.redacted_need_api_key,
-                            android.widget.Toast.LENGTH_LONG,
-                        ).show()
-                    } else {
-                        startActivity(Intent(this, RedactedBrowseActivity::class.java))
-                    }
-                    true
-                }
-                else -> false
-            }
-        }
 
         if (!hasCameraPermission()) {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA)
@@ -121,22 +82,10 @@ class MainActivity : AppCompatActivity() {
 
         try {
             provider.unbindAll()
-            camera = provider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
-            torchEnabled = false
+            provider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
         } catch (e: Exception) {
             Log.e(TAG, "Bind failed", e)
         }
-    }
-
-    private fun toggleFlashlight() {
-        val c = camera ?: return
-        val hasFlash = c.cameraInfo.hasFlashUnit()
-        if (!hasFlash) {
-            Log.w(TAG, "Flash unit not available on this camera")
-            return
-        }
-        torchEnabled = !torchEnabled
-        c.cameraControl.enableTorch(torchEnabled)
     }
 
     private fun analyze(imageProxy: ImageProxy) {
@@ -159,6 +108,7 @@ class MainActivity : AppCompatActivity() {
                 lastCode = result
                 lastCodeTime = now
                 runOnUiThread {
+                    AppEventLog.log(AppEventLog.Category.SCAN, "barcode=$result")
                     if (SearchPrefs(this).beepOnScan) {
                         playScanBeep()
                     }
@@ -184,15 +134,6 @@ class MainActivity : AppCompatActivity() {
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
                 { toneGen.release() },
                 200
-            )
-        } catch (_: Exception) { }
-    }
-
-    private fun playScanHaptic() {
-        try {
-            ViewCompat.performHapticFeedback(
-                binding.previewView,
-                HapticFeedbackConstantsCompat.CONFIRM,
             )
         } catch (_: Exception) { }
     }

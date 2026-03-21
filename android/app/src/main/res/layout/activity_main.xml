@@ -8,18 +8,6 @@
     android:background="@color/app_bg_main"
     tools:context=".MainActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/topToolbar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@color/app_bg_toolbar"
-        android:minHeight="?attr/actionBarSize"
-        app:title="@string/app_name"
-        app:titleTextColor="@color/app_text_primary"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <androidx.camera.view.PreviewView
         android:id="@+id/previewView"
         android:layout_width="0dp"
@@ -27,7 +15,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topToolbar" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.turntable.barcodescanner.ScannerOverlayView
         android:id="@+id/scannerOverlay"

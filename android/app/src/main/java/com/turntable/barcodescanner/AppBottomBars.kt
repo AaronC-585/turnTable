@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import com.turntable.barcodescanner.TrackerStatusClient.Service
 
 /**
@@ -90,6 +91,7 @@ object AppBottomBars {
 
     private fun wireDock(activity: AppCompatActivity, dock: View) {
         val openStatus = View.OnClickListener {
+            OutgoingUrlLog.log("VIEW", TrackerStatusClient.STATUS_PAGE_URL)
             activity.startActivity(
                 Intent(Intent.ACTION_VIEW, Uri.parse(TrackerStatusClient.STATUS_PAGE_URL)),
             )
@@ -105,6 +107,9 @@ object AppBottomBars {
             dock.findViewById<ImageView>(id).setOnClickListener(openStatus)
         }
 
+        dock.findViewById<View>(R.id.buttonHomeHome).setOnClickListener {
+            activity.navigateToHome()
+        }
         dock.findViewById<View>(R.id.buttonHomeScan).setOnClickListener {
             activity.startActivity(Intent(activity, MainActivity::class.java))
         }

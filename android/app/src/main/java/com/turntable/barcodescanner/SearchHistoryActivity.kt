@@ -15,6 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayout
 import com.turntable.barcodescanner.databinding.ActivitySearchHistoryBinding
+import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import java.net.HttpURLConnection
@@ -242,6 +243,7 @@ class SearchHistoryActivity : AppCompatActivity() {
 
     private fun fetchCoverHttp(url: String): Bitmap? {
         return try {
+            OutgoingUrlLog.log("GET", url)
             val conn = URL(url).openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
             conn.connectTimeout = 12000

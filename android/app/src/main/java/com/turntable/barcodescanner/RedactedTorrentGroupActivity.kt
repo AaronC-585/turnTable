@@ -8,6 +8,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.Gravity
@@ -30,11 +35,14 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.turntable.barcodescanner.databinding.ActivityRedactedTorrentGroupBinding
 import com.turntable.barcodescanner.SearchPrefs
+import com.turntable.barcodescanner.debug.AppEventLog
+import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedFormatters
 import com.turntable.barcodescanner.redacted.RedactedGazelleEdition
 import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentParse
+import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentUser
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedTorrentGroupRowsAdapter
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
@@ -46,6 +54,9 @@ import java.util.LinkedHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 private data class AlbumCoverEntry(val url: String, val label: String)
+
+/** One credited artist from [group.musicInfo.artists]; [id] null if API omitted it. */
+private data class ArtistRef(val id: Int?, val name: String)
 
 class RedactedTorrentGroupActivity : AppCompatActivity() {
 
@@ -83,6 +94,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         )
         binding.recyclerTorrents.layoutManager = LinearLayoutManager(this)
         binding.recyclerTorrents.adapter = adapter
+        binding.textAlbumHeader.movementMethod = LinkMovementMethod.getInstance()
 
         binding.buttonOpenSite.setOnClickListener {
             RedactedUiHelper.openSite(this, "torrents.php?id=$groupId")
@@ -201,6 +213,10 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         val group = resp.optJSONObject("group") ?: return
         val name = group.optString("name")
         val year = group.optInt("year", 0)
+        AppEventLog.log(
+            AppEventLog.Category.REDACTED,
+            "torrent group loaded \"${name.ifBlank { "—" }}\"${if (year > 0) " ($year)" else ""}",
+        )
         supportActionBar?.title = getString(R.string.redacted_album_toolbar_title)
         albumCoverEntries = extractAlbumCoverEntries(group)
         if (albumCoverEntries.isNotEmpty()) {
@@ -208,11 +224,12 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         } else {
             binding.imageAlbumThumb.visibility = View.GONE
         }
-        val artists = extractArtists(group.optJSONObject("musicInfo")).ifBlank { "—" }
+        val artistRefs = extractArtistRefs(group.optJSONObject("musicInfo"))
+        val artistsPlain = artistRefs.joinToString(", ") { it.name }.ifBlank { "—" }
         val gidForHistory = group.optInt("id")
         if (gidForHistory > 0) {
             val historySub = buildString {
-                append(artists)
+                append(artistsPlain)
                 if (year > 0) append(" · ").append(year)
             }
             RedactedGroupHistoryStore.add(
@@ -234,8 +251,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
                 label.isNotEmpty() -> append(label)
             }
         }
-        binding.textAlbumHeader.text = listOf(artists, name.ifBlank { "—" }, catLine.ifBlank { "—" })
-            .joinToString("\n")
+        binding.textAlbumHeader.text = buildAlbumHeaderSpannable(artistRefs, name, catLine)
         binding.textMeta.text = ""
         binding.textMeta.visibility = View.GONE
 
@@ -272,17 +288,26 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
                 torrentIds.add(t.optInt("id"))
                 torrentObjects.add(t)
             }
-            rows.add(RedactedTorrentGroupRowsAdapter.Row.Edition(header, bucketIndices.toList()))
+            val editionAnchor = rows.size
+            rows.add(
+                RedactedTorrentGroupRowsAdapter.Row.Edition(
+                    title = header,
+                    bucketTorrentIndices = bucketIndices.toList(),
+                    editionAnchorIndex = editionAnchor,
+                ),
+            )
             for ((i, t) in bucket.withIndex()) {
                 val listIndex = bucketIndices[i]
+                val seeding = RedactedGazelleTorrentUser.isUserSeedingTorrent(t)
                 rows.add(
                     RedactedTorrentGroupRowsAdapter.Row.Torrent(
-                        formatLine = buildTorrentTitleLine(t),
+                        formatLine = buildTorrentTitleLine(t, seeding),
                         sizeText = RedactedFormatters.bytes(t.optLong("size")),
                         snatched = t.optInt("snatched"),
                         seeders = t.optInt("seeders"),
                         leechers = t.optInt("leechers"),
                         listIndex = listIndex,
+                        isUserSeeding = seeding,
                     ),
                 )
             }
@@ -290,22 +315,83 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         adapter.rows = rows
     }
 
-    private fun buildTorrentTitleLine(t: JSONObject): String {
+    private fun buildTorrentTitleLine(t: JSONObject, isUserSeeding: Boolean = false): String {
         val base = "${t.optString("format")} / ${t.optString("encoding")} / ${t.optString("media")}"
         val status = t.optString("userStatus").trim()
-        return if (status.isNotBlank()) "$base — $status" else base
+        if (status.isBlank()) return base
+        // µ icon denotes seeding; avoid duplicating “Seeding” in the title line.
+        if (isUserSeeding && RedactedGazelleTorrentUser.isUserSeeding(status)) return base
+        return "$base — $status"
     }
 
-    private fun extractArtists(musicInfo: JSONObject?): String {
-        if (musicInfo == null) return ""
-        val arr = musicInfo.optJSONArray("artists") ?: return ""
-        return buildString {
+    private fun extractArtistRefs(musicInfo: JSONObject?): List<ArtistRef> {
+        val arr = musicInfo?.optJSONArray("artists") ?: return emptyList()
+        return buildList {
             for (i in 0 until arr.length()) {
                 val a = arr.optJSONObject(i) ?: continue
-                if (isNotEmpty()) append(", ")
-                append(a.optString("name"))
+                val nm = a.optString("name").trim()
+                if (nm.isBlank()) continue
+                add(ArtistRef(parseArtistIdFromJson(a), nm))
             }
         }
+    }
+
+    /**
+     * Gazelle torrent group `musicInfo.artists[]` usually has numeric `id`; some payloads use `artistId`.
+     */
+    private fun parseArtistIdFromJson(o: JSONObject): Int? {
+        fun fromKey(key: String): Int? {
+            if (!o.has(key)) return null
+            val s = o.optString(key, "").trim()
+            if (s.isNotEmpty()) return s.toIntOrNull()?.takeIf { it > 0 }
+            val n = o.optInt(key, 0)
+            return n.takeIf { it > 0 }
+        }
+        return fromKey("id") ?: fromKey("artistId")
+    }
+
+    private fun buildAlbumHeaderSpannable(
+        artists: List<ArtistRef>,
+        albumName: String,
+        catLine: String,
+    ): CharSequence {
+        val sb = SpannableStringBuilder()
+        if (artists.isEmpty()) {
+            sb.append("—")
+        } else {
+            val linkColor = ContextCompat.getColor(this, R.color.app_accent)
+            for ((i, ref) in artists.withIndex()) {
+                if (i > 0) sb.append(", ")
+                val start = sb.length
+                sb.append(ref.name)
+                val end = sb.length
+                val aid = ref.id
+                if (aid != null) {
+                    sb.setSpan(
+                        object : ClickableSpan() {
+                            override fun onClick(widget: View) {
+                                startActivity(
+                                    Intent(this@RedactedTorrentGroupActivity, RedactedArtistActivity::class.java)
+                                        .putExtra(RedactedExtras.ARTIST_ID, aid),
+                                )
+                            }
+
+                            override fun updateDrawState(ds: TextPaint) {
+                                super.updateDrawState(ds)
+                                ds.isUnderlineText = true
+                                ds.color = linkColor
+                            }
+                        },
+                        start,
+                        end,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                    )
+                }
+            }
+        }
+        sb.append("\n").append(albumName.ifBlank { "—" })
+        sb.append("\n").append(catLine.ifBlank { "—" })
+        return sb
     }
 
     private fun promptAddTag() {
@@ -428,7 +514,9 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         }
         val spinner = Spinner(this)
         val formatLabels = bucketListIndices.map { idx ->
-            torrentObjects.getOrNull(idx)?.let { buildTorrentTitleLine(it) } ?: "—"
+            torrentObjects.getOrNull(idx)?.let { t ->
+                buildTorrentTitleLine(t, RedactedGazelleTorrentUser.isUserSeedingTorrent(t))
+            } ?: "—"
         }
         spinner.adapter = ArrayAdapter(
             this,
@@ -573,6 +661,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         }
         if (url.contains("redacted.sh", ignoreCase = true)) return null
         return try {
+            OutgoingUrlLog.log("GET", url)
             val conn = URL(url).openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
             conn.connectTimeout = 15000
@@ -752,8 +841,16 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             runOnUiThread {
                 when (r) {
                     is RedactedResult.Binary -> {
-                        if (!RedactedUiHelper.shareTorrentFile(this, torrentId, r.bytes)) {
-                            Toast.makeText(this, R.string.redacted_could_not_share, Toast.LENGTH_SHORT).show()
+                        when (RedactedUiHelper.deliverDownloadedTorrent(this, torrentId, r.bytes)) {
+                            RedactedUiHelper.TorrentDownloadOutcome.SavedToPreferredFolder ->
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.redacted_torrent_saved_to_folder_fmt, torrentId),
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                            RedactedUiHelper.TorrentDownloadOutcome.Shared -> { /* chooser opened */ }
+                            RedactedUiHelper.TorrentDownloadOutcome.Failed ->
+                                Toast.makeText(this, R.string.redacted_could_not_share, Toast.LENGTH_SHORT).show()
                         }
                     }
                     is RedactedResult.Failure -> Toast.makeText(this, r.message, Toast.LENGTH_LONG).show()

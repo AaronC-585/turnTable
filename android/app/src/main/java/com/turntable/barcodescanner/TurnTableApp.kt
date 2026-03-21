@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.turntable.barcodescanner.debug.CrashReporter
+import com.turntable.barcodescanner.debug.DebugShortcutCoordinator
 import java.util.concurrent.atomic.AtomicInteger
 
 class TurnTableApp : Application() {
@@ -18,8 +20,11 @@ class TurnTableApp : Application() {
     override fun onCreate() {
         AppTheme.applyPersistentNightMode(this)
         super.onCreate()
+        CrashReporter.install(this)
+        CrashReporter.ingestPendingCrashIfAny(this)
         registerActivityLifecycleCallbacks(ThemeEpochCoordinator(themeEpoch))
         AppBottomBars.registerIn(this)
+        DebugShortcutCoordinator.install(this)
     }
 }
 

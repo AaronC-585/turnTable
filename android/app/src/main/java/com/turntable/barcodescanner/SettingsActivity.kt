@@ -1,6 +1,7 @@
 package com.turntable.barcodescanner
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -8,6 +9,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.documentfile.provider.DocumentFile
 import com.turntable.barcodescanner.databinding.ActivitySettingsBinding
 
 data class BrowserEntry(val label: String, val packageName: String?)
@@ -23,6 +25,25 @@ class SettingsActivity : AppCompatActivity() {
     ) {
         // Reload spinners after edit.
         loadListsAndBind()
+    }
+
+    private val pickTorrentDirLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree(),
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        try {
+            contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+        } catch (_: SecurityException) {
+            Toast.makeText(this, R.string.redacted_torrent_folder_permission_failed, Toast.LENGTH_LONG).show()
+            return@registerForActivityResult
+        }
+        val prefs = SearchPrefs(this)
+        releasePersistableTree(prefs.redactedTorrentDownloadTreeUri)
+        prefs.redactedTorrentDownloadTreeUri = uri.toString()
+        updateTorrentDirSummary()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +106,17 @@ class SettingsActivity : AppCompatActivity() {
         binding.buttonDonate.setOnClickListener {
             startActivity(Intent(this, DonationActivity::class.java))
         }
+
+        binding.buttonPickTorrentDir.setOnClickListener {
+            pickTorrentDirLauncher.launch(null)
+        }
+        binding.buttonClearTorrentDir.setOnClickListener {
+            val sp = SearchPrefs(this)
+            releasePersistableTree(sp.redactedTorrentDownloadTreeUri)
+            sp.redactedTorrentDownloadTreeUri = null
+            updateTorrentDirSummary()
+        }
+        updateTorrentDirSummary()
 
         binding.buttonSave.setOnClickListener {
             val themePos = binding.spinnerTheme.selectedItemPosition.coerceIn(0, themeChoices.size - 1)
@@ -152,6 +184,37 @@ class SettingsActivity : AppCompatActivity() {
             true
         } catch (_: Exception) {
             false
+        }
+    }
+
+    private fun updateTorrentDirSummary() {
+        val prefs = SearchPrefs(this)
+        val u = prefs.redactedTorrentDownloadTreeUri
+        if (u.isNullOrBlank()) {
+            binding.textTorrentDirSummary.text = getString(R.string.redacted_torrent_download_dir_summary_default)
+            binding.buttonClearTorrentDir.visibility = View.GONE
+        } else {
+            val label = runCatching {
+                DocumentFile.fromTreeUri(this, Uri.parse(u))?.name
+            }.getOrNull()
+            binding.textTorrentDirSummary.text = when {
+                !label.isNullOrBlank() ->
+                    getString(R.string.redacted_torrent_download_dir_summary_fmt, label)
+                else -> u
+            }
+            binding.buttonClearTorrentDir.visibility = View.VISIBLE
+        }
+    }
+
+    private fun releasePersistableTree(uriString: String?) {
+        if (uriString.isNullOrBlank()) return
+        try {
+            contentResolver.releasePersistableUriPermission(
+                Uri.parse(uriString),
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+        } catch (_: Exception) {
+            // Already released or invalid
         }
     }
 

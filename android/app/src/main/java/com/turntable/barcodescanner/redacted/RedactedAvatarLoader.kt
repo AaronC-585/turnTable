@@ -2,6 +2,7 @@ package com.turntable.barcodescanner.redacted
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.turntable.barcodescanner.debug.OutgoingUrlInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit
 object RedactedAvatarLoader {
 
     private val http = OkHttpClient.Builder()
+        .addInterceptor(OutgoingUrlInterceptor)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()

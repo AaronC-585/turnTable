@@ -33,5 +33,5 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@android:drawable/ic_menu_sort_by_size"
         android:scaleType="centerInside"
-        app:tint="@color/app_text_label" />
+        app:tint="@color/app_icon_emphasis" />
 </LinearLayout>

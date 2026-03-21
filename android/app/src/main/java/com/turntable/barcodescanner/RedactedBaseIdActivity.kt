@@ -68,12 +68,6 @@ abstract class RedactedBaseIdActivity : AppCompatActivity() {
     }
 }
 
-class RedactedArtistActivity : RedactedBaseIdActivity() {
-    override fun screenTitle() = getString(R.string.redacted_artist_screen)
-    override fun idExtraKey() = RedactedExtras.ARTIST_ID
-    override fun loadForId(id: Int) = api.artist(id)
-}
-
 class RedactedUserProfileActivity : RedactedBaseIdActivity() {
     override fun screenTitle() = getString(R.string.redacted_user_profile)
     override fun idExtraKey() = RedactedExtras.USER_ID

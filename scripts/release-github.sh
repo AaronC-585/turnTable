@@ -57,3 +57,11 @@ else
     --notes-file "$NOTES_TMP"
   echo "Created release $TAG with APK only; upload IPA when ready: gh release upload $TAG <file>.ipa"
 fi
+
+# In-app update fallback reads this from raw.githubusercontent.com (see GithubAppUpdateChecker).
+VERSION_FILE="$ROOT/android/app/update-check-latest-version.txt"
+{
+  echo "# Latest Android release version (no leading v). Updated by scripts/release-github.sh."
+  echo "${TAG#v}"
+} > "$VERSION_FILE"
+echo "Wrote $VERSION_FILE — commit and push so the update check sees the new version on your default branch."

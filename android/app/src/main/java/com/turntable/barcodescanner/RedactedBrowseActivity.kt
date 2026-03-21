@@ -10,6 +10,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.turntable.barcodescanner.databinding.ActivityRedactedBrowseBinding
 import com.turntable.barcodescanner.redacted.RedactedBrowseParamsCodec
 import com.turntable.barcodescanner.redacted.RedactedExtras
+import com.turntable.barcodescanner.debug.AppEventLog
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 
 /**
@@ -86,6 +87,7 @@ class RedactedBrowseActivity : AppCompatActivity() {
 
     private fun openResults() {
         val json = RedactedBrowseParamsCodec.encode(buildBrowseParams(page = 1))
+        AppEventLog.log(AppEventLog.Category.REDACTED, "browse search (params length=${json.length})")
         startActivity(
             Intent(this, RedactedBrowseResultsActivity::class.java)
                 .putExtra(RedactedExtras.BROWSE_PARAMS_JSON, json),

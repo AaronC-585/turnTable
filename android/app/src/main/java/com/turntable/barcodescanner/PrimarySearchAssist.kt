@@ -1,6 +1,7 @@
 package com.turntable.barcodescanner
 
 import org.json.JSONObject
+import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -424,6 +425,7 @@ object PrimarySearchAssist {
 
     private fun httpGet(url: String, headers: Map<String, String>): String? {
         return try {
+            OutgoingUrlLog.log("GET", url)
             val conn = URL(url).openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
             headers.forEach { (k, v) -> conn.setRequestProperty(k, v) }

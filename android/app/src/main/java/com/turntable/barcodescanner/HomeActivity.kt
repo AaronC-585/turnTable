@@ -18,6 +18,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.turntable.barcodescanner.databinding.ActivityHomeBinding
 import com.turntable.barcodescanner.redacted.RedactedApiClient
@@ -27,6 +28,7 @@ import com.turntable.barcodescanner.redacted.RedactedIndexNotifications
 import com.turntable.barcodescanner.redacted.RedactedProfileUiBuilder
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedSiteNotificationHelper
+import com.turntable.barcodescanner.debug.AppEventLog
 import com.turntable.barcodescanner.redacted.responseOrNull
 import org.json.JSONObject
 
@@ -97,6 +99,7 @@ class HomeActivity : AppCompatActivity() {
     private fun dispatchPendingSearchFromScanner(intent: Intent?) {
         val barcode = intent?.getStringExtra(EXTRA_POST_SCAN_BARCODE)?.trim().orEmpty()
         if (barcode.isEmpty()) return
+        AppEventLog.log(AppEventLog.Category.SCAN, "home opened search from scan barcode=$barcode")
         intent?.removeExtra(EXTRA_POST_SCAN_BARCODE)
         startActivity(
             Intent(this, SearchActivity::class.java)
@@ -174,7 +177,21 @@ class HomeActivity : AppCompatActivity() {
         binding.layoutNoKey.visibility = View.VISIBLE
         clearProfileContainers()
         binding.imageProfile.setImageResource(android.R.drawable.ic_menu_myplaces)
+        applyProfilePlaceholderIconTint()
         supportActionBar?.title = getString(R.string.home_title)
+    }
+
+    private fun applyProfilePlaceholderIconTint() {
+        ImageViewCompat.setImageTintList(
+            binding.imageProfile,
+            android.content.res.ColorStateList.valueOf(
+                ContextCompat.getColor(this, R.color.app_icon_emphasis),
+            ),
+        )
+    }
+
+    private fun clearProfileImageTint() {
+        ImageViewCompat.setImageTintList(binding.imageProfile, null)
     }
 
     private fun clearProfileContainers() {
@@ -288,9 +305,11 @@ class HomeActivity : AppCompatActivity() {
                         inflateProfileSections(sections)
                         handleNotificationsFromIndex(indexResp)
                         if (bmp != null) {
+                            clearProfileImageTint()
                             binding.imageProfile.setImageBitmap(bmp)
                         } else {
                             binding.imageProfile.setImageResource(android.R.drawable.ic_menu_myplaces)
+                            applyProfilePlaceholderIconTint()
                         }
                     }
                 }

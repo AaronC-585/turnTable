@@ -1,0 +1,2 @@
+# Latest Android release version (no leading v). Updated by scripts/release-github.sh.
+2026.3.19.1396

@@ -13,6 +13,8 @@ data class TwoLineRow(
     val subtitle: String = "",
     /** Optional cover from Redacted `browse` / similar JSON (`cover` field). */
     val coverUrl: String? = null,
+    /** µTorrent-style mark when this row is a torrent you are seeding (e.g. user torrents list). */
+    val showSeedingUtorrentIcon: Boolean = false,
 )
 
 class TwoLineRowsAdapter(
@@ -41,6 +43,14 @@ class TwoLineRowsAdapter(
         holder.subtitle.text = r.subtitle
         holder.subtitle.visibility = if (r.subtitle.isBlank()) View.GONE else View.VISIBLE
         holder.itemView.setOnClickListener { onClick(position) }
+
+        if (r.showSeedingUtorrentIcon) {
+            holder.seedingMark.visibility = View.VISIBLE
+            holder.seedingMark.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES)
+        } else {
+            holder.seedingMark.visibility = View.GONE
+            holder.seedingMark.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO)
+        }
 
         val raw = r.coverUrl?.trim().orEmpty()
         if (raw.isEmpty()) {
@@ -71,6 +81,7 @@ class TwoLineRowsAdapter(
     override fun getItemCount(): Int = rows.size
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
+        val seedingMark: ImageView = v.findViewById(R.id.imageSeedingUtorrent)
         val cover: ImageView = v.findViewById(R.id.imageCover)
         val title: TextView = v.findViewById(R.id.textTitle)
         val subtitle: TextView = v.findViewById(R.id.textSubtitle)

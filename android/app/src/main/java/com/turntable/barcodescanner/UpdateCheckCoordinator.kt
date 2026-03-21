@@ -1,10 +1,22 @@
 package com.turntable.barcodescanner
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.view.LayoutInflater
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.turntable.barcodescanner.debug.OutgoingUrlLog
+import okhttp3.Call
+import java.io.File
+import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Background check (home screen, throttled) and manual check (About / Settings).
@@ -14,7 +26,7 @@ object UpdateCheckCoordinator {
     private const val BACKGROUND_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000
 
     fun requestBackgroundCheckIfDue(activity: AppCompatActivity) {
-        val apiUrl = GithubAppUpdateChecker.latestReleaseApiUrl(activity) ?: return
+        if (GithubAppUpdateChecker.latestReleaseApiUrl(activity) == null) return
         val prefs = UpdatePrefs(activity)
         val now = System.currentTimeMillis()
         if (now - prefs.lastBackgroundCheckWallTimeMs < BACKGROUND_CHECK_INTERVAL_MS) return
@@ -22,7 +34,7 @@ object UpdateCheckCoordinator {
 
         Thread {
             val localVer = currentVersionName(activity) ?: ""
-            val result = GithubAppUpdateChecker.fetchLatestRelease(apiUrl)
+            val result = GithubAppUpdateChecker.fetchLatestReleaseWithFallback(activity)
             activity.runOnUiThread {
                 if (activity.isFinishing) return@runOnUiThread
                 result.fold(
@@ -43,8 +55,7 @@ object UpdateCheckCoordinator {
     }
 
     fun checkManually(activity: AppCompatActivity) {
-        val apiUrl = GithubAppUpdateChecker.latestReleaseApiUrl(activity)
-        if (apiUrl == null) {
+        if (GithubAppUpdateChecker.latestReleaseApiUrl(activity) == null) {
             Toast.makeText(
                 activity,
                 R.string.github_update_not_configured,
@@ -55,7 +66,7 @@ object UpdateCheckCoordinator {
         Toast.makeText(activity, R.string.github_update_checking, Toast.LENGTH_SHORT).show()
         Thread {
             val localVer = currentVersionName(activity) ?: "—"
-            val result = GithubAppUpdateChecker.fetchLatestRelease(apiUrl)
+            val result = GithubAppUpdateChecker.fetchLatestReleaseWithFallback(activity)
             activity.runOnUiThread {
                 if (activity.isFinishing) return@runOnUiThread
                 result.fold(
@@ -114,12 +125,13 @@ object UpdateCheckCoordinator {
         info.apkBrowserDownloadUrl?.let { apkUrl ->
             rows.add(
                 Row(activity.getString(R.string.github_update_download_apk)) {
-                    activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl)))
+                    startVisibleApkDownload(activity, apkUrl)
                 },
             )
         }
         rows.add(
             Row(activity.getString(R.string.github_update_open_release)) {
+                OutgoingUrlLog.log("VIEW", info.htmlUrl)
                 activity.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(info.htmlUrl)))
             },
         )
@@ -141,9 +153,138 @@ object UpdateCheckCoordinator {
             .show()
     }
 
-    @Suppress("DEPRECATION")
+    /** In-app download with progress, then system package installer (FileProvider). */
+    private fun startVisibleApkDownload(activity: AppCompatActivity, apkUrl: String) {
+        OutgoingUrlLog.log("GET", apkUrl)
+        val view = LayoutInflater.from(activity).inflate(R.layout.dialog_github_apk_download, null)
+        val textStatus = view.findViewById<TextView>(R.id.textDownloadStatus)
+        val progress = view.findViewById<ProgressBar>(R.id.progressDownload)
+
+        val cancelled = AtomicBoolean(false)
+        val callRef = AtomicReference<Call?>(null)
+
+        val dialog = MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.github_update_download_apk)
+            .setView(view)
+            .setNegativeButton(R.string.github_update_cancel_download) { d, _ ->
+                cancelled.set(true)
+                callRef.get()?.cancel()
+                d.dismiss()
+            }
+            .setCancelable(false)
+            .create()
+
+        dialog.show()
+        textStatus.setText(R.string.github_update_download_starting)
+        progress.progress = 0
+        progress.isIndeterminate = true
+
+        Thread {
+            val result = AppUpdateApkDownloader.downloadApk(
+                activity,
+                apkUrl,
+                callRef,
+                cancelled,
+            ) { pct, done, total ->
+                activity.runOnUiThread {
+                    if (activity.isFinishing) return@runOnUiThread
+                    if (total > 0) {
+                        progress.isIndeterminate = false
+                        progress.progress = (pct ?: 0).coerceIn(0, 100)
+                        textStatus.text = activity.getString(
+                            R.string.github_update_download_progress_fmt,
+                            pct ?: 0,
+                            formatBytes(done),
+                            formatBytes(total),
+                        )
+                    } else {
+                        progress.isIndeterminate = true
+                        textStatus.text = activity.getString(
+                            R.string.github_update_download_progress_indeterminate_fmt,
+                            formatBytes(done),
+                        )
+                    }
+                }
+            }
+            activity.runOnUiThread {
+                if (activity.isFinishing) return@runOnUiThread
+                if (dialog.isShowing) {
+                    dialog.dismiss()
+                }
+                result.fold(
+                    onSuccess = { file -> promptInstallDownloadedApk(activity, file) },
+                    onFailure = { e ->
+                        when (e) {
+                            is AppUpdateDownloadCancelledException ->
+                                Toast.makeText(
+                                    activity,
+                                    R.string.github_update_download_cancelled,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            else ->
+                                Toast.makeText(
+                                    activity,
+                                    activity.getString(
+                                        R.string.github_update_download_failed_fmt,
+                                        e.message ?: e.javaClass.simpleName,
+                                    ),
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                        }
+                    },
+                )
+            }
+        }.start()
+    }
+
+    private fun promptInstallDownloadedApk(activity: AppCompatActivity, apkFile: File) {
+        try {
+            val uri = FileProvider.getUriForFile(
+                activity,
+                "${activity.packageName}.fileprovider",
+                apkFile,
+            )
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            activity.startActivity(intent)
+            Toast.makeText(
+                activity,
+                R.string.github_update_opening_installer,
+                Toast.LENGTH_LONG,
+            ).show()
+        } catch (e: Exception) {
+            Toast.makeText(
+                activity,
+                activity.getString(
+                    R.string.github_update_install_intent_failed_fmt,
+                    e.message ?: e.javaClass.simpleName,
+                ),
+                Toast.LENGTH_LONG,
+            ).show()
+        }
+    }
+
+    private fun formatBytes(n: Long): String {
+        if (n < 0L) return "—"
+        if (n < 1024L) return "$n B"
+        val kb = n / 1024.0
+        if (kb < 1024.0) return String.format(Locale.US, "%.1f KB", kb)
+        val mb = kb / 1024.0
+        if (mb < 1024.0) return String.format(Locale.US, "%.1f MB", mb)
+        return String.format(Locale.US, "%.2f GB", mb / 1024.0)
+    }
+
     private fun currentVersionName(activity: AppCompatActivity): String? = try {
-        activity.packageManager.getPackageInfo(activity.packageName, 0).versionName
+        val pm = activity.packageManager
+        val pkg = activity.packageName
+        if (Build.VERSION.SDK_INT >= 33) {
+            pm.getPackageInfo(pkg, PackageManager.PackageInfoFlags.of(0)).versionName
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getPackageInfo(pkg, 0).versionName
+        }
     } catch (_: Exception) {
         null
     }

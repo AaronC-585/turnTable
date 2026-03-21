@@ -81,6 +81,20 @@ class SearchPrefs(context: Context) {
         set(value) = prefs.edit { putString(KEY_REDACTED_API_KEY, value) }
 
     /**
+     * Optional SAF tree URI ([Intent.ACTION_OPEN_DOCUMENT_TREE]) where downloaded `.torrent`
+     * files are saved. Null/blank = use app cache + system share sheet (default).
+     */
+    var redactedTorrentDownloadTreeUri: String?
+        get() = prefs.getString(KEY_REDACTED_TORRENT_DOWNLOAD_TREE_URI, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) {
+                remove(KEY_REDACTED_TORRENT_DOWNLOAD_TREE_URI)
+            } else {
+                putString(KEY_REDACTED_TORRENT_DOWNLOAD_TREE_URI, value)
+            }
+        }
+
+    /**
      * Serialized snapshot of [index] `notifications` JSON for deduplicating OS alerts.
      */
     var lastRedactedNotificationsSnapshot: String
@@ -107,6 +121,7 @@ class SearchPrefs(context: Context) {
         const val THEME_FOLLOW_SYSTEM = "system"
         const val KEY_THEAUDIODB_API_KEY = "theaudiodb_api_key"
         const val KEY_REDACTED_API_KEY = "redacted_api_key"
+        const val KEY_REDACTED_TORRENT_DOWNLOAD_TREE_URI = "redacted_torrent_download_tree_uri"
         const val KEY_REDACTED_NOTIF_SNAPSHOT = "redacted_notifications_snapshot"
         const val METHOD_GET = "GET"
         const val METHOD_POST = "POST"

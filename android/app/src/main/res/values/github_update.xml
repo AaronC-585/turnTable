@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  GitHub update checks use GET /repos/{owner}/{repo}/releases/latest (public API).
-  Set github_update_owner to your GitHub username or org. Leave empty to disable
-  automatic checks on the home screen (manual "Check for updates" will explain).
+  Update checks:
+  1) GET https://api.github.com/repos/{owner}/{repo}/releases/latest (when it succeeds).
+  2) Fallback: plain-text file in this repo at android/app/update-check-latest-version.txt
+     served as https://raw.githubusercontent.com/{owner}/{repo}/{ref}/android/app/update-check-latest-version.txt
+     (avoids API rate limits / 404 from wrong endpoints).
+
+  Set github_update_owner / github_update_repo. Leave owner empty to disable checks.
+  github_update_version_ref = branch or tag for the raw URL (usually main).
 -->
 <resources>
     <string name="github_update_owner" translatable="false">AaronC-585</string>
     <string name="github_update_repo" translatable="false">turnTable</string>
+    <string name="github_update_version_ref" translatable="false">main</string>
 </resources>

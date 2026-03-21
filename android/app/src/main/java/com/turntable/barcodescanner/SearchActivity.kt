@@ -9,6 +9,8 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivitySearchBinding
+import com.turntable.barcodescanner.debug.AppEventLog
+import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedSearchAssist
 class SearchActivity : AppCompatActivity() {
@@ -46,6 +48,7 @@ class SearchActivity : AppCompatActivity() {
         binding.buttonRedactedSearch.visibility = if (hasRedactedEarly) View.VISIBLE else View.GONE
         binding.buttonRedactedSearch.setOnClickListener {
             val q = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty()
+            AppEventLog.log(AppEventLog.Category.REDACTED, "Search screen → Redacted browse${if (q.isNotBlank()) " query=\"$q\"" else ""}")
             startActivity(
                 Intent(this, RedactedBrowseActivity::class.java).apply {
                     if (q.isNotBlank()) putExtra(RedactedExtras.INITIAL_QUERY, q)
@@ -96,6 +99,7 @@ class SearchActivity : AppCompatActivity() {
             runOnUiThread {
                 val bcStore = binding.editBarcode.text?.toString()?.trim().orEmpty().ifBlank { barcode }
                 if (hit != null) {
+                    AppEventLog.log(AppEventLog.Category.REDACTED, "browse assist hit q=\"$q\" → terms=\"${hit.secondaryTerms}\"")
                     binding.editSecondarySearchTerms.setText(hit.secondaryTerms)
                     if (hit.coverPathOrUrl != null) {
                         applyRedactedCoverAssist(hit.coverPathOrUrl)
@@ -108,8 +112,10 @@ class SearchActivity : AppCompatActivity() {
                     Toast.makeText(this, R.string.search_filled_from_redacted, Toast.LENGTH_SHORT).show()
                 } else {
                     if (quietIfNoHit) {
+                        AppEventLog.log(AppEventLog.Category.REDACTED, "browse assist no hit q=\"$q\" (quiet)")
                         return@runOnUiThread
                     }
+                    AppEventLog.log(AppEventLog.Category.REDACTED, "browse assist no hit q=\"$q\"")
                     binding.editSecondarySearchTerms.setText(q)
                     applyCoverAssist(fallbackCover)
                     SearchHistoryStore.add(this, bcStore, q, fallbackCover)
@@ -125,6 +131,10 @@ class SearchActivity : AppCompatActivity() {
 
     private fun submit(barcode: String) {
         val prefs = SearchPrefs(this)
+        AppEventLog.log(
+            AppEventLog.Category.SEARCH,
+            "submit method=${prefs.method} barcode=${binding.editBarcode.text?.toString()?.trim().orEmpty().ifBlank { barcode }}",
+        )
 
         when (prefs.method) {
             SearchPrefs.METHOD_GET -> {
@@ -189,6 +199,7 @@ class SearchActivity : AppCompatActivity() {
             val displayName = KnownBrowsers.findByPackage(pkg)?.name ?: pkg ?: ""
             if (!pkg.isNullOrBlank()) {
                 try {
+                    OutgoingUrlLog.log("VIEW", playStoreUrl)
                     startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(playStoreUrl)))
                     Toast.makeText(this, getString(R.string.browser_open_play_store, displayName.ifBlank { pkg }), Toast.LENGTH_SHORT).show()
                     onDone(false)
@@ -316,6 +327,7 @@ class SearchActivity : AppCompatActivity() {
                         line.substring(0, i).trim() to line.substring(i + 1).trim()
                     } ?: emptyMap()
 
+                OutgoingUrlLog.log("POST", url)
                 val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", contentType)
@@ -324,6 +336,7 @@ class SearchActivity : AppCompatActivity() {
                 conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
                 val code = conn.responseCode
                 runOnUiThread {
+                    AppEventLog.log(AppEventLog.Category.SEARCH, "POST secondary HTTP $code")
                     Toast.makeText(
                         this,
                         if (code in 200..299) "Sent ($code)" else "Response: $code",
@@ -333,6 +346,7 @@ class SearchActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 runOnUiThread {
+                    AppEventLog.log(AppEventLog.Category.ERROR, "POST secondary failed: ${e.message}")
                     Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                     finish()
                 }

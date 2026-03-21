@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Android 11+: resolve the system installer for ACTION_VIEW on downloaded APKs -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/vnd.android.package-archive" />
+        </intent>
+    </queries>
+
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Lets the app open the system installer for downloaded APKs (update flow). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
@@ -85,6 +95,11 @@
         <activity
             android:name=".SearchHistoryActivity"
             android:exported="false"
+            android:theme="@style/Theme.BarcodeScanner" />
+        <activity
+            android:name=".DebugEventLogActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedBrowseActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedBrowseResultsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />

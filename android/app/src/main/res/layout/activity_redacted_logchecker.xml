@@ -18,7 +18,7 @@
             android:background="@color/app_surface_input"
             app:title="@string/redacted_logchecker"
             app:titleTextColor="@color/app_text_primary"
-            app:navigationIconTint="@color/app_text_primary" />
+            app:navigationIconTint="@color/app_icon_emphasis" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"

@@ -12,6 +12,7 @@ import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 import com.turntable.barcodescanner.redacted.TwoLineRow
+import com.turntable.barcodescanner.debug.AppEventLog
 import com.turntable.barcodescanner.redacted.TwoLineRowsAdapter
 import org.json.JSONArray
 
@@ -89,6 +90,7 @@ class RedactedBrowseResultsActivity : AppCompatActivity() {
                 binding.progress.visibility = View.GONE
                 when (result) {
                     is RedactedResult.Failure -> {
+                        AppEventLog.log(AppEventLog.Category.ERROR, "browse failed: ${result.message}")
                         Toast.makeText(this, result.message, Toast.LENGTH_LONG).show()
                     }
                     is RedactedResult.Success -> {
@@ -120,6 +122,10 @@ class RedactedBrowseResultsActivity : AppCompatActivity() {
                             }
                         }
                         adapter.rows = rows
+                        AppEventLog.log(
+                            AppEventLog.Category.REDACTED,
+                            "browse results page=$currentPage rows=${rows.size} totalPages=$totalPages",
+                        )
                         if (rows.isEmpty()) {
                             Toast.makeText(this, R.string.redacted_no_results, Toast.LENGTH_SHORT).show()
                         }

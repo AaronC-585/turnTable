@@ -25,6 +25,7 @@
     <color name="app_chip_stroke">#555555</color>
     <color name="app_toolbar_title">#EEEEEE</color>
     <color name="app_nav_icon">#EEEEEE</color>
+    <color name="app_icon_emphasis">#FFFFFFFF</color>
     <color name="app_error">#FF8888</color>
     <color name="app_text_on_button">#FFFFFF</color>
     <color name="app_button_secondary">#444444</color>
@@ -37,7 +38,6 @@
     <color name="app_paypal">#0070BA</color>
     <color name="app_cash_green">#00D632</color>
     <color name="app_permission_ok">#88CC88</color>
-
     <color name="home_section_header_bg">#3D3D3D</color>
     <color name="home_card_bg">#2B2B2B</color>
     <color name="home_text_primary">#EEEEEE</color>
@@ -48,4 +48,11 @@
     <color name="home_ratio_bad">#E57373</color>
     <color name="home_token_label">#64B5F6</color>
     <color name="home_rank_highlight">#FFFFFF</color>
+
+    <color name="debug_log_scan">#81C784</color>
+    <color name="debug_log_search">#64B5F6</color>
+    <color name="debug_log_redacted">#CE93D8</color>
+    <color name="debug_log_system">#90A4AE</color>
+    <color name="debug_log_error">#EF9A9A</color>
+    <color name="debug_log_timestamp">#90A4AE</color>
 </resources>

@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:titleTextColor="@color/app_text_primary"
-            app:navigationIconTint="@color/app_text_primary" />
+            app:navigationIconTint="@color/app_icon_emphasis" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -181,14 +181,26 @@
                 android:paddingEnd="8dp"
                 android:paddingBottom="6dp">
 
-                <TextView
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="2.4"
-                    android:text="@string/redacted_table_col_torrents"
-                    android:textColor="@color/app_text_primary"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <Space
+                        android:layout_width="32dp"
+                        android:layout_height="0dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/redacted_table_col_torrents"
+                        android:textColor="@color/app_text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="0dp"

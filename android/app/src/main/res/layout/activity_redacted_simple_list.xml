@@ -13,7 +13,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@color/app_bg_toolbar_alt"
         app:titleTextColor="@color/app_toolbar_title"
-        app:navigationIconTint="@color/app_nav_icon" />
+        app:navigationIconTint="@color/app_icon_emphasis" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/inputQueryLayout"

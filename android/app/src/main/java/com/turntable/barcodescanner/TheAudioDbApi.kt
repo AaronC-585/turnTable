@@ -1,5 +1,6 @@
 package com.turntable.barcodescanner
 
+import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -60,6 +61,7 @@ object TheAudioDbApi {
 
     private fun httpGetWithCode(url: String, headers: Map<String, String>): Pair<Int, String?> {
         return try {
+            OutgoingUrlLog.log("GET", url)
             val conn = URL(url).openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
             headers.forEach { (k, v) -> conn.setRequestProperty(k, v) }
