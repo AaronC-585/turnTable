@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/app_bg_main"
@@ -15,21 +16,67 @@
         android:title="@string/history"
         android:titleTextColor="@color/app_text_primary" />
 
-    <TextView
-        android:id="@+id/textEmpty"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/historyTabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="@string/history_empty"
-        android:textColor="@color/app_text_tertiary" />
+        android:background="@color/app_bg_toolbar"
+        app:tabIndicatorColor="@color/home_token_label"
+        app:tabSelectedTextColor="@color/app_text_primary"
+        app:tabTextColor="@color/app_text_tertiary" />
 
-    <ListView
-        android:id="@+id/listHistory"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:divider="@color/app_progress_track"
-        android:dividerHeight="1dp" />
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/panelScans"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textEmptyScans"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:text="@string/history_empty"
+                android:textColor="@color/app_text_tertiary" />
+
+            <ListView
+                android:id="@+id/listHistory"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:divider="@color/app_progress_track"
+                android:dividerHeight="1dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/panelRedacted"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/textEmptyRedacted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:text="@string/history_redacted_empty"
+                android:textColor="@color/app_text_tertiary" />
+
+            <ListView
+                android:id="@+id/listRedactedHistory"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:divider="@color/app_progress_track"
+                android:dividerHeight="1dp" />
+        </LinearLayout>
+    </FrameLayout>
 
     <Button
         android:id="@+id/buttonScan"

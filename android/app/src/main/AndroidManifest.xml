@@ -10,11 +10,14 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
     <uses-feature android:name="android.software.leanback" android:required="false" />
 
+    <!-- largeHeap: use the device's "large" Dalvik/ART heap limit (ActivityManager.getLargeMemoryClass).
+         OEM-defined; often ~2× default heap — Android has no public API for an exact 4× multiplier. -->
     <application
         android:name=".TurnTableApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BarcodeScanner">

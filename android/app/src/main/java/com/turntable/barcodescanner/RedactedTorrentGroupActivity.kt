@@ -1,18 +1,36 @@
 package com.turntable.barcodescanner
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.util.TypedValue
+import android.view.GestureDetector
+import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
+import android.widget.ImageView
+import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.ScrollView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.turntable.barcodescanner.databinding.ActivityRedactedTorrentGroupBinding
+import com.turntable.barcodescanner.SearchPrefs
+import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedFormatters
 import com.turntable.barcodescanner.redacted.RedactedGazelleEdition
@@ -24,12 +42,20 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.LinkedHashMap
+import java.util.concurrent.atomic.AtomicInteger
+
+private data class AlbumCoverEntry(val url: String, val label: String)
 
 class RedactedTorrentGroupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRedactedTorrentGroupBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private var groupId: Int = 0
+    /** Bumped before each load so stale [loadCoverImage] threads skip UI updates. */
+    private val albumLoadGeneration = AtomicInteger(0)
+    /** Covers for this group (wiki + alternates from API). */
+    private var albumCoverEntries: List<AlbumCoverEntry> = emptyList()
     private val torrentIds = mutableListOf<Int>()
     /** Parallel to [torrentIds] — full torrent JSON from [torrentgroup]. */
     private val torrentObjects = mutableListOf<JSONObject>()
@@ -51,7 +77,10 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
 
-        val adapter = RedactedTorrentGroupRowsAdapter { torrentIdx -> showTorrentActions(torrentIdx) }
+        val adapter = RedactedTorrentGroupRowsAdapter(
+            onTorrentClick = { showTorrentActions(it) },
+            onEditionDoubleTap = { showEditionDownloadMenu(it) },
+        )
         binding.recyclerTorrents.layoutManager = LinearLayoutManager(this)
         binding.recyclerTorrents.adapter = adapter
 
@@ -85,10 +114,74 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             RedactedUiHelper.openSite(this, "torrents.php?id=$groupId#comments")
         }
 
+        applyAlbumThumbSizePx()
+        setupAlbumThumbDoubleTap()
         loadGroup(adapter)
     }
 
+    private fun setupAlbumThumbDoubleTap() {
+        binding.imageAlbumThumb.isClickable = true
+        val detector = GestureDetector(
+            this,
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDown(e: MotionEvent): Boolean = true
+
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    showCoverGalleryDialog()
+                    return true
+                }
+            },
+        )
+        binding.imageAlbumThumb.setOnTouchListener { _, ev -> detector.onTouchEvent(ev) }
+    }
+
+    /** Physical ~1in square for header cover (decode + view). */
+    private fun applyAlbumThumbSizePx() {
+        val side = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_IN,
+            1f,
+            resources.displayMetrics,
+        ).toInt().coerceAtLeast(1)
+        val lp = binding.imageAlbumThumb.layoutParams
+        lp.width = side
+        lp.height = side
+        binding.imageAlbumThumb.layoutParams = lp
+    }
+
+    /**
+     * Drop large in-memory state before fetching/rendering album data (cover bitmap, wiki text,
+     * torrent JSON mirrors, list rows) and hint GC so the new page has headroom.
+     */
+    private fun prepareAlbumPageMemory(adapter: RedactedTorrentGroupRowsAdapter) {
+        albumLoadGeneration.incrementAndGet()
+        val iv = binding.imageAlbumThumb
+        val prev = iv.drawable
+        iv.setImageDrawable(null)
+        if (prev is BitmapDrawable) {
+            val bmp = prev.bitmap
+            if (bmp != null && !bmp.isRecycled) {
+                bmp.recycle()
+            }
+        }
+        iv.visibility = View.GONE
+        binding.textAlbumHeader.text = ""
+        binding.textMeta.text = ""
+        binding.textWikiBody.text = ""
+        binding.labelGroupInfo.visibility = View.GONE
+        binding.textWikiBody.visibility = View.GONE
+        torrentIds.clear()
+        torrentObjects.clear()
+        adapter.rows = emptyList()
+        albumCoverEntries = emptyList()
+        binding.recyclerTorrents.recycledViewPool.clear()
+        Thread {
+            Runtime.getRuntime().runFinalization()
+            System.gc()
+        }.start()
+    }
+
     private fun loadGroup(adapter: RedactedTorrentGroupRowsAdapter) {
+        prepareAlbumPageMemory(adapter)
         binding.progress.visibility = View.VISIBLE
         Thread {
             val result = api.torrentGroup(groupId)
@@ -108,28 +201,43 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         val group = resp.optJSONObject("group") ?: return
         val name = group.optString("name")
         val year = group.optInt("year", 0)
-        supportActionBar?.title = name.ifBlank { getString(R.string.redacted_torrents) }
-        val wikiImage = group.optString("wikiImage").takeIf { it.startsWith("http") }
-        if (!wikiImage.isNullOrBlank()) {
-            loadCoverImage(wikiImage)
+        supportActionBar?.title = getString(R.string.redacted_album_toolbar_title)
+        albumCoverEntries = extractAlbumCoverEntries(group)
+        if (albumCoverEntries.isNotEmpty()) {
+            loadAlbumThumb(albumCoverEntries.first().url)
         } else {
-            binding.imageCover.visibility = View.GONE
+            binding.imageAlbumThumb.visibility = View.GONE
         }
-        val artists = extractArtists(group.optJSONObject("musicInfo"))
-        val meta = buildString {
-            append(name)
-            if (year > 0) append(" (").append(year).append(")")
-            append("\n")
-            append(getString(R.string.redacted_group_id_fmt, group.optInt("id")))
-            append("\n")
-            append(artists)
-            append("\n")
-            append(group.optString("recordLabel"))
-            if (group.optString("catalogueNumber").isNotBlank()) {
-                append(" · ").append(group.optString("catalogueNumber"))
+        val artists = extractArtists(group.optJSONObject("musicInfo")).ifBlank { "—" }
+        val gidForHistory = group.optInt("id")
+        if (gidForHistory > 0) {
+            val historySub = buildString {
+                append(artists)
+                if (year > 0) append(" · ").append(year)
+            }
+            RedactedGroupHistoryStore.add(
+                this,
+                groupId = gidForHistory,
+                groupName = name.ifBlank { "—" },
+                subtitle = historySub,
+                coverUrl = albumCoverEntries.firstOrNull()?.url,
+            )
+        }
+        val catLine = buildString {
+            if (year > 0) append(year)
+            val cat = group.optString("catalogueNumber").trim()
+            val label = group.optString("recordLabel").trim()
+            if (isNotEmpty() && (cat.isNotEmpty() || label.isNotEmpty())) append(" · ")
+            when {
+                cat.isNotEmpty() && label.isNotEmpty() -> append(label).append(" · ").append(cat)
+                cat.isNotEmpty() -> append(cat)
+                label.isNotEmpty() -> append(label)
             }
         }
-        binding.textMeta.text = meta
+        binding.textAlbumHeader.text = listOf(artists, name.ifBlank { "—" }, catLine.ifBlank { "—" })
+            .joinToString("\n")
+        binding.textMeta.text = ""
+        binding.textMeta.visibility = View.GONE
 
         val wikiBody = group.optString("wikiBody").trim()
         val wikiPlain = RedactedGazelleTorrentParse.stripBbCodeForPreview(wikiBody)
@@ -156,16 +264,27 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         val rows = mutableListOf<RedactedTorrentGroupRowsAdapter.Row>()
         val buckets = RedactedGazelleEdition.groupTorrentsByEdition(group, torrentList)
         for (bucket in buckets) {
+            if (bucket.isEmpty()) continue
             val header = RedactedGazelleEdition.buildEditionHeaderTitle(group, bucket.first())
-            rows.add(RedactedTorrentGroupRowsAdapter.Row(title = header, subtitle = "", torrentIndex = null))
+            val bucketIndices = mutableListOf<Int>()
             for (t in bucket) {
-                val tid = t.optInt("id")
-                val line = buildTorrentTitleLine(t)
-                val sub = buildTorrentSubtitle(t, tid)
-                val idx = torrentIds.size
-                torrentIds.add(tid)
+                bucketIndices.add(torrentIds.size)
+                torrentIds.add(t.optInt("id"))
                 torrentObjects.add(t)
-                rows.add(RedactedTorrentGroupRowsAdapter.Row(title = line, subtitle = sub, torrentIndex = idx))
+            }
+            rows.add(RedactedTorrentGroupRowsAdapter.Row.Edition(header, bucketIndices.toList()))
+            for ((i, t) in bucket.withIndex()) {
+                val listIndex = bucketIndices[i]
+                rows.add(
+                    RedactedTorrentGroupRowsAdapter.Row.Torrent(
+                        formatLine = buildTorrentTitleLine(t),
+                        sizeText = RedactedFormatters.bytes(t.optLong("size")),
+                        snatched = t.optInt("snatched"),
+                        seeders = t.optInt("seeders"),
+                        leechers = t.optInt("leechers"),
+                        listIndex = listIndex,
+                    ),
+                )
             }
         }
         adapter.rows = rows
@@ -175,34 +294,6 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         val base = "${t.optString("format")} / ${t.optString("encoding")} / ${t.optString("media")}"
         val status = t.optString("userStatus").trim()
         return if (status.isNotBlank()) "$base — $status" else base
-    }
-
-    private fun buildTorrentSubtitle(t: JSONObject, tid: Int): String {
-        val snatched = t.optInt("snatched")
-        val parts = buildString {
-            append(RedactedFormatters.bytes(t.optLong("size")))
-            append(" · ↑").append(t.optInt("seeders"))
-            append(" ↓").append(t.optInt("leechers"))
-            append(" · ").append(getString(R.string.redacted_snatched_abbr, snatched))
-            append(" · id ").append(tid)
-        }
-        val uid = t.optInt("userId")
-        val uname = t.optString("username").trim()
-        val time = t.optString("time").trim()
-        val who = when {
-            uname.isNotBlank() -> uname
-            uid > 0 -> getString(R.string.redacted_user_id) + " $uid"
-            else -> ""
-        }
-        return if (who.isNotBlank() && time.isNotBlank()) {
-            parts + "\n" + getString(R.string.redacted_uploader_line, who, time)
-        } else if (time.isNotBlank()) {
-            parts + "\n" + time
-        } else if (who.isNotBlank()) {
-            parts + "\n" + who
-        } else {
-            parts
-        }
     }
 
     private fun extractArtists(musicInfo: JSONObject?): String {
@@ -323,30 +414,327 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun loadCoverImage(imageUrl: String) {
-        Thread {
-            var ok = false
-            try {
-                val conn = URL(imageUrl).openConnection() as HttpURLConnection
-                conn.requestMethod = "GET"
-                conn.connectTimeout = 15000
-                conn.readTimeout = 15000
-                conn.setRequestProperty("User-Agent", "turnTable/1.0")
-                conn.inputStream.use { stream ->
-                    val bmp = BitmapFactory.decodeStream(stream)
-                    if (bmp != null) {
-                        runOnUiThread {
-                            binding.imageCover.setImageBitmap(bmp)
-                            binding.imageCover.visibility = View.VISIBLE
+    /** Double-tap edition row: pick format, optional FL token, download / edit / permalink. */
+    private fun showEditionDownloadMenu(bucketListIndices: List<Int>) {
+        if (bucketListIndices.isEmpty()) return
+        val pad = (16 * resources.displayMetrics.density).toInt()
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(pad, pad, pad, pad)
+        }
+        val fmtLabel = TextView(this).apply {
+            text = getString(R.string.redacted_edition_pick_format)
+            setTextColor(ContextCompat.getColor(this@RedactedTorrentGroupActivity, R.color.app_text_primary))
+        }
+        val spinner = Spinner(this)
+        val formatLabels = bucketListIndices.map { idx ->
+            torrentObjects.getOrNull(idx)?.let { buildTorrentTitleLine(it) } ?: "—"
+        }
+        spinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            formatLabels,
+        )
+        val useTokenSwitch = SwitchMaterial(this).apply {
+            text = getString(R.string.redacted_use_token)
+        }
+        val btnRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        val dl = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = getString(R.string.redacted_download_selected)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        val edit = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = getString(R.string.redacted_edit_torrent_short)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        val permalink = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = getString(R.string.redacted_permalink)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        }
+        root.addView(fmtLabel)
+        val lpSpinner = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        )
+        lpSpinner.topMargin = pad / 2
+        root.addView(spinner, lpSpinner)
+        val lpSw = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        )
+        lpSw.topMargin = pad / 2
+        root.addView(useTokenSwitch, lpSw)
+        btnRow.addView(dl)
+        btnRow.addView(edit)
+        val lpRow = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        )
+        lpRow.topMargin = pad
+        root.addView(btnRow, lpRow)
+        val lpPl = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        )
+        lpPl.topMargin = pad / 2
+        root.addView(permalink, lpPl)
+
+        fun selectedListIndex(): Int =
+            bucketListIndices[spinner.selectedItemPosition.coerceIn(bucketListIndices.indices)]
+        fun selectedTorrentId(): Int? = torrentIds.getOrNull(selectedListIndex())
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.redacted_edition_dl_menu_title)
+            .setView(root)
+            .setNegativeButton(R.string.cancel, null)
+            .create()
+
+        dl.setOnClickListener {
+            val tid = selectedTorrentId() ?: return@setOnClickListener
+            dialog.dismiss()
+            if (useTokenSwitch.isChecked) {
+                confirmTokenDownload(tid)
+            } else {
+                downloadTorrent(tid, false)
+            }
+        }
+        edit.setOnClickListener {
+            val tid = selectedTorrentId() ?: return@setOnClickListener
+            dialog.dismiss()
+            startActivity(
+                Intent(this, RedactedTorrentEditActivity::class.java)
+                    .putExtra(RedactedExtras.TORRENT_ID, tid),
+            )
+        }
+        permalink.setOnClickListener {
+            val tid = selectedTorrentId() ?: return@setOnClickListener
+            val url = "https://redacted.sh/torrents.php?torrentid=$tid"
+            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            cm.setPrimaryClip(ClipData.newPlainText("Permalink", url))
+            Toast.makeText(this, R.string.redacted_permalink_copied, Toast.LENGTH_SHORT).show()
+        }
+        dialog.show()
+    }
+
+    private fun extractAlbumCoverEntries(group: JSONObject): List<AlbumCoverEntry> {
+        val map = LinkedHashMap<String, String>()
+        fun addUrl(raw: String?, label: String) {
+            val t = raw?.trim().orEmpty()
+            if (t.isEmpty()) return
+            val url = when {
+                t.startsWith("http", ignoreCase = true) -> t
+                t.startsWith("//") -> "https:$t"
+                else -> "https://redacted.sh/${t.trimStart('/')}"
+            }
+            if (!map.containsKey(url)) map[url] = label
+        }
+        addUrl(group.optString("wikiImage").takeIf { it.isNotBlank() }, getString(R.string.redacted_cover_primary))
+        val proxy = group.optString("proxyImage").trim()
+        if (proxy.startsWith("http", ignoreCase = true) || proxy.startsWith("//")) {
+            addUrl(proxy, getString(R.string.redacted_cover_proxy))
+        }
+        val coverKeys = listOf("covers", "coverArt", "alternateCovers", "images")
+        for (key in coverKeys) {
+            val arr = group.optJSONArray(key) ?: continue
+            for (i in 0 until arr.length()) {
+                when (val el = arr.opt(i)) {
+                    is String -> addUrl(el, getString(R.string.redacted_cover_alt_fmt, i + 1))
+                    is JSONObject -> {
+                        val u = el.optString("image").ifBlank {
+                            el.optString("url").ifBlank { el.optString("thumb") }
                         }
-                        ok = true
+                        val lbl = el.optString("summary").ifBlank {
+                            el.optString("name").ifBlank { el.optString("title") }
+                        }.ifBlank { getString(R.string.redacted_cover_alt_fmt, i + 1) }
+                        addUrl(u, lbl)
                     }
                 }
-            } catch (_: Exception) { /* ignore */ }
-            if (!ok) {
-                runOnUiThread { binding.imageCover.visibility = View.GONE }
+            }
+        }
+        return map.map { AlbumCoverEntry(it.key, it.value) }
+    }
+
+    /**
+     * Site-relative and redacted.sh URLs use [RedactedAvatarLoader] when an API key is set;
+     * external HTTP(S) uses a plain connection.
+     */
+    private fun loadCoverBitmapFromUrl(imageUrl: String, maxSidePx: Int): Bitmap? {
+        val key = SearchPrefs(this).redactedApiKey?.trim().orEmpty()
+        if (key.isNotEmpty()) {
+            RedactedAvatarLoader.loadBitmap(imageUrl, key, maxSidePx)?.let { return it }
+        }
+        val url = when {
+            imageUrl.startsWith("http", ignoreCase = true) -> imageUrl.trim()
+            imageUrl.startsWith("//") -> "https:${imageUrl.trim()}"
+            imageUrl.isBlank() -> return null
+            else -> "https://redacted.sh/${imageUrl.trim().trimStart('/')}"
+        }
+        if (url.contains("redacted.sh", ignoreCase = true)) return null
+        return try {
+            val conn = URL(url).openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 15000
+            conn.readTimeout = 15000
+            conn.setRequestProperty("User-Agent", "turnTable/1.0")
+            val bytes = conn.inputStream.use { it.readBytes() }
+            decodeSampledBitmapFromBytes(bytes, maxSidePx)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun showCoverGalleryDialog() {
+        if (albumCoverEntries.isEmpty()) {
+            Toast.makeText(this, R.string.redacted_covers_none, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val density = resources.displayMetrics.density
+        val pad = (16 * density).toInt()
+        val imgMaxH = (360 * density).toInt()
+
+        val labelTv = TextView(this).apply {
+            setPadding(pad, 0, pad, pad / 2)
+            setTextColor(ContextCompat.getColor(this@RedactedTorrentGroupActivity, R.color.app_text_primary))
+            textSize = 14f
+        }
+        val counterTv = TextView(this).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(pad, 0, pad, pad / 2)
+            setTextColor(ContextCompat.getColor(this@RedactedTorrentGroupActivity, R.color.app_text_secondary))
+        }
+        val imageView = ImageView(this).apply {
+            adjustViewBounds = true
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            maxHeight = imgMaxH
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+        }
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(pad, pad / 2, pad, pad)
+        }
+        val prev = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = getString(R.string.redacted_cover_prev)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        val next = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = getString(R.string.redacted_cover_next)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        row.addView(prev)
+        row.addView(next)
+
+        val column = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(labelTv)
+            addView(counterTv)
+            addView(imageView)
+            addView(row)
+        }
+        val scroll = ScrollView(this).apply {
+            addView(column)
+        }
+
+        var index = 0
+        val galleryLoadGen = AtomicInteger(0)
+        fun applyIndex(newIdx: Int) {
+            val n = albumCoverEntries.size
+            index = newIdx.coerceIn(0, (n - 1).coerceAtLeast(0))
+            prev.isEnabled = index > 0
+            next.isEnabled = index < n - 1
+            counterTv.text = getString(R.string.redacted_cover_counter_fmt, index + 1, n)
+            labelTv.text = albumCoverEntries[index].label
+            val g = galleryLoadGen.incrementAndGet()
+            imageView.setImageDrawable(null)
+            val url = albumCoverEntries[index].url
+            Thread {
+                val bmp = loadCoverBitmapFromUrl(url, 1600)
+                runOnUiThread {
+                    if (g != galleryLoadGen.get()) {
+                        if (bmp != null && !bmp.isRecycled) bmp.recycle()
+                        return@runOnUiThread
+                    }
+                    if (bmp != null) imageView.setImageBitmap(bmp)
+                }
+            }.start()
+        }
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.redacted_cover_gallery_title)
+            .setView(scroll)
+            .setPositiveButton(android.R.string.ok, null)
+            .create()
+
+        prev.setOnClickListener { applyIndex(index - 1) }
+        next.setOnClickListener { applyIndex(index + 1) }
+        dialog.setOnDismissListener {
+            galleryLoadGen.incrementAndGet()
+            val d = imageView.drawable
+            imageView.setImageDrawable(null)
+            if (d is BitmapDrawable) {
+                val b = d.bitmap
+                if (b != null && !b.isRecycled) b.recycle()
+            }
+        }
+        dialog.show()
+        applyIndex(0)
+    }
+
+    private fun loadAlbumThumb(imageUrl: String) {
+        val gen = albumLoadGeneration.get()
+        val maxSide = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_IN,
+            1f,
+            resources.displayMetrics,
+        ).toInt().coerceAtLeast(1)
+        Thread {
+            val bmp = loadCoverBitmapFromUrl(imageUrl, maxSide)
+            if (bmp != null) {
+                runOnUiThread {
+                    if (gen != albumLoadGeneration.get()) {
+                        if (!bmp.isRecycled) bmp.recycle()
+                        return@runOnUiThread
+                    }
+                    binding.imageAlbumThumb.setImageBitmap(bmp)
+                    binding.imageAlbumThumb.visibility = View.VISIBLE
+                }
+            } else {
+                runOnUiThread {
+                    if (gen == albumLoadGeneration.get()) {
+                        binding.imageAlbumThumb.visibility = View.GONE
+                    }
+                }
             }
         }.start()
+    }
+
+    private fun decodeSampledBitmapFromBytes(bytes: ByteArray, maxSidePx: Int): android.graphics.Bitmap? {
+        if (bytes.isEmpty()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        bounds.inJustDecodeBounds = false
+        bounds.inSampleSize = computeInSampleSize(bounds, maxSidePx, maxSidePx)
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    }
+
+    private fun computeInSampleSize(
+        options: BitmapFactory.Options,
+        reqWidth: Int,
+        reqHeight: Int,
+    ): Int {
+        var inSampleSize = 1
+        if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
+            var halfH = options.outHeight / 2
+            var halfW = options.outWidth / 2
+            while (halfH / inSampleSize >= reqHeight && halfW / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize.coerceAtLeast(1)
     }
 
     private fun confirmTokenDownload(torrentId: Int) {

@@ -113,7 +113,6 @@ class RedactedBrowseResultsActivity : AppCompatActivity() {
                                 val sub = buildString {
                                     append(artist)
                                     if (year > 0) append(" · ").append(year)
-                                    append(" · id ").append(gid)
                                 }
                                 val cover = o.optString("cover").trim().takeIf { it.isNotEmpty() }
                                 rows.add(TwoLineRow(name.ifBlank { "(no title)" }, sub, coverUrl = cover))

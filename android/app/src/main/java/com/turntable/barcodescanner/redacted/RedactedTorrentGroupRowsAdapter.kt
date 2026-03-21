@@ -1,29 +1,34 @@
 package com.turntable.barcodescanner.redacted
 
-import android.graphics.Typeface
-import android.util.TypedValue
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.turntable.barcodescanner.R
 
 /**
- * Torrent group screen: **edition / pressing** header rows plus torrent rows.
- * [torrentIndex] indexes into the activity's parallel torrent id/object lists; null = non-clickable header.
+ * Torrent group screen: **edition** header rows (double-tap for edition menu) plus **table** rows
+ * like the site torrent table (format, size, snatches, seeders, leechers).
  */
 class RedactedTorrentGroupRowsAdapter(
-    private val onTorrentClick: (torrentIndex: Int) -> Unit,
-) : RecyclerView.Adapter<RedactedTorrentGroupRowsAdapter.VH>() {
+    private val onTorrentClick: (torrentListIndex: Int) -> Unit,
+    private val onEditionDoubleTap: (bucketTorrentIndices: List<Int>) -> Unit,
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    data class Row(
-        val title: String,
-        val subtitle: String = "",
-        val torrentIndex: Int? = null,
-    )
+    sealed class Row {
+        data class Edition(val title: String, val bucketTorrentIndices: List<Int>) : Row()
+        data class Torrent(
+            val formatLine: String,
+            val sizeText: String,
+            val snatched: Int,
+            val seeders: Int,
+            val leechers: Int,
+            val listIndex: Int,
+        ) : Row()
+    }
 
     var rows: List<Row> = emptyList()
         set(value) {
@@ -31,45 +36,70 @@ class RedactedTorrentGroupRowsAdapter(
             notifyDataSetChanged()
         }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val v = LayoutInflater.from(parent.context).inflate(R.layout.item_redacted_two_line, parent, false)
-        return VH(v)
+    override fun getItemViewType(position: Int): Int = when (rows[position]) {
+        is Row.Edition -> VIEW_EDITION
+        is Row.Torrent -> VIEW_TORRENT
     }
 
-    override fun onBindViewHolder(holder: VH, position: Int) {
-        val r = rows[position]
-        holder.title.text = r.title
-        holder.subtitle.text = r.subtitle
-        holder.cover.visibility = View.GONE
-        holder.cover.setImageDrawable(null)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inf = LayoutInflater.from(parent.context)
+        return when (viewType) {
+            VIEW_EDITION -> {
+                val v = inf.inflate(R.layout.item_torrent_edition_header, parent, false) as TextView
+                EditionVH(v)
+            }
+            else -> {
+                val v = inf.inflate(R.layout.item_torrent_table_row, parent, false)
+                TorrentVH(v)
+            }
+        }
+    }
 
-        if (r.torrentIndex == null) {
-            holder.subtitle.visibility = View.GONE
-            holder.title.typeface = Typeface.DEFAULT_BOLD
-            holder.title.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.app_text_primary))
-            holder.itemView.setBackgroundColor(
-                ContextCompat.getColor(holder.itemView.context, R.color.app_card_browse),
-            )
-            holder.itemView.isClickable = false
-            holder.itemView.setOnClickListener(null)
-        } else {
-            holder.subtitle.visibility = if (r.subtitle.isBlank()) View.GONE else View.VISIBLE
-            holder.title.typeface = Typeface.DEFAULT
-            holder.title.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.app_text_primary))
-            val out = TypedValue()
-            holder.itemView.context.theme.resolveAttribute(android.R.attr.selectableItemBackground, out, true)
-            holder.itemView.setBackgroundResource(out.resourceId)
-            val idx = r.torrentIndex
-            holder.itemView.isClickable = true
-            holder.itemView.setOnClickListener { onTorrentClick(idx) }
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (val r = rows[position]) {
+            is Row.Edition -> {
+                val h = holder as EditionVH
+                h.text.text = r.title
+                val indices = r.bucketTorrentIndices
+                val detector = GestureDetector(
+                    h.itemView.context,
+                    object : GestureDetector.SimpleOnGestureListener() {
+                        override fun onDown(e: MotionEvent): Boolean = true
+
+                        override fun onDoubleTap(e: MotionEvent): Boolean {
+                            if (indices.isNotEmpty()) onEditionDoubleTap(indices)
+                            return true
+                        }
+                    },
+                )
+                h.itemView.isClickable = true
+                h.itemView.setOnTouchListener { _, ev -> detector.onTouchEvent(ev) }
+            }
+            is Row.Torrent -> {
+                val h = holder as TorrentVH
+                h.format.text = r.formatLine
+                h.size.text = r.sizeText
+                h.snatched.text = r.snatched.toString()
+                h.seeders.text = r.seeders.toString()
+                h.leechers.text = r.leechers.toString()
+                h.itemView.setOnClickListener { onTorrentClick(r.listIndex) }
+            }
         }
     }
 
     override fun getItemCount(): Int = rows.size
 
-    class VH(v: View) : RecyclerView.ViewHolder(v) {
-        val cover: ImageView = v.findViewById(R.id.imageCover)
-        val title: TextView = v.findViewById(R.id.textTitle)
-        val subtitle: TextView = v.findViewById(R.id.textSubtitle)
+    class EditionVH(val text: TextView) : RecyclerView.ViewHolder(text)
+    class TorrentVH(v: View) : RecyclerView.ViewHolder(v) {
+        val format: TextView = v.findViewById(R.id.textFormat)
+        val size: TextView = v.findViewById(R.id.textSize)
+        val snatched: TextView = v.findViewById(R.id.textSnatched)
+        val seeders: TextView = v.findViewById(R.id.textSeeders)
+        val leechers: TextView = v.findViewById(R.id.textLeechers)
+    }
+
+    companion object {
+        private const val VIEW_EDITION = 0
+        private const val VIEW_TORRENT = 1
     }
 }

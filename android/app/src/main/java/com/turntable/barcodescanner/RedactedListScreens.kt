@@ -87,17 +87,32 @@ class RedactedTop10Activity : AppCompatActivity() {
 
     private fun top10Row(o: JSONObject): TwoLineRow {
         return when {
-            o.has("groupName") -> TwoLineRow(
-                "${o.optString("artist")} — ${o.optString("groupName")}",
-                "group ${o.optInt("groupId")} · torrent ${o.optInt("torrentId")}",
-            )
+            o.has("groupName") -> {
+                val yr = when {
+                    o.optInt("year") > 0 -> o.optInt("year")
+                    o.optInt("groupYear") > 0 -> o.optInt("groupYear")
+                    else -> 0
+                }
+                val sn = o.optInt("snatched", -1)
+                val sub = buildString {
+                    if (yr > 0) append(yr)
+                    if (sn >= 0) {
+                        if (isNotEmpty()) append(" · ")
+                        append(sn).append(" snatches")
+                    }
+                }
+                TwoLineRow(
+                    "${o.optString("artist")} — ${o.optString("groupName")}",
+                    sub,
+                )
+            }
             o.has("username") -> TwoLineRow(
                 o.optString("username"),
-                "user ${o.optInt("userId")}",
+                o.optString("class"),
             )
             o.has("name") && o.has("tagId") -> TwoLineRow(
                 o.optString("name"),
-                "tag ${o.optInt("tagId")}",
+                "",
             )
             else -> TwoLineRow(o.toString().take(120), "")
         }
@@ -186,7 +201,7 @@ class RedactedBookmarksActivity : AppCompatActivity() {
                                 for (i in 0 until ar.length()) {
                                     val o = ar.optJSONObject(i) ?: continue
                                     val aid = o.optInt("artistId")
-                                    rows.add(TwoLineRow(o.optString("artistName"), "id $aid"))
+                                    rows.add(TwoLineRow(o.optString("artistName"), ""))
                                     artistIds.add(aid)
                                 }
                             }
@@ -269,7 +284,7 @@ class RedactedRequestsActivity : AppCompatActivity() {
                                 rows.add(
                                     TwoLineRow(
                                         o.optString("title"),
-                                        "${o.optInt("year")} · votes ${o.optInt("voteCount")} · id $rid",
+                                        "${o.optInt("year")} · votes ${o.optInt("voteCount")}",
                                     ),
                                 )
                                 requestIds.add(rid)
@@ -351,7 +366,7 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
                             val gid = o.optString("groupId").toIntOrNull() ?: o.optInt("groupId")
                             val name = o.optString("name").ifBlank { o.optString("groupName") }
                             val artist = o.optString("artistName").ifBlank { o.optString("artist") }
-                            rows.add(TwoLineRow(name, "$artist · group $gid"))
+                            rows.add(TwoLineRow(name, artist))
                             if (gid > 0) groupIds.add(gid)
                         }
                         adapter.rows = rows

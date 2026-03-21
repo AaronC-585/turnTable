@@ -247,7 +247,7 @@ object RedactedProfileUiBuilder {
             if (v is JSONObject || v is JSONArray) return@forEach
             val label = humanizeKey(k)
             if (rows.none { it.label == label }) {
-                rows.add(ProfileRow(label, formatLeaf(v)))
+                rows.add(ProfileRow(label, formatLeafForJsonKey(k, v)))
             }
         }
 
@@ -283,7 +283,12 @@ object RedactedProfileUiBuilder {
             "downloaded" to "Data downloaded",
             "uploads" to "Torrents uploaded",
             "requests" to "Requests filled",
-            "bounty" to "Bounty spent",
+            // Gazelle: percentile rank (0–100). Community stats use separate keys for byte amounts.
+            "bounty" to "Bounty rank",
+            "bountyEarned" to "Bounty earned",
+            "bountySpent" to "Bounty spent",
+            "bounty_earned" to "Bounty earned",
+            "bounty_spent" to "Bounty spent",
             "posts" to "Posts made",
             "artists" to "Artists added",
             "overall" to "Overall rank",
@@ -295,7 +300,7 @@ object RedactedProfileUiBuilder {
             rows.add(
                 ProfileRow(
                     label,
-                    formatLeaf(v),
+                    formatLeafForJsonKey(key, v),
                     valueBold = isOverall,
                     valueColorRes = if (isOverall) R.color.home_rank_highlight else null,
                 ),
@@ -303,7 +308,7 @@ object RedactedProfileUiBuilder {
         }
         r.keys().asSequence().sorted().forEach { k ->
             if (order.any { it.first == k }) return@forEach
-            rows.add(ProfileRow(humanizeKey(k), formatLeaf(r.opt(k))))
+            rows.add(ProfileRow(humanizeKey(k), formatLeafForJsonKey(k, r.opt(k))))
         }
         if (rows.isEmpty()) return null
         return ProfileSection(R.string.home_section_percentile_rankings, rows)
@@ -352,7 +357,7 @@ object RedactedProfileUiBuilder {
                     }
                 }
                 v is JSONArray -> rows.add(ProfileRow(humanizeKey(k), v.toString()))
-                else -> rows.add(ProfileRow(humanizeKey(k), formatLeaf(v)))
+                else -> rows.add(ProfileRow(humanizeKey(k), formatLeafForJsonKey(k, v)))
             }
         }
         return rows
@@ -376,6 +381,38 @@ object RedactedProfileUiBuilder {
         }
         is Boolean -> if (v) "Yes" else "No"
         else -> v.toString()
+    }
+
+    /**
+     * Request bounty totals from the API are byte amounts; [ranks] `bounty` is usually a small percentile (0–100).
+     * Format large bounty-related integers as binary sizes; leave small values as plain numbers.
+     */
+    private fun formatLeafForJsonKey(jsonKey: String, v: Any?): String {
+        if (!jsonKey.contains("bounty", ignoreCase = true)) return formatLeaf(v)
+        val asLong = when (v) {
+            is Long -> v
+            is Int -> v.toLong()
+            is Double ->
+                if (v.isNaN() || v.isInfinite()) return formatLeaf(v)
+                else {
+                    val l = v.toLong()
+                    if (v != l.toDouble()) return formatLeaf(v)
+                    l
+                }
+            is Number -> {
+                val d = v.toDouble()
+                if (d.isNaN() || d.isInfinite()) return formatLeaf(v)
+                val l = d.toLong()
+                if (d != l.toDouble()) return formatLeaf(v)
+                l
+            }
+            else -> return formatLeaf(v)
+        }
+        return if (kotlin.math.abs(asLong) >= 1024) {
+            RedactedFormat.formatBytes(asLong)
+        } else {
+            formatLeaf(v)
+        }
     }
 
     private fun firstLong(

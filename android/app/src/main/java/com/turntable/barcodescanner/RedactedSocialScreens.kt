@@ -413,7 +413,7 @@ class RedactedNotificationsActivity : AppCompatActivity() {
                                 rows.add(
                                     TwoLineRow(
                                         o.optString("groupName"),
-                                        "${o.optString("format")} / ${o.optString("encoding")} · $gid",
+                                        "${o.optString("format")} / ${o.optString("encoding")}",
                                     ),
                                 )
                                 groupIds.add(gid)

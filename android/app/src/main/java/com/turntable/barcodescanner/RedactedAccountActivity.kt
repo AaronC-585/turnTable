@@ -39,7 +39,6 @@ class RedactedAccountActivity : AppCompatActivity() {
         if (resp == null) return "{}"
         return buildString {
             appendLine("username: ${resp.optString("username")}")
-            appendLine("id: ${resp.optInt("id")}")
             appendLine("api_version: ${resp.optString("api_version")}")
             resp.optJSONObject("notifications")?.let { n ->
                 appendLine("notifications.messages: ${n.optInt("messages")}")
