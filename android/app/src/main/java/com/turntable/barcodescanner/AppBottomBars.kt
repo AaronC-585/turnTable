@@ -5,12 +5,18 @@ import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.os.SystemClock
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.turntable.barcodescanner.redacted.RedactedApiClient
+import com.turntable.barcodescanner.redacted.RedactedIndexNotifications
+import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.TrackerStatusClient.Service
+import org.json.JSONObject
 
 /**
  * Global bottom dock: tracker status strip + shortcut row. Attached to most activities via
@@ -19,9 +25,13 @@ import com.turntable.barcodescanner.TrackerStatusClient.Service
 object AppBottomBars {
 
     private const val TRACKER_THROTTLE_MS = 45_000L
+    private const val MAIL_BADGE_MIN_INTERVAL_MS = 25_000L
 
     @Volatile
     private var lastTrackerFetchElapsed: Long = 0L
+
+    @Volatile
+    private var lastMailBadgeFetchElapsed: Long = 0L
 
     private val excludedActivities: Set<Class<out Activity>> = setOf(
         SplashActivity::class.java,
@@ -41,6 +51,7 @@ object AppBottomBars {
             if (activity !is AppCompatActivity) return
             if (excludedActivities.contains(activity.javaClass)) return
             maybeRefreshTracker(activity, force = false)
+            maybeRefreshMailUnreadBadge(activity)
         }
 
         override fun onActivityStarted(activity: Activity) {}
@@ -85,6 +96,7 @@ object AppBottomBars {
         wireDock(activity, dock)
         dock.findViewById<View>(R.id.trackerStatusBar).alpha = 0.45f
         maybeRefreshTracker(activity, force = true)
+        maybeRefreshMailUnreadBadge(activity, force = true)
     }
 
     private fun wireDock(activity: AppCompatActivity, dock: View) {
@@ -116,6 +128,13 @@ object AppBottomBars {
                 activity.startActivity(Intent(activity, RedactedInboxActivity::class.java))
             }
         }
+        dock.findViewById<View>(R.id.buttonHomeFriends).setOnClickListener {
+            if (SearchPrefs(activity).redactedApiKey.isNullOrBlank()) {
+                Toast.makeText(activity, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
+            } else {
+                activity.startActivity(Intent(activity, RedactedFriendsActivity::class.java))
+            }
+        }
         dock.findViewById<View>(R.id.buttonHomeHome).setOnClickListener {
             activity.navigateToHome()
         }
@@ -140,6 +159,78 @@ object AppBottomBars {
     /** Force refresh (e.g. pull-to-refresh on home). */
     fun refreshTrackerNow(activity: AppCompatActivity) {
         maybeRefreshTracker(activity, force = true)
+    }
+
+    /** Re-fetch unread PM count for the dock mail badge (e.g. after leaving inbox). */
+    fun refreshMailUnreadBadgeNow(activity: AppCompatActivity) {
+        maybeRefreshMailUnreadBadge(activity, force = true)
+    }
+
+    /**
+     * Updates the mail shortcut badge from an [index] response already loaded (e.g. Home profile),
+     * so the count stays in sync without a second API call.
+     */
+    fun applyMailUnreadCountFromIndex(activity: AppCompatActivity, indexResponse: JSONObject) {
+        // Skip the next throttled [index] poll — we already have fresh counts from this response.
+        lastMailBadgeFetchElapsed = SystemClock.elapsedRealtime()
+        val notif = indexResponse.optJSONObject("notifications")
+        val count = RedactedIndexNotifications.unreadPrivateMessageCount(notif)
+        activity.window.decorView.post {
+            if (activity.isFinishing) return@post
+            setMailBadgeCount(activity, count)
+        }
+    }
+
+    private fun maybeRefreshMailUnreadBadge(activity: AppCompatActivity, force: Boolean = false) {
+        if (excludedActivities.contains(activity.javaClass)) return
+        val key = SearchPrefs(activity).redactedApiKey?.trim().orEmpty()
+        if (key.isEmpty()) {
+            activity.window.decorView.post {
+                if (!activity.isFinishing) setMailBadgeCount(activity, 0)
+            }
+            return
+        }
+        val now = SystemClock.elapsedRealtime()
+        if (!force && lastMailBadgeFetchElapsed != 0L &&
+            now - lastMailBadgeFetchElapsed < MAIL_BADGE_MIN_INTERVAL_MS
+        ) {
+            return
+        }
+        lastMailBadgeFetchElapsed = now
+
+        Thread {
+            val r = RedactedApiClient(key).index()
+            val count = when (r) {
+                is RedactedResult.Success -> {
+                    val body = r.response ?: r.root
+                    RedactedIndexNotifications.unreadPrivateMessageCount(
+                        body.optJSONObject("notifications"),
+                    )
+                }
+                else -> null
+            }
+            activity.runOnUiThread {
+                if (activity.isFinishing) return@runOnUiThread
+                if (count != null) setMailBadgeCount(activity, count)
+            }
+        }.start()
+    }
+
+    private fun setMailBadgeCount(activity: AppCompatActivity, count: Int) {
+        val dock = activity.findViewById<View>(R.id.appBottomDock) ?: return
+        val badge = dock.findViewById<TextView>(R.id.badgeMailUnread) ?: return
+        val mailColumn = dock.findViewById<LinearLayout>(R.id.homeActionMail) ?: return
+        if (count <= 0) {
+            badge.visibility = View.GONE
+            mailColumn.contentDescription = activity.getString(R.string.home_content_cd_mail)
+            return
+        }
+        badge.visibility = View.VISIBLE
+        badge.text = if (count > 99) "99+" else count.toString()
+        mailColumn.contentDescription = activity.getString(
+            R.string.home_content_cd_mail_unread,
+            count,
+        )
     }
 
     private fun maybeRefreshTracker(activity: AppCompatActivity, force: Boolean) {

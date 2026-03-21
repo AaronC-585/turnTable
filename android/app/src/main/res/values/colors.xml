@@ -60,4 +60,7 @@
     <color name="debug_log_timestamp">#78909C</color>
     <!-- Inbox: subtle highlight for unread threads -->
     <color name="inbox_unread_row_bg">#E3F2FD</color>
+    <!-- Conversation: alternating stripes when sender changes -->
+    <color name="conv_message_stripe_a">#EEEEEE</color>
+    <color name="conv_message_stripe_b">#E3F2FD</color>
 </resources>

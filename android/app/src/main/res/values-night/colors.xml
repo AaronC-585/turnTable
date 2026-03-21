@@ -56,4 +56,6 @@
     <color name="debug_log_error">#EF9A9A</color>
     <color name="debug_log_timestamp">#90A4AE</color>
     <color name="inbox_unread_row_bg">#1A2A3D</color>
+    <color name="conv_message_stripe_a">#2A2A2A</color>
+    <color name="conv_message_stripe_b">#1E3A52</color>
 </resources>

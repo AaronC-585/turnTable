@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="4dp"
+    android:orientation="vertical"
+    android:padding="12dp"
+    tools:background="@color/conv_message_stripe_a">
+
+    <TextView
+        android:id="@+id/textAnnouncementTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/app_text_primary"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        tools:text="Site update" />
+
+    <TextView
+        android:id="@+id/textAnnouncementTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/app_text_label"
+        android:textSize="12sp"
+        tools:text="2024-01-01 12:00" />
+
+    <TextView
+        android:id="@+id/textAnnouncementBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/app_text_secondary"
+        android:textIsSelectable="true"
+        android:textSize="14sp"
+        tools:text="Body with bold and links…" />
+</LinearLayout>

@@ -9,6 +9,37 @@ import java.util.Locale
  */
 object RedactedIndexNotifications {
 
+    /**
+     * Unread PM count from [index] `notifications` (Gazelle-style `messages` field).
+     * Returns 0 if missing or unparsable.
+     */
+    fun unreadPrivateMessageCount(notifications: JSONObject?): Int {
+        if (notifications == null || notifications.length() == 0) return 0
+        for (key in listOf("messages", "newMessages", "unreadMessages", "inbox")) {
+            val n = parseNonNegativeCount(notifications, key)
+            if (n != null) return n
+        }
+        return 0
+    }
+
+    private fun parseNonNegativeCount(obj: JSONObject, key: String): Int? {
+        if (!obj.has(key)) return null
+        return when (val v = obj.opt(key)) {
+            null -> null
+            JSONObject.NULL -> null
+            is Number -> v.toInt().coerceAtLeast(0)
+            is Boolean -> if (v) 1 else 0
+            is String -> {
+                val t = v.trim()
+                when {
+                    t.equals("yes", ignoreCase = true) || t == "1" -> 1
+                    else -> t.toIntOrNull()?.coerceAtLeast(0)
+                }
+            }
+            else -> null
+        }
+    }
+
     data class Evaluation(
         /** Any field indicates unread / new activity. */
         val shouldNotify: Boolean,

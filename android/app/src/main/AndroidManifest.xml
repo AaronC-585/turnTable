@@ -122,6 +122,7 @@
         <activity android:name=".RedactedNotificationsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedAnnouncementsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedUserSearchActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
+        <activity android:name=".RedactedFriendsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedSubscriptionsActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedWikiActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />
         <activity android:name=".RedactedLogcheckerActivity" android:exported="false" android:theme="@style/Theme.BarcodeScanner" />

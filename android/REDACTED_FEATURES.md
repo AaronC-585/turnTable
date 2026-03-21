@@ -13,7 +13,7 @@ Sends `Authorization: <api key>` to `https://redacted.sh/ajax.php`. Notable acti
 | Tags / edits | `addtag`, `groupedit`, `torrentedit`, `addtocollage` |
 | Artists | `artist`, `similar_artists` |
 | Requests | `requests`, `request`, `requestfill` |
-| Social | `inbox` (+ `viewconv`), `send_pm`, `usersearch`, `bookmarks`, `subscriptions` |
+| Social | `inbox` (tabs: default inbox, `sentbox`, `staffpm`), `viewconv`, `send_pm`, `usersearch`, `bookmarks`, `subscriptions` |
 | Forums | `forum` (main / viewforum / viewthread) |
 | Site | `notifications`, `announcements`, `wiki`, `logchecker`, `riplog`, `collage` |
 | Upload | `postUpload` (multipart; client only) |

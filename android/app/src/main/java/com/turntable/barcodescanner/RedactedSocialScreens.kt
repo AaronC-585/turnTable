@@ -4,20 +4,30 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.turntable.barcodescanner.databinding.ActivityRedactedSimpleListBinding
+import com.turntable.barcodescanner.databinding.ActivityRedactedConversationBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedDetailBinding
+import com.google.android.material.tabs.TabLayout
 import com.turntable.barcodescanner.databinding.ActivityRedactedGenericListBinding
+import com.turntable.barcodescanner.databinding.ActivityRedactedMailboxBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedPagedListBinding
+import com.turntable.barcodescanner.redacted.AnnouncementRow
+import com.turntable.barcodescanner.redacted.AnnouncementsAdapter
+import com.turntable.barcodescanner.redacted.ConversationMessagesAdapter
+import com.turntable.barcodescanner.redacted.RedactedAnnouncementHtml
 import com.turntable.barcodescanner.redacted.InboxRow
 import com.turntable.barcodescanner.redacted.InboxRowsAdapter
+import com.turntable.barcodescanner.redacted.parseConversationMessageRows
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
@@ -27,7 +37,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 class RedactedInboxActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityRedactedGenericListBinding
+    private lateinit var binding: ActivityRedactedMailboxBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private lateinit var inboxAdapter: InboxRowsAdapter
 
@@ -35,14 +45,35 @@ class RedactedInboxActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val c = RedactedUiHelper.requireApi(this) ?: return
         api = c
-        binding = ActivityRedactedGenericListBinding.inflate(layoutInflater)
+        binding = ActivityRedactedMailboxBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
-        supportActionBar?.title = getString(R.string.redacted_inbox)
+        supportActionBar?.title = getString(R.string.redacted_mailbox_title)
         supportActionBar?.subtitle = getString(R.string.redacted_inbox_hints)
+
+        binding.tabMailbox.addTab(
+            binding.tabMailbox.newTab().setText(getString(R.string.redacted_mailbox_tab_inbox)),
+        )
+        binding.tabMailbox.addTab(
+            binding.tabMailbox.newTab().setText(getString(R.string.redacted_mailbox_tab_sent)),
+        )
+        binding.tabMailbox.addTab(
+            binding.tabMailbox.newTab().setText(getString(R.string.redacted_mailbox_tab_staff_pm)),
+        )
+        binding.tabMailbox.addOnTabSelectedListener(
+            object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab?) {
+                    loadInbox()
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+                override fun onTabReselected(tab: TabLayout.Tab?) {}
+            },
+        )
 
         inboxAdapter = InboxRowsAdapter { convId -> openInboxConversation(convId) }
         binding.recycler.layoutManager = LinearLayoutManager(this)
@@ -67,7 +98,16 @@ class RedactedInboxActivity : AppCompatActivity() {
             },
         ).attachToRecyclerView(binding.recycler)
 
+        binding.fabCompose.setOnClickListener {
+            startActivity(Intent(this, RedactedSendPmActivity::class.java))
+        }
+
         loadInbox()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        AppBottomBars.refreshMailUnreadBadgeNow(this)
     }
 
     private fun openInboxConversation(convId: Int) {
@@ -88,7 +128,7 @@ class RedactedInboxActivity : AppCompatActivity() {
                     true
                 }
                 R.id.inbox_menu_browser -> {
-                    RedactedUiHelper.openSite(this, "inbox.php?action=viewconv&id=${row.convId}")
+                    openMailboxConversationInBrowser(row.convId)
                     true
                 }
                 R.id.inbox_menu_copy_subject -> {
@@ -103,10 +143,31 @@ class RedactedInboxActivity : AppCompatActivity() {
         popup.show()
     }
 
+    /**
+     * API `type` for [com.turntable.barcodescanner.redacted.RedactedApiClient.inbox]:
+     * `null` = inbox, [SENTBOX_TYPE] = sent, [STAFF_PM_INBOX_TYPE] = staff PM.
+     */
+    private fun selectedMailboxApiType(): String? =
+        when (binding.tabMailbox.selectedTabPosition) {
+            0 -> null
+            1 -> SENTBOX_TYPE
+            else -> STAFF_PM_INBOX_TYPE
+        }
+
+    private fun openMailboxConversationInBrowser(convId: Int) {
+        val path =
+            when (binding.tabMailbox.selectedTabPosition) {
+                0, 1 -> "inbox.php?action=viewconv&id=$convId"
+                else -> "staffpm.php?action=viewconv&id=$convId"
+            }
+        RedactedUiHelper.openSite(this, path)
+    }
+
     private fun loadInbox() {
         binding.progress.visibility = View.VISIBLE
+        val type = selectedMailboxApiType()
         Thread {
-            val r = api.inbox(sort = "unread")
+            val r = api.inbox(type = type, sort = "unread")
             runOnUiThread {
                 binding.progress.visibility = View.GONE
                 when (r) {
@@ -143,9 +204,23 @@ class RedactedInboxActivity : AppCompatActivity() {
             }
         }.start()
     }
+
+    companion object {
+        /** Gazelle JSON API: sent messages folder (see docs `type` for `action=inbox`). */
+        const val SENTBOX_TYPE: String = "sentbox"
+
+        /**
+         * Passed as `type` to [com.turntable.barcodescanner.redacted.RedactedApiClient.inbox] for the Staff PM tab.
+         * Matches common Gazelle forks (e.g. RED-style); change if your site uses another value.
+         */
+        const val STAFF_PM_INBOX_TYPE: String = "staffpm"
+    }
 }
 
 class RedactedConversationActivity : AppCompatActivity() {
+
+    private val messageAdapter = ConversationMessagesAdapter()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val api = RedactedUiHelper.requireApi(this) ?: return
@@ -154,7 +229,7 @@ class RedactedConversationActivity : AppCompatActivity() {
             finish()
             return
         }
-        val binding = ActivityRedactedDetailBinding.inflate(layoutInflater)
+        val binding = ActivityRedactedConversationBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -162,34 +237,42 @@ class RedactedConversationActivity : AppCompatActivity() {
         setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_inbox)
 
+        binding.recyclerMessages.layoutManager = LinearLayoutManager(this)
+        binding.recyclerMessages.adapter = messageAdapter
+
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.inboxConversation(convId)
             runOnUiThread {
                 binding.progress.visibility = View.GONE
-                binding.textBody.text = when (r) {
-                    is RedactedResult.Failure -> r.message
-                    is RedactedResult.Success -> formatConversation(r.response)
-                    else -> ""
+                when (r) {
+                    is RedactedResult.Failure -> {
+                        binding.textError.visibility = View.VISIBLE
+                        binding.textError.text = r.message
+                        binding.recyclerMessages.visibility = View.GONE
+                    }
+                    is RedactedResult.Success -> {
+                        binding.textError.visibility = View.GONE
+                        binding.recyclerMessages.visibility = View.VISIBLE
+                        val (subject, rows) = parseConversationMessageRows(r.response)
+                        if (subject.isNotBlank()) {
+                            supportActionBar?.title = subject
+                        }
+                        messageAdapter.rows = rows
+                    }
+                    else -> {
+                        binding.textError.visibility = View.VISIBLE
+                        binding.textError.text = ""
+                        binding.recyclerMessages.visibility = View.GONE
+                    }
                 }
             }
         }.start()
     }
 
-    private fun formatConversation(resp: JSONObject?): String {
-        if (resp == null) return ""
-        val sb = StringBuilder()
-        sb.appendLine(resp.optString("subject")).appendLine()
-        val arr = resp.optJSONArray("messages")
-        if (arr != null) {
-            for (i in 0 until arr.length()) {
-                val m = arr.optJSONObject(i) ?: continue
-                sb.appendLine("— ${m.optString("senderName")} @ ${m.optString("sentDate")} —")
-                sb.appendLine(m.optString("bbBody"))
-                sb.appendLine()
-            }
-        }
-        return sb.toString()
+    override fun onPause() {
+        super.onPause()
+        AppBottomBars.refreshMailUnreadBadgeNow(this)
     }
 }
 
@@ -488,6 +571,7 @@ class RedactedAnnouncementsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRedactedPagedListBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private var page = 1
+    private val announcementsAdapter = AnnouncementsAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -500,25 +584,28 @@ class RedactedAnnouncementsActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_announcements)
+        binding.toolbar.setLogo(ContextCompat.getDrawable(this, R.drawable.ic_newspaper))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            binding.toolbar.logoDescription = getString(R.string.redacted_announcements_logo_desc)
+        }
 
-        val adapter = TwoLineRowsAdapter { /* no-op */ }
         binding.recycler.layoutManager = LinearLayoutManager(this)
-        binding.recycler.adapter = adapter
+        binding.recycler.adapter = announcementsAdapter
 
         binding.buttonPrev.setOnClickListener {
             if (page > 1) {
                 page--
-                load(adapter)
+                loadAnnouncements()
             }
         }
         binding.buttonNext.setOnClickListener {
             page++
-            load(adapter)
+            loadAnnouncements()
         }
-        load(adapter)
+        loadAnnouncements()
     }
 
-    private fun load(adapter: TwoLineRowsAdapter) {
+    private fun loadAnnouncements() {
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.announcements(page = page, perPage = 10)
@@ -528,21 +615,36 @@ class RedactedAnnouncementsActivity : AppCompatActivity() {
                     is RedactedResult.Failure -> Toast.makeText(this, r.message, Toast.LENGTH_LONG).show()
                     is RedactedResult.Success -> {
                         val resp = r.response ?: return@runOnUiThread
+                        val declaredPages = resp.optInt("pages", 0).let { p -> if (p > 0) p else null }
+                        val currentPage = resp.optInt("currentPage", resp.optInt("currentPages", page))
+                            .coerceAtLeast(1)
+                        page = currentPage
+                        binding.textPage.text =
+                            if (declaredPages != null) {
+                                getString(R.string.redacted_page_fmt, page, declaredPages)
+                            } else {
+                                getString(R.string.redacted_page_fmt, page, page.coerceAtLeast(1))
+                            }
+                        binding.buttonPrev.isEnabled = page > 1
+
                         val arr = resp.optJSONArray("announcements")
-                        val rows = mutableListOf<TwoLineRow>()
+                        val rows = mutableListOf<AnnouncementRow>()
                         if (arr != null) {
                             for (i in 0 until arr.length()) {
                                 val o = arr.optJSONObject(i) ?: continue
                                 rows.add(
-                                    TwoLineRow(
-                                        o.optString("title"),
-                                        o.optString("newsTime"),
+                                    AnnouncementRow(
+                                        title = o.optString("title"),
+                                        time = o.optString("newsTime"),
+                                        htmlContent = RedactedAnnouncementHtml.contentHtml(o),
+                                        useAltStripe = i % 2 == 1,
                                     ),
                                 )
                             }
                         }
-                        adapter.rows = rows
-                        binding.textPage.text = getString(R.string.redacted_page_fmt, page, page)
+                        announcementsAdapter.rows = rows
+                        binding.buttonNext.isEnabled =
+                            if (declaredPages != null) page < declaredPages else rows.size >= 10
                     }
                     else -> {}
                 }

@@ -152,6 +152,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun handleNotificationsFromIndex(indexResp: JSONObject) {
+        AppBottomBars.applyMailUnreadCountFromIndex(this, indexResp)
         val notifJson = indexResp.optJSONObject("notifications") ?: run {
             SearchPrefs(this).lastRedactedNotificationsSnapshot = ""
             return
