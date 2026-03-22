@@ -21,7 +21,7 @@ class EditSecondaryListActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         setupToolbarHome(binding.toolbar)
 
-        binding.textHelp.setText(R.string.edit_secondary_list_help)
+        binding.textHelp.setRichHelp(R.string.edit_secondary_list_help)
 
         val prefs = SearchPrefs(this)
 

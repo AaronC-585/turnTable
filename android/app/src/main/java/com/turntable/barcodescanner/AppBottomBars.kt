@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.turntable.barcodescanner.redacted.RedactedApiClient
 import com.turntable.barcodescanner.redacted.RedactedIndexNotifications
 import com.turntable.barcodescanner.redacted.RedactedResult
@@ -103,8 +104,12 @@ object AppBottomBars {
     }
 
     private fun wireDock(activity: AppCompatActivity, dock: View) {
-        val openStatus = View.OnClickListener {
-            BrowserLaunch.openHttpUrl(activity, TrackerStatusClient.STATUS_PAGE_URL)
+        val showLegend = View.OnClickListener {
+            MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.tracker_status_legend_title)
+                .setMessage(R.string.tracker_status_legend_body)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
         }
         listOf(
             R.id.imageTrackerWebsite,
@@ -114,7 +119,7 @@ object AppBottomBars {
             R.id.imageTrackerAnnouncer,
             R.id.imageTrackerUserId,
         ).forEach { id ->
-            dock.findViewById<ImageView>(id).setOnClickListener(openStatus)
+            dock.findViewById<ImageView>(id).setOnClickListener(showLegend)
         }
 
         dock.findViewById<View>(R.id.buttonHomeNews).setOnClickListener {

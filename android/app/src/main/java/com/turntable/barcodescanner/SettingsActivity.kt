@@ -51,6 +51,10 @@ class SettingsActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         setupToolbarHome(binding.toolbar)
 
+        binding.textRedactedApiKeyHelp.setRichHelp(R.string.redacted_api_key_help)
+        binding.textTorrentDownloadDirHelp.setRichHelp(R.string.redacted_torrent_download_dir_help)
+        binding.textTheAudioDbHelp.setRichHelp(R.string.theaudiodb_api_key_help)
+
         val prefs = SearchPrefs(this)
 
         binding.checkBeepOnScan.isChecked = prefs.beepOnScan

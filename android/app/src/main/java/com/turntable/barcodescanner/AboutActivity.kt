@@ -27,5 +27,7 @@ class AboutActivity : AppCompatActivity() {
         binding.buttonCheckUpdates.setOnClickListener {
             UpdateCheckCoordinator.checkManually(this)
         }
+
+        binding.textAboutBody.setRichHelp(R.string.about_body)
     }
 }

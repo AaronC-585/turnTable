@@ -2,6 +2,12 @@
 
 All notable changes to the turnTable / 1D Barcode Scanner project are documented here.
 
+## [2026.3.22.133] — Android production release
+
+- **Help text & links (Android):** Long settings/help strings use **`AppRichText`** — HTML (`<a href>`) and BBCode-style `[url]` where relevant, plus auto-linking of bare `http(s)://` URLs; **`LinkMovementMethod`** on `TextView`s and API-key dialog message. About, Donate, Settings, qBittorrent settings, Home no-key hint, and list editors updated.
+- **Tracker status strip:** Tapping a status icon opens a **legend** dialog (green/red meaning, icon order); **no longer opens** the tracker status website in the browser.
+- **Release:** APK only from Linux; upload iOS IPA when ready per **RELEASE.md**.
+
 ## [2026.3.22.111] — Android production release
 
 - **Redacted torrent browse (advanced):** Multi-value filters (bitrate, format, media, release type, has log, leech status, order by / direction) use **expandable sections** with **bullet-prefixed** single-choice lists (`ExpandableBulletChoice`, `bindBulletFromResource`). **Has cue / Scene / Vanity house** use **Yes/No switches** (mutually exclusive; both off = no filter).

@@ -21,5 +21,7 @@ class DonationActivity : AppCompatActivity() {
         binding.buttonOpenCashApp.setOnClickListener {
             BrowserLaunch.openHttpUrl(this, getString(R.string.donate_cash_app_url))
         }
+
+        binding.textDonationBody.setRichHelp(R.string.donation_body)
     }
 }

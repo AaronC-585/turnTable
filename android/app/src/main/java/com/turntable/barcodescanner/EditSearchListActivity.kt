@@ -22,7 +22,7 @@ class EditSearchListActivity : AppCompatActivity() {
         setupToolbarHome(binding.toolbar)
 
         val prefs = SearchPrefs(this)
-        binding.textHelp.setText(R.string.edit_list_help_secondary)
+        binding.textHelp.setRichHelp(R.string.edit_list_help_secondary)
         binding.editList.setText(prefs.secondaryListText ?: defaultSecondaryText())
 
         binding.buttonReset.setOnClickListener {

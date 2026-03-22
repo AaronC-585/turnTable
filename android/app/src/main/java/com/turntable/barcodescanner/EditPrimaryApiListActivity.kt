@@ -22,7 +22,7 @@ class EditPrimaryApiListActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         setupToolbarHome(binding.toolbar)
 
-        binding.textHelp.setText(R.string.edit_primary_list_help)
+        binding.textHelp.setRichHelp(R.string.edit_primary_list_help)
 
         entries.clear()
         entries.addAll(SearchPresets.primaryApiEntries(this))

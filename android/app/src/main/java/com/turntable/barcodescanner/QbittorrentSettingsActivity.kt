@@ -23,6 +23,8 @@ class QbittorrentSettingsActivity : AppCompatActivity() {
         binding.editQbtUsername.setText(prefs.qbittorrentUsername ?: "")
         binding.editQbtPassword.setText(prefs.qbittorrentPassword ?: "")
 
+        binding.textQbtSettingsHelp.setRichHelp(R.string.qbt_settings_help)
+
         binding.buttonSave.setOnClickListener {
             prefs.qbittorrentBaseUrl = binding.editQbtBaseUrl.text.normalizeUrlInput().takeIf { it.isNotBlank() }
             prefs.qbittorrentUsername = binding.editQbtUsername.text?.toString()?.trim()?.takeIf { it.isNotBlank() }

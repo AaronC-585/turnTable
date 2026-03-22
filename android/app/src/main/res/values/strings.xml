@@ -3,10 +3,10 @@
     <string name="app_name">turnTable</string>
     <string name="about_title">About</string>
     <string name="about_version_fmt">Version %1$s</string>
-    <string name="about_body">turnTable is a native 1D barcode scanner for Android and iOS with a shared C++ (ZXing) core. It supports configurable music metadata lookups and optional Redacted tracker integration.\n\nOpen source. See the project README and CHANGELOG in the repository for details.</string>
+    <string name="about_body"><![CDATA[turnTable is a native 1D barcode scanner for Android and iOS with a shared C++ (ZXing) core. It supports configurable music metadata lookups and optional Redacted tracker integration.<br/><br/>Open source. See the <a href="https://github.com/AaronC-585/turnTable">project README and CHANGELOG</a> in the repository for details.]]></string>
     <string name="about_logo_content_description">turnTable logo</string>
     <string name="donation_title">Donate</string>
-    <string name="donation_body">If you find turnTable useful, you can support development with a voluntary donation via PayPal or Cash App. Thank you!</string>
+    <string name="donation_body"><![CDATA[If you find turnTable useful, you can support development with a voluntary donation via <a href="https://paypal.me/rcbaaron?locale.x=en_US&country.x=US">PayPal</a> or <a href="https://cash.app/$RCBaaron">Cash App</a>. Thank you!]]></string>
     <string name="donation_open_paypal">Donate with PayPal</string>
     <string name="donate_paypal_url">https://paypal.me/rcbaaron?locale.x=en_US&amp;country.x=US</string>
     <string name="donation_open_cash_app">Donate with Cash App</string>
@@ -74,9 +74,9 @@
     <string name="could_not_open_link">Could not open link</string>
     <string name="primary_search">Primary (music info – API only)</string>
     <string name="redacted_api_key_hint">Redacted API key (optional)</string>
-    <string name="redacted_api_key_help">Sent as Authorization on https://redacted.sh/ajax.php (JSON API). Use Home or the scanner menu to open in-app torrent search when a key is set.</string>
+    <string name="redacted_api_key_help"><![CDATA[Sent as Authorization on <a href="https://redacted.sh/ajax.php">redacted.sh/ajax.php</a> (JSON API). Use Home or the scanner menu to open in-app torrent search when a key is set.]]></string>
     <string name="theaudiodb_api_key_hint">TheAudioDB API key (optional)</string>
-    <string name="theaudiodb_api_key_help">Sent as X-API-KEY on all TheAudioDB v2 requests (barcode album lookup and Search-screen artist/album search). Defaults to 123 if empty; a premium key is usually required for v2.</string>
+    <string name="theaudiodb_api_key_help"><![CDATA[Sent as X-API-KEY on all <a href="https://www.theaudiodb.com/">TheAudioDB</a> v2 requests (barcode album lookup and Search-screen artist/album search). Defaults to 123 if empty; a premium key is usually required for v2.]]></string>
     <string name="theaudiodb_text_search_section">TheAudioDB (text search)</string>
     <string name="theaudiodb_text_search_help">v2 only: /search/artist/{query} and /search/album/{query} with X-API-KEY (same as Settings).</string>
     <string name="theaudiodb_text_search_hint">e.g. Coldplay or Parachutes</string>
@@ -474,6 +474,8 @@
     <string name="tracker_status_up">Up</string>
     <string name="tracker_status_down">Down</string>
     <string name="tracker_status_latency">Latency %1$s</string>
+    <string name="tracker_status_legend_title">Tracker status</string>
+    <string name="tracker_status_legend_body">Icons show live checks for Redacted’s site, trackers, and IRC (data from red.trackerstatus.info).\n\n• Green — that check reported up\n• Red — reported down, or status couldn’t be loaded\n\nLeft to right: Website, Tracker HTTP, Tracker HTTPS, IRC server, IRC torrent announcer, IRC user identifiers.</string>
 
     <!-- GitHub release update check (see values/github_update.xml for owner/repo) -->
     <string name="github_update_not_configured">GitHub update check isn’t configured. Add your GitHub user or org in github_update.xml (github_update_owner), then rebuild.</string>

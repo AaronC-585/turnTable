@@ -63,6 +63,7 @@
                 app:backgroundTint="@color/app_accent" />
 
             <TextView
+                android:id="@+id/textAboutBody"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/about_body"

@@ -82,6 +82,8 @@ class HomeActivity : AppCompatActivity() {
 
         binding.buttonAddApiKey.setOnClickListener { showApiKeyDialog(allowDismissToNoKey = true) }
 
+        binding.textNoApiKeyHint.setRichHelp(R.string.home_no_api_key_hint)
+
         if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
             showApiKeyDialog(allowDismissToNoKey = true)
         } else {
@@ -234,7 +236,9 @@ class HomeActivity : AppCompatActivity() {
             }
         }
         builder.setCancelable(allowDismissToNoKey)
-        builder.show()
+        val dialog = builder.create()
+        dialog.show()
+        AppRichText.enableLinksInMessage(dialog)
     }
 
     private fun loadProfile(isPullRefresh: Boolean) {
