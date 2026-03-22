@@ -442,6 +442,38 @@
                             app:backgroundTint="@color/app_button_secondary" />
 
                         <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonTorrentTransmission"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_send_transmission"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonTorrentTransmissionToken"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_send_transmission_with_token"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonTorrentRtorrent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_send_rtorrent"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonTorrentRtorrentToken"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_send_rtorrent_with_token"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentEdit"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

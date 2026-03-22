@@ -134,6 +134,62 @@ class SearchPrefs(context: Context) {
     fun isQbittorrentConfigured(): Boolean =
         QbittorrentWebClient.normalizeBaseUrl(qbittorrentBaseUrl) != null
 
+    /**
+     * Transmission RPC URL, e.g. `http://192.168.1.5:9091` or full `…/transmission/rpc`.
+     * See [TransmissionRpcClient].
+     */
+    var transmissionRpcUrl: String?
+        get() = prefs.getString(KEY_TRANSMISSION_RPC_URL, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_TRANSMISSION_RPC_URL)
+            else putString(KEY_TRANSMISSION_RPC_URL, value.trim())
+        }
+
+    var transmissionUsername: String?
+        get() = prefs.getString(KEY_TRANSMISSION_USERNAME, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_TRANSMISSION_USERNAME)
+            else putString(KEY_TRANSMISSION_USERNAME, value.trim())
+        }
+
+    var transmissionPassword: String?
+        get() = prefs.getString(KEY_TRANSMISSION_PASSWORD, null)
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_TRANSMISSION_PASSWORD)
+            else putString(KEY_TRANSMISSION_PASSWORD, value)
+        }
+
+    fun isTransmissionConfigured(): Boolean =
+        TransmissionRpcClient.normalizeRpcUrl(transmissionRpcUrl) != null
+
+    /**
+     * rTorrent XML-RPC HTTP endpoint, e.g. `http://192.168.1.5:80` or `…/RPC2`.
+     * See [RtorrentXmlRpcClient].
+     */
+    var rtorrentXmlRpcUrl: String?
+        get() = prefs.getString(KEY_RTORRENT_XMLRPC_URL, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_RTORRENT_XMLRPC_URL)
+            else putString(KEY_RTORRENT_XMLRPC_URL, value.trim())
+        }
+
+    var rtorrentUsername: String?
+        get() = prefs.getString(KEY_RTORRENT_USERNAME, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_RTORRENT_USERNAME)
+            else putString(KEY_RTORRENT_USERNAME, value.trim())
+        }
+
+    var rtorrentPassword: String?
+        get() = prefs.getString(KEY_RTORRENT_PASSWORD, null)
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_RTORRENT_PASSWORD)
+            else putString(KEY_RTORRENT_PASSWORD, value)
+        }
+
+    fun isRtorrentConfigured(): Boolean =
+        RtorrentXmlRpcClient.normalizeXmlRpcUrl(rtorrentXmlRpcUrl) != null
+
     companion object {
         const val PREFS_NAME = "search_prefs"
         const val KEY_PRIMARY_API_LIST = "primary_api_list"
@@ -159,6 +215,12 @@ class SearchPrefs(context: Context) {
         const val KEY_QBT_BASE_URL = "qbittorrent_base_url"
         const val KEY_QBT_USERNAME = "qbittorrent_username"
         const val KEY_QBT_PASSWORD = "qbittorrent_password"
+        const val KEY_TRANSMISSION_RPC_URL = "transmission_rpc_url"
+        const val KEY_TRANSMISSION_USERNAME = "transmission_username"
+        const val KEY_TRANSMISSION_PASSWORD = "transmission_password"
+        const val KEY_RTORRENT_XMLRPC_URL = "rtorrent_xmlrpc_url"
+        const val KEY_RTORRENT_USERNAME = "rtorrent_username"
+        const val KEY_RTORRENT_PASSWORD = "rtorrent_password"
         const val METHOD_GET = "GET"
         const val METHOD_POST = "POST"
     }

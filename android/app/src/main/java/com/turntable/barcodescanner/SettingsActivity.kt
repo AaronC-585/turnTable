@@ -119,10 +119,10 @@ class SettingsActivity : AppCompatActivity() {
             updateTorrentDirSummary()
         }
         updateTorrentDirSummary()
-        updateQbtSummary()
+        updateTorrentClientsSummary()
 
-        binding.buttonQbittorrentSettings.setOnClickListener {
-            startActivity(Intent(this, QbittorrentSettingsActivity::class.java))
+        binding.buttonTorrentClientsSettings.setOnClickListener {
+            startActivity(Intent(this, TorrentClientsSettingsActivity::class.java))
         }
 
         binding.buttonSave.setOnClickListener {
@@ -150,7 +150,7 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        updateQbtSummary()
+        updateTorrentClientsSummary()
     }
 
     private fun loadListsAndBind() {
@@ -196,14 +196,24 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateQbtSummary() {
+    private fun updateTorrentClientsSummary() {
         val prefs = SearchPrefs(this)
-        val url = prefs.qbittorrentBaseUrl?.trim().orEmpty()
-        binding.textQbtSummary.text = if (url.isEmpty()) {
-            getString(R.string.qbt_summary_not_configured)
+        val qbtLine = if (prefs.isQbittorrentConfigured()) {
+            getString(R.string.torrent_clients_line_qbt_fmt, prefs.qbittorrentBaseUrl?.trim().orEmpty())
         } else {
-            getString(R.string.qbt_summary_fmt, url)
+            getString(R.string.torrent_clients_line_qbt_off)
         }
+        val trLine = if (prefs.isTransmissionConfigured()) {
+            getString(R.string.torrent_clients_line_transmission_fmt, prefs.transmissionRpcUrl?.trim().orEmpty())
+        } else {
+            getString(R.string.torrent_clients_line_transmission_off)
+        }
+        val rtLine = if (prefs.isRtorrentConfigured()) {
+            getString(R.string.torrent_clients_line_rtorrent_fmt, prefs.rtorrentXmlRpcUrl?.trim().orEmpty())
+        } else {
+            getString(R.string.torrent_clients_line_rtorrent_off)
+        }
+        binding.textTorrentClientsSummary.text = "$qbtLine\n$trLine\n$rtLine"
     }
 
     private fun updateTorrentDirSummary() {

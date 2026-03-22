@@ -559,6 +559,24 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             }
         }
 
+        if (SearchPrefs(this).isTransmissionConfigured()) {
+            labels.add(getString(R.string.redacted_send_transmission))
+            actions.add { sendTorrentToTransmission(torrentId, false) }
+            if (freeleechTokenCount > 0) {
+                labels.add(getString(R.string.redacted_send_transmission_with_token))
+                actions.add { confirmTokenSendToTransmission(torrentId) }
+            }
+        }
+
+        if (SearchPrefs(this).isRtorrentConfigured()) {
+            labels.add(getString(R.string.redacted_send_rtorrent))
+            actions.add { sendTorrentToRtorrent(torrentId, false) }
+            if (freeleechTokenCount > 0) {
+                labels.add(getString(R.string.redacted_send_rtorrent_with_token))
+                actions.add { confirmTokenSendToRtorrent(torrentId) }
+            }
+        }
+
         if (hasFiles) {
             labels.add(getString(R.string.redacted_file_list_title))
             actions.add { showFileListDialog(files) }
@@ -668,8 +686,24 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         }
         val showQbt = SearchPrefs(this).isQbittorrentConfigured()
+        val showTr = SearchPrefs(this).isTransmissionConfigured()
+        val showRt = SearchPrefs(this).isRtorrentConfigured()
         val qbtSend = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
             text = getString(R.string.redacted_send_qbittorrent)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+        }
+        val trSend = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = getString(R.string.redacted_send_transmission)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+        }
+        val rtSend = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
+            text = getString(R.string.redacted_send_rtorrent)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -706,6 +740,22 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             )
             lpQbt.topMargin = pad / 2
             root.addView(qbtSend, lpQbt)
+        }
+        if (showTr) {
+            val lpTr = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+            lpTr.topMargin = pad / 2
+            root.addView(trSend, lpTr)
+        }
+        if (showRt) {
+            val lpRt = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+            lpRt.topMargin = pad / 2
+            root.addView(rtSend, lpRt)
         }
         val lpPl = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -754,6 +804,22 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
                 dialog.dismiss()
                 val ut = showFlSwitch && useTokenSwitch.isChecked
                 sendTorrentToQbittorrent(tid, ut)
+            }
+        }
+        if (showTr) {
+            trSend.setOnClickListener {
+                val tid = selectedTorrentId() ?: return@setOnClickListener
+                dialog.dismiss()
+                val ut = showFlSwitch && useTokenSwitch.isChecked
+                sendTorrentToTransmission(tid, ut)
+            }
+        }
+        if (showRt) {
+            rtSend.setOnClickListener {
+                val tid = selectedTorrentId() ?: return@setOnClickListener
+                dialog.dismiss()
+                val ut = showFlSwitch && useTokenSwitch.isChecked
+                sendTorrentToRtorrent(tid, ut)
             }
         }
         dialog.show()
@@ -1005,6 +1071,32 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun confirmTokenSendToTransmission(torrentId: Int) {
+        if (freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.redacted_send_transmission_token_confirm_title)
+            .setMessage(R.string.redacted_send_transmission_token_confirm_message)
+            .setPositiveButton(android.R.string.ok) { _, _ -> sendTorrentToTransmission(torrentId, true) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun confirmTokenSendToRtorrent(torrentId: Int) {
+        if (freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.redacted_send_rtorrent_token_confirm_title)
+            .setMessage(R.string.redacted_send_rtorrent_token_confirm_message)
+            .setPositiveButton(android.R.string.ok) { _, _ -> sendTorrentToRtorrent(torrentId, true) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
     /** Fetches `.torrent` from Redacted then POSTs to qBittorrent Web API ([QbittorrentWebClient]). */
     private fun sendTorrentToQbittorrent(torrentId: Int, useToken: Boolean) {
         val prefs = SearchPrefs(this)
@@ -1031,6 +1123,90 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
                                 Toast.makeText(
                                     this,
                                     getString(R.string.qbt_failed_fmt, e.message ?: e.javaClass.simpleName),
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                            },
+                        )
+                    }
+                }
+                is RedactedResult.Failure -> runOnUiThread {
+                    Toast.makeText(this, r.message, Toast.LENGTH_LONG).show()
+                }
+                else -> runOnUiThread {
+                    Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
+    /** Fetches `.torrent` from Redacted then adds via [TransmissionRpcClient]. */
+    private fun sendTorrentToTransmission(torrentId: Int, useToken: Boolean) {
+        val prefs = SearchPrefs(this)
+        val client = TransmissionRpcClient.fromPrefs(prefs)
+        if (client == null) {
+            Toast.makeText(this, R.string.transmission_not_configured, Toast.LENGTH_LONG).show()
+            return
+        }
+        if (useToken && freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
+        Toast.makeText(this, R.string.transmission_sending, Toast.LENGTH_SHORT).show()
+        Thread {
+            when (val r = api.downloadTorrent(torrentId, useToken)) {
+                is RedactedResult.Binary -> {
+                    val result = client.addTorrentFromBytes(r.bytes)
+                    runOnUiThread {
+                        result.fold(
+                            onSuccess = {
+                                Toast.makeText(this, R.string.transmission_sent, Toast.LENGTH_LONG).show()
+                            },
+                            onFailure = { e ->
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.transmission_failed_fmt, e.message ?: e.javaClass.simpleName),
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                            },
+                        )
+                    }
+                }
+                is RedactedResult.Failure -> runOnUiThread {
+                    Toast.makeText(this, r.message, Toast.LENGTH_LONG).show()
+                }
+                else -> runOnUiThread {
+                    Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
+    /** Fetches `.torrent` from Redacted then adds via [RtorrentXmlRpcClient]. */
+    private fun sendTorrentToRtorrent(torrentId: Int, useToken: Boolean) {
+        val prefs = SearchPrefs(this)
+        val client = RtorrentXmlRpcClient.fromPrefs(prefs)
+        if (client == null) {
+            Toast.makeText(this, R.string.rtorrent_not_configured, Toast.LENGTH_LONG).show()
+            return
+        }
+        if (useToken && freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
+        Toast.makeText(this, R.string.rtorrent_sending, Toast.LENGTH_SHORT).show()
+        Thread {
+            when (val r = api.downloadTorrent(torrentId, useToken)) {
+                is RedactedResult.Binary -> {
+                    val result = client.addTorrentFromBytes(r.bytes)
+                    runOnUiThread {
+                        result.fold(
+                            onSuccess = {
+                                Toast.makeText(this, R.string.rtorrent_sent, Toast.LENGTH_LONG).show()
+                            },
+                            onFailure = { e ->
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.rtorrent_failed_fmt, e.message ?: e.javaClass.simpleName),
                                     Toast.LENGTH_LONG,
                                 ).show()
                             },
