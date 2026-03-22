@@ -54,11 +54,6 @@ class SearchPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_BEEP_ON_SCAN, true)
         set(value) = prefs.edit { putBoolean(KEY_BEEP_ON_SCAN, value) }
 
-    /** If true, short haptic when a barcode is successfully scanned. */
-    var hapticOnScan: Boolean
-        get() = prefs.getBoolean(KEY_HAPTIC_ON_SCAN, false)
-        set(value) = prefs.edit { putBoolean(KEY_HAPTIC_ON_SCAN, value) }
-
     /**
      * UI theme: [THEME_LIGHT], [THEME_DARK], or [THEME_FOLLOW_SYSTEM] (default).
      * Applied at app start and when saved in Settings (see [AppTheme]).
@@ -143,7 +138,6 @@ class SearchPrefs(context: Context) {
         const val KEY_SECONDARY_BROWSER_PACKAGE = "secondary_browser_package"
         const val KEY_SECONDARY_AUTO_MUSICBRAINZ = "secondary_auto_musicbrainz"
         const val KEY_BEEP_ON_SCAN = "beep_on_scan"
-        const val KEY_HAPTIC_ON_SCAN = "haptic_on_scan"
         const val KEY_THEME_MODE = "theme_mode"
 
         const val THEME_LIGHT = "light"

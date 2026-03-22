@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -20,6 +21,8 @@ import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Background check (home screen, throttled) and manual check (About / Settings).
+ * Manual check: if a newer release has a direct APK URL, downloads and opens the installer automatically;
+ * otherwise shows the release dialog (e.g. open in browser).
  */
 object UpdateCheckCoordinator {
 
@@ -72,9 +75,19 @@ object UpdateCheckCoordinator {
                 result.fold(
                     onSuccess = { info ->
                         if (GithubAppUpdateChecker.isRemoteNewerThanLocal(info.tagNameRaw, localVer)) {
-                            showUpdateDialog(activity, info, localVer) {
-                                UpdatePrefs(activity).skippedReleaseTag =
-                                    GithubAppUpdateChecker.normalizedTag(info.tagNameRaw)
+                            val apkUrl = info.apkBrowserDownloadUrl?.trim().orEmpty()
+                            if (apkUrl.isNotEmpty()) {
+                                Toast.makeText(
+                                    activity,
+                                    R.string.github_update_auto_downloading,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                                startVisibleApkDownload(activity, apkUrl)
+                            } else {
+                                showUpdateDialog(activity, info, localVer) {
+                                    UpdatePrefs(activity).skippedReleaseTag =
+                                        GithubAppUpdateChecker.normalizedTag(info.tagNameRaw)
+                                }
                             }
                         } else {
                             Toast.makeText(
@@ -254,14 +267,37 @@ object UpdateCheckCoordinator {
                 Toast.LENGTH_LONG,
             ).show()
         } catch (e: Exception) {
-            Toast.makeText(
-                activity,
-                activity.getString(
-                    R.string.github_update_install_intent_failed_fmt,
-                    e.message ?: e.javaClass.simpleName,
-                ),
-                Toast.LENGTH_LONG,
-            ).show()
+            var openedUnknownSources = false
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                !activity.packageManager.canRequestPackageInstalls()
+            ) {
+                try {
+                    activity.startActivity(
+                        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                            data = Uri.parse("package:${activity.packageName}")
+                        },
+                    )
+                    openedUnknownSources = true
+                } catch (_: Exception) {
+                    // ignore
+                }
+            }
+            if (openedUnknownSources) {
+                Toast.makeText(
+                    activity,
+                    R.string.github_update_enable_unknown_sources_hint,
+                    Toast.LENGTH_LONG,
+                ).show()
+            } else {
+                Toast.makeText(
+                    activity,
+                    activity.getString(
+                        R.string.github_update_install_intent_failed_fmt,
+                        e.message ?: e.javaClass.simpleName,
+                    ),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
         }
     }
 

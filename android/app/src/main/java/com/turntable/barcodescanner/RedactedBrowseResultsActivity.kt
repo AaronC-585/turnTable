@@ -27,6 +27,8 @@ class RedactedBrowseResultsActivity : AppCompatActivity() {
     private var currentPage = 1
     private var totalPages = 1
     private val groupIds = mutableListOf<Int>()
+    /** Only the first successful load may auto-open a single result (not when changing pages). */
+    private var allowAutoOpenSingleResult = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -128,6 +130,19 @@ class RedactedBrowseResultsActivity : AppCompatActivity() {
                         )
                         if (rows.isEmpty()) {
                             Toast.makeText(this, R.string.redacted_no_results, Toast.LENGTH_SHORT).show()
+                        }
+                        val mayAuto = allowAutoOpenSingleResult
+                        allowAutoOpenSingleResult = false
+                        if (mayAuto && rows.size == 1) {
+                            val gid = groupIds.getOrNull(0) ?: 0
+                            if (gid > 0) {
+                                startActivity(
+                                    Intent(this, RedactedTorrentGroupActivity::class.java)
+                                        .putExtra(RedactedExtras.GROUP_ID, gid),
+                                )
+                                finish()
+                                return@runOnUiThread
+                            }
                         }
                     }
                     else -> {}

@@ -60,13 +60,10 @@ class RedactedInboxActivity : AppCompatActivity() {
         binding.tabMailbox.addTab(
             binding.tabMailbox.newTab().setText(getString(R.string.redacted_mailbox_tab_sent)),
         )
-        binding.tabMailbox.addTab(
-            binding.tabMailbox.newTab().setText(getString(R.string.redacted_mailbox_tab_staff_pm)),
-        )
         binding.tabMailbox.addOnTabSelectedListener(
             object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab?) {
-                    loadInbox()
+                    loadInbox(isPullRefresh = false)
                 }
 
                 override fun onTabUnselected(tab: TabLayout.Tab?) {}
@@ -98,11 +95,19 @@ class RedactedInboxActivity : AppCompatActivity() {
             },
         ).attachToRecyclerView(binding.recycler)
 
+        binding.swipeRefreshMailbox.setColorSchemeColors(
+            ContextCompat.getColor(this, R.color.home_token_label),
+            ContextCompat.getColor(this, R.color.home_ratio_ok),
+        )
+        binding.swipeRefreshMailbox.setOnRefreshListener {
+            loadInbox(isPullRefresh = true)
+        }
+
         binding.fabCompose.setOnClickListener {
             startActivity(Intent(this, RedactedSendPmActivity::class.java))
         }
 
-        loadInbox()
+        loadInbox(isPullRefresh = false)
     }
 
     override fun onPause() {
@@ -145,31 +150,29 @@ class RedactedInboxActivity : AppCompatActivity() {
 
     /**
      * API `type` for [com.turntable.barcodescanner.redacted.RedactedApiClient.inbox]:
-     * `null` = inbox, [SENTBOX_TYPE] = sent, [STAFF_PM_INBOX_TYPE] = staff PM.
+     * `null` = inbox, [SENTBOX_TYPE] = sent.
      */
     private fun selectedMailboxApiType(): String? =
         when (binding.tabMailbox.selectedTabPosition) {
             0 -> null
             1 -> SENTBOX_TYPE
-            else -> STAFF_PM_INBOX_TYPE
+            else -> null
         }
 
     private fun openMailboxConversationInBrowser(convId: Int) {
-        val path =
-            when (binding.tabMailbox.selectedTabPosition) {
-                0, 1 -> "inbox.php?action=viewconv&id=$convId"
-                else -> "staffpm.php?action=viewconv&id=$convId"
-            }
-        RedactedUiHelper.openSite(this, path)
+        RedactedUiHelper.openSite(this, "inbox.php?action=viewconv&id=$convId")
     }
 
-    private fun loadInbox() {
-        binding.progress.visibility = View.VISIBLE
+    private fun loadInbox(isPullRefresh: Boolean) {
+        if (!isPullRefresh) {
+            binding.progress.visibility = View.VISIBLE
+        }
         val type = selectedMailboxApiType()
         Thread {
             val r = api.inbox(type = type, sort = "unread")
             runOnUiThread {
                 binding.progress.visibility = View.GONE
+                binding.swipeRefreshMailbox.isRefreshing = false
                 when (r) {
                     is RedactedResult.Failure -> {
                         binding.textEmpty.visibility = View.VISIBLE
@@ -180,11 +183,13 @@ class RedactedInboxActivity : AppCompatActivity() {
                         val arr = resp.optJSONArray("messages")
                         val rows = mutableListOf<InboxRow>()
                         if (arr != null) {
+                            val hideStickiesOnSent = type == SENTBOX_TYPE
                             for (i in 0 until arr.length()) {
                                 val o = arr.optJSONObject(i) ?: continue
                                 val cid = o.optInt("convId")
                                 val unread = o.optBoolean("unread")
                                 val sticky = o.optBoolean("sticky")
+                                if (hideStickiesOnSent && sticky) continue
                                 rows.add(
                                     InboxRow(
                                         convId = cid,
@@ -208,28 +213,25 @@ class RedactedInboxActivity : AppCompatActivity() {
     companion object {
         /** Gazelle JSON API: sent messages folder (see docs `type` for `action=inbox`). */
         const val SENTBOX_TYPE: String = "sentbox"
-
-        /**
-         * Passed as `type` to [com.turntable.barcodescanner.redacted.RedactedApiClient.inbox] for the Staff PM tab.
-         * Matches common Gazelle forks (e.g. RED-style); change if your site uses another value.
-         */
-        const val STAFF_PM_INBOX_TYPE: String = "staffpm"
     }
 }
 
 class RedactedConversationActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityRedactedConversationBinding
+    private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private val messageAdapter = ConversationMessagesAdapter()
+    private var convId: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val api = RedactedUiHelper.requireApi(this) ?: return
-        val convId = intent.getIntExtra(RedactedExtras.CONV_ID, 0)
+        api = RedactedUiHelper.requireApi(this) ?: return
+        convId = intent.getIntExtra(RedactedExtras.CONV_ID, 0)
         if (convId <= 0) {
             finish()
             return
         }
-        val binding = ActivityRedactedConversationBinding.inflate(layoutInflater)
+        binding = ActivityRedactedConversationBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -240,20 +242,35 @@ class RedactedConversationActivity : AppCompatActivity() {
         binding.recyclerMessages.layoutManager = LinearLayoutManager(this)
         binding.recyclerMessages.adapter = messageAdapter
 
-        binding.progress.visibility = View.VISIBLE
+        binding.swipeRefreshConversation.setColorSchemeColors(
+            ContextCompat.getColor(this, R.color.home_token_label),
+            ContextCompat.getColor(this, R.color.home_ratio_ok),
+        )
+        binding.swipeRefreshConversation.setOnRefreshListener {
+            loadConversation(isPullRefresh = true)
+        }
+
+        loadConversation(isPullRefresh = false)
+    }
+
+    private fun loadConversation(isPullRefresh: Boolean) {
+        if (!isPullRefresh) {
+            binding.progress.visibility = View.VISIBLE
+        }
+        binding.textError.visibility = View.GONE
         Thread {
             val r = api.inboxConversation(convId)
             runOnUiThread {
                 binding.progress.visibility = View.GONE
+                binding.swipeRefreshConversation.isRefreshing = false
                 when (r) {
                     is RedactedResult.Failure -> {
                         binding.textError.visibility = View.VISIBLE
                         binding.textError.text = r.message
-                        binding.recyclerMessages.visibility = View.GONE
+                        messageAdapter.rows = emptyList()
                     }
                     is RedactedResult.Success -> {
                         binding.textError.visibility = View.GONE
-                        binding.recyclerMessages.visibility = View.VISIBLE
                         val (subject, rows) = parseConversationMessageRows(r.response)
                         if (subject.isNotBlank()) {
                             supportActionBar?.title = subject
@@ -262,8 +279,8 @@ class RedactedConversationActivity : AppCompatActivity() {
                     }
                     else -> {
                         binding.textError.visibility = View.VISIBLE
-                        binding.textError.text = ""
-                        binding.recyclerMessages.visibility = View.GONE
+                        binding.textError.text = getString(R.string.redacted_unexpected)
+                        messageAdapter.rows = emptyList()
                     }
                 }
             }

@@ -97,7 +97,6 @@
     <string name="search_filled_from_redacted">Filled from Redacted (first match)</string>
     <string name="search_no_redacted_hit">No Redacted match; kept your search text</string>
     <string name="beep_on_scan">Beep on successful scan</string>
-    <string name="haptic_on_scan">Haptic feedback on successful scan</string>
     <string name="settings_theme">Theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
@@ -291,6 +290,8 @@
     <string name="redacted_artist_history_site">History</string>
     <string name="redacted_artist_info">Info</string>
     <string name="redacted_artist_comments_site">Comments</string>
+    <string name="redacted_artist_comments_tab_hint">Comments are on the site. Open the artist page to read and post.</string>
+    <string name="redacted_artist_view_comments_site">View comments on site</string>
     <string name="redacted_artist_file_lists_search">File lists search</string>
     <string name="redacted_artist_file_list_hint">Substring in file paths</string>
     <string name="redacted_artist_tags">Tags</string>
@@ -316,7 +317,6 @@
     <string name="redacted_mailbox_title">Mailbox</string>
     <string name="redacted_mailbox_tab_inbox">Inbox</string>
     <string name="redacted_mailbox_tab_sent">Sent</string>
-    <string name="redacted_mailbox_tab_staff_pm">Staff PM</string>
     <string name="redacted_mailbox_compose">Compose message</string>
     <string name="redacted_inbox_sticky_pin_desc">Sticky conversation</string>
     <string name="redacted_inbox_menu_open">Open</string>
@@ -338,7 +338,39 @@
     <string name="redacted_friends_already">Already in your friends list</string>
     <string name="redacted_friends_removed">Removed from friends</string>
     <string name="redacted_friends_tap_profile">User ID %1$d · Tap to open profile</string>
+    <string name="redacted_friends_last_seen_unknown">Last online unknown</string>
+    <string name="redacted_friends_last_seen_just_now">Last online just now</string>
+    <string name="redacted_friends_last_seen_as_reported">Last online: %1$s</string>
     <string name="redacted_friends_search_hint">Tap a search result to add them to your list.</string>
+
+    <plurals name="redacted_friends_last_online_seconds">
+        <item quantity="one">Last online %d second ago</item>
+        <item quantity="other">Last online %d seconds ago</item>
+    </plurals>
+    <plurals name="redacted_friends_last_online_minutes">
+        <item quantity="one">Last online %d minute ago</item>
+        <item quantity="other">Last online %d minutes ago</item>
+    </plurals>
+    <plurals name="redacted_friends_last_online_hours">
+        <item quantity="one">Last online %d hour ago</item>
+        <item quantity="other">Last online %d hours ago</item>
+    </plurals>
+    <plurals name="redacted_friends_last_online_days">
+        <item quantity="one">Last online %d day ago</item>
+        <item quantity="other">Last online %d days ago</item>
+    </plurals>
+    <plurals name="redacted_friends_last_online_weeks">
+        <item quantity="one">Last online %d week ago</item>
+        <item quantity="other">Last online %d weeks ago</item>
+    </plurals>
+    <plurals name="redacted_friends_last_online_months">
+        <item quantity="one">Last online %d month ago</item>
+        <item quantity="other">Last online %d months ago</item>
+    </plurals>
+    <plurals name="redacted_friends_last_online_years">
+        <item quantity="one">Last online %d year ago</item>
+        <item quantity="other">Last online %d years ago</item>
+    </plurals>
     <string name="redacted_subscriptions">Subscriptions</string>
     <string name="redacted_wiki">Wiki</string>
     <string name="redacted_logchecker">Logchecker</string>
@@ -412,6 +444,8 @@
     <!-- GitHub release update check (see values/github_update.xml for owner/repo) -->
     <string name="github_update_not_configured">GitHub update check isn’t configured. Add your GitHub user or org in github_update.xml (github_update_owner), then rebuild.</string>
     <string name="github_update_checking">Checking GitHub…</string>
+    <string name="github_update_auto_downloading">Update available — downloading…</string>
+    <string name="github_update_enable_unknown_sources_hint">Allow installs from this app in Settings, then use Check for updates again (or your file manager) to install the downloaded APK.</string>
     <string name="github_update_dialog_title">Update available</string>
     <string name="github_update_dialog_summary_fmt">Installed: %1$s\nLatest release: %2$s</string>
     <string name="github_update_download_apk">Download &amp; install</string>

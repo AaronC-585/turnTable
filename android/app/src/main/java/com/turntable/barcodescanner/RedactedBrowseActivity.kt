@@ -72,17 +72,34 @@ class RedactedBrowseActivity : AppCompatActivity() {
             binding.panelAdvanced.visibility = if (advanced) View.VISIBLE else View.GONE
         }
 
-        val initial = intent.getStringExtra(RedactedExtras.INITIAL_QUERY).orEmpty()
-        if (initial.isNotBlank()) {
-            binding.editSearchStr.setText(initial)
-            applyInitialQueryToAdvancedFields(initial)
+        val advArtist = intent.getStringExtra(RedactedExtras.BROWSE_ADVANCED_ARTIST_NAME)?.trim().orEmpty()
+        val advFilelist = intent.getStringExtra(RedactedExtras.BROWSE_ADVANCED_FILELIST)?.trim().orEmpty()
+        val hasAdvPrefill = advArtist.isNotEmpty() || advFilelist.isNotEmpty()
+
+        if (hasAdvPrefill) {
+            binding.toggleSearchMode.check(R.id.btnModeAdvanced)
+            binding.panelBasic.visibility = View.GONE
+            binding.panelAdvanced.visibility = View.VISIBLE
+            if (advArtist.isNotEmpty()) binding.editArtistName.setText(advArtist)
+            if (advFilelist.isNotEmpty()) binding.editFileList.setText(advFilelist)
+        } else {
+            val initial = intent.getStringExtra(RedactedExtras.INITIAL_QUERY).orEmpty()
+            if (initial.isNotBlank()) {
+                binding.editSearchStr.setText(initial)
+                applyInitialQueryToAdvancedFields(initial)
+            }
         }
 
         binding.buttonSearch.setOnClickListener { openResults() }
         binding.buttonReset.setOnClickListener { resetForm() }
 
-        if (initial.isNotBlank()) {
+        if (hasAdvPrefill && intent.getBooleanExtra(RedactedExtras.BROWSE_AUTO_SUBMIT_RESULTS, true)) {
             binding.root.post { openResults() }
+        } else if (!hasAdvPrefill) {
+            val initial = intent.getStringExtra(RedactedExtras.INITIAL_QUERY).orEmpty()
+            if (initial.isNotBlank()) {
+                binding.root.post { openResults() }
+            }
         }
     }
 
@@ -175,6 +192,7 @@ class RedactedBrowseActivity : AppCompatActivity() {
                 if (!s.isNullOrEmpty()) add("searchstr" to s)
             }
             R.id.btnModeAdvanced -> {
+                add("searchsubmit" to "1")
                 putNonBlank("artistname", binding.editArtistName)
                 putNonBlank("groupname", binding.editGroupName)
                 putNonBlank("recordlabel", binding.editRecordLabel)

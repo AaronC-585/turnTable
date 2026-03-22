@@ -18,6 +18,8 @@ object RedactedFriendsStore {
     data class Entry(
         val userId: Int,
         val username: String,
+        /** Raw `stats.lastAccess` from [RedactedApiClient.user] (cached for display + re-formatting). */
+        val lastAccessRaw: String? = null,
     )
 
     private fun prefs(context: Context): SharedPreferences =
@@ -33,7 +35,14 @@ object RedactedFriendsStore {
                     val id = o.optInt("userId", o.optInt("id"))
                     if (id <= 0) continue
                     val name = o.optString("username").trim()
-                    add(Entry(userId = id, username = name.ifBlank { "#$id" }))
+                    val lastRaw = o.optString("lastAccessRaw").trim().takeIf { it.isNotEmpty() }
+                    add(
+                        Entry(
+                            userId = id,
+                            username = name.ifBlank { "#$id" },
+                            lastAccessRaw = lastRaw,
+                        ),
+                    )
                 }
             }.sortedBy { it.username.lowercase() }
         } catch (_: Exception) {
@@ -51,6 +60,9 @@ object RedactedFriendsStore {
                 JSONObject().apply {
                     put("userId", e.userId)
                     put("username", e.username)
+                    if (!e.lastAccessRaw.isNullOrBlank()) {
+                        put("lastAccessRaw", e.lastAccessRaw)
+                    }
                 },
             )
         }
@@ -68,5 +80,15 @@ object RedactedFriendsStore {
 
     fun remove(context: Context, userId: Int) {
         save(context, load(context).filter { it.userId != userId })
+    }
+
+    /** Updates cached last-access text from `user` API `stats.lastAccess`. */
+    fun updateLastAccessRaw(context: Context, userId: Int, lastAccessRaw: String) {
+        val trimmed = lastAccessRaw.trim()
+        if (trimmed.isEmpty()) return
+        val list = load(context).map { e ->
+            if (e.userId == userId) e.copy(lastAccessRaw = trimmed) else e
+        }
+        save(context, list)
     }
 }

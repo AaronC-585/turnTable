@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
+import com.google.android.material.tabs.TabLayout
 import com.turntable.barcodescanner.databinding.ActivityRedactedArtistBinding
 import com.turntable.barcodescanner.databinding.ItemRedactedArtistGroupBinding
 import com.turntable.barcodescanner.debug.AppEventLog
@@ -26,8 +27,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Artist page layout modeled on the site: header, bracket-style actions, image, file-list search,
- * tags, similar artists, info body, discography jump bar, and releases grouped by release type.
+ * Artist page: header, actions, image, then tabs (Info | Comments | Similar | Tags | Discography).
+ * Discography uses sub-tabs per release type when more than one type is present.
  */
 class RedactedArtistActivity : AppCompatActivity() {
 
@@ -35,6 +36,11 @@ class RedactedArtistActivity : AppCompatActivity() {
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private var artistId: Int = 0
     private var artistName: String = ""
+    /** Panels aligned with [binding.tabArtistMain] tab order. */
+    private var artistMainTabPanels: List<View> = emptyList()
+    /** One vertical block per discography sub-tab (release type). */
+    private var discographySectionRoots: List<View> = emptyList()
+    private var discographySubTabListener: TabLayout.OnTabSelectedListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +61,9 @@ class RedactedArtistActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.redacted_artist_screen)
 
         binding.buttonFileListSearch.setOnClickListener { runFileListSearch() }
+        binding.buttonCommentsOnSite.setOnClickListener {
+            RedactedUiHelper.openSite(this, "artist.php?id=$artistId#artistcomments")
+        }
 
         loadArtist()
     }
@@ -100,6 +109,7 @@ class RedactedArtistActivity : AppCompatActivity() {
         )
         setupArtistBody(body.optString("body").trim())
         buildDiscography(optTorrentGroupArray(body))
+        setupMainTabs()
     }
 
     private fun buildActionRow() {
@@ -137,31 +147,49 @@ class RedactedArtistActivity : AppCompatActivity() {
         addBracketButton(getString(R.string.redacted_artist_history_site)) {
             RedactedUiHelper.openSite(this, "artist.php?action=history&artistid=$artistId")
         }
-        addBracketButton(getString(R.string.redacted_artist_info)) {
-            scrollToViewInArtistPage(binding.textArtistBody)
-        }
-        addBracketButton(getString(R.string.redacted_artist_comments_site)) {
-            RedactedUiHelper.openSite(this, "artist.php?id=$artistId#artistcomments")
-        }
     }
 
-    /** Scroll [NestedScrollView] so [target] (a descendant) is near the top. */
-    private fun scrollToViewInArtistPage(target: View) {
-        if (target.visibility != View.VISIBLE) {
-            Toast.makeText(this, R.string.redacted_artist_info, Toast.LENGTH_SHORT).show()
-            return
+    private fun setupMainTabs() {
+        binding.tabArtistMain.clearOnTabSelectedListeners()
+        while (binding.tabArtistMain.tabCount > 0) {
+            binding.tabArtistMain.removeTabAt(binding.tabArtistMain.tabCount - 1)
         }
-        val scroll = binding.scrollMain
-        binding.scrollMain.post {
-            var y = 0
-            var v: View? = target
-            while (v != null && v !== scroll) {
-                y += v.top
-                val parent = v.parent
-                if (parent === scroll) break
-                v = parent as? View
-            }
-            scroll.smoothScrollTo(0, y.coerceAtLeast(0))
+
+        val panels = mutableListOf<View>()
+        fun addTab(title: String, panel: View) {
+            binding.tabArtistMain.addTab(binding.tabArtistMain.newTab().setText(title))
+            panels.add(panel)
+        }
+
+        addTab(getString(R.string.redacted_artist_info), binding.scrollTabInfo)
+        addTab(getString(R.string.redacted_artist_comments_site), binding.scrollTabComments)
+        if (binding.containerSimilarArtists.visibility == View.VISIBLE) {
+            addTab(getString(R.string.redacted_artist_similar_in_app), binding.scrollTabSimilar)
+        }
+        if (binding.chipGroupTags.visibility == View.VISIBLE) {
+            addTab(getString(R.string.redacted_artist_tags), binding.scrollTabTags)
+        }
+        addTab(getString(R.string.redacted_artist_discography), binding.panelDiscography)
+        artistMainTabPanels = panels
+
+        binding.tabArtistMain.addOnTabSelectedListener(
+            object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    showArtistMainTab(tab.position)
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab) {}
+                override fun onTabReselected(tab: TabLayout.Tab) {}
+            },
+        )
+        showArtistMainTab(0)
+        binding.tabArtistMain.getTabAt(0)?.select()
+    }
+
+    private fun showArtistMainTab(index: Int) {
+        val i = index.coerceIn(0, (artistMainTabPanels.size - 1).coerceAtLeast(0))
+        artistMainTabPanels.forEachIndexed { idx, v ->
+            v.visibility = if (idx == i) View.VISIBLE else View.GONE
         }
     }
 
@@ -195,15 +223,11 @@ class RedactedArtistActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
             return
         }
-        val params = listOf(
-            "action" to "advanced",
-            "searchsubmit" to "1",
-            "artistname" to name,
-            "filelist" to q,
-        )
         startActivity(
-            Intent(this, RedactedBrowseResultsActivity::class.java)
-                .putExtra(RedactedExtras.BROWSE_PARAMS_JSON, RedactedBrowseParamsCodec.encode(params)),
+            Intent(this, RedactedBrowseActivity::class.java)
+                .putExtra(RedactedExtras.BROWSE_ADVANCED_ARTIST_NAME, name)
+                .putExtra(RedactedExtras.BROWSE_ADVANCED_FILELIST, q)
+                .putExtra(RedactedExtras.BROWSE_AUTO_SUBMIT_RESULTS, true),
         )
     }
 
@@ -282,10 +306,16 @@ class RedactedArtistActivity : AppCompatActivity() {
     }
 
     private fun buildDiscography(torrentGroup: JSONArray) {
+        discographySubTabListener?.let { binding.tabDiscographySub.removeOnTabSelectedListener(it) }
+        discographySubTabListener = null
+        while (binding.tabDiscographySub.tabCount > 0) {
+            binding.tabDiscographySub.removeTabAt(binding.tabDiscographySub.tabCount - 1)
+        }
+
         binding.containerDiscography.removeAllViews()
-        binding.rowJumpReleaseTypes.removeAllViews()
-        binding.scrollJumpReleaseTypes.visibility = View.GONE
-        binding.labelDiscographyJump.visibility = View.GONE
+        binding.tabDiscographySub.visibility = View.GONE
+        discographySectionRoots = emptyList()
+        binding.panelDiscography.visibility = View.VISIBLE
 
         val groups = mutableListOf<JSONObject>()
         for (i in 0 until torrentGroup.length()) {
@@ -314,43 +344,58 @@ class RedactedArtistActivity : AppCompatActivity() {
         }
 
         val sortedTypes = byType.keys.sorted()
-        val sectionAnchors = LinkedHashMap<Int, View>()
+        val sectionRoots = mutableListOf<LinearLayout>()
+        val density = resources.displayMetrics.density
 
-        binding.labelDiscographyJump.visibility = View.VISIBLE
-        binding.scrollJumpReleaseTypes.visibility = View.VISIBLE
-
-        val jumpAccent = ContextCompat.getColor(this, R.color.app_accent)
         for (rt in sortedTypes) {
             val label = RedactedGazelleReleaseType.label(this, rt)
+            val section = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                visibility = View.GONE
+            }
             val header = TextView(this).apply {
                 text = label
                 textSize = 17f
                 setTextColor(ContextCompat.getColor(context, R.color.app_text_primary))
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
-                setPadding(0, (16 * resources.displayMetrics.density).toInt(), 0, (8 * resources.displayMetrics.density).toInt())
+                setPadding(0, (16 * density).toInt(), 0, (8 * density).toInt())
             }
-            sectionAnchors[rt] = header
-            binding.containerDiscography.addView(header)
-
-            val jumpBtn = MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
-                text = getString(R.string.redacted_artist_jump_fmt, label)
-                setTextColor(jumpAccent)
-                strokeColor = android.content.res.ColorStateList.valueOf(jumpAccent)
-                setOnClickListener {
-                    val v = sectionAnchors[rt] ?: return@setOnClickListener
-                    scrollToViewInArtistPage(v)
-                }
-            }
-            val lp = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-            )
-            lp.marginEnd = (6 * resources.displayMetrics.density).toInt()
-            binding.rowJumpReleaseTypes.addView(jumpBtn, lp)
-
+            section.addView(header)
             for (g in byType[rt].orEmpty()) {
-                binding.containerDiscography.addView(inflateGroupRow(g))
+                section.addView(inflateGroupRow(g))
             }
+            binding.containerDiscography.addView(section)
+            sectionRoots.add(section)
+        }
+        discographySectionRoots = sectionRoots
+
+        if (sortedTypes.size > 1) {
+            binding.tabDiscographySub.visibility = View.VISIBLE
+            for (rt in sortedTypes) {
+                val tabLabel = RedactedGazelleReleaseType.label(this, rt)
+                binding.tabDiscographySub.addTab(binding.tabDiscographySub.newTab().setText(tabLabel))
+            }
+            val listener = object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    val pos = tab.position
+                    discographySectionRoots.forEachIndexed { idx, root ->
+                        root.visibility = if (idx == pos) View.VISIBLE else View.GONE
+                    }
+                    binding.scrollDiscography.post { binding.scrollDiscography.scrollTo(0, 0) }
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab) {}
+                override fun onTabReselected(tab: TabLayout.Tab) {}
+            }
+            discographySubTabListener = listener
+            binding.tabDiscographySub.addOnTabSelectedListener(listener)
+            discographySectionRoots.forEachIndexed { idx, root ->
+                root.visibility = if (idx == 0) View.VISIBLE else View.GONE
+            }
+            binding.tabDiscographySub.getTabAt(0)?.select()
+        } else {
+            binding.tabDiscographySub.visibility = View.GONE
+            discographySectionRoots.forEach { it.visibility = View.VISIBLE }
         }
     }
 

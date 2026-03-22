@@ -37,14 +37,6 @@
             android:textColor="@color/app_text_secondary"
             android:layout_marginBottom="12dp" />
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/checkHapticOnScan"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/haptic_on_scan"
-            android:textColor="@color/app_text_secondary"
-            android:layout_marginBottom="12dp" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

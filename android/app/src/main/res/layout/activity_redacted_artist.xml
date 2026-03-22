@@ -23,197 +23,281 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scrollMain"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:fillViewport="true">
+            android:orientation="vertical"
+            android:padding="12dp">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/textArtistTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="12dp">
+                android:textColor="@color/app_text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/textArtistTitle"
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/rowArtistActions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardArtistImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/app_surface_input"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/app_text_secondary"
+                app:strokeWidth="1dp">
+
+                <ImageView
+                    android:id="@+id/imageArtist"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/app_text_primary"
-                    android:textSize="22sp"
-                    android:textStyle="bold" />
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/redacted_artist_screen"
+                    android:maxHeight="220dp"
+                    android:scaleType="fitCenter" />
+            </com.google.android.material.card.MaterialCardView>
 
-                <HorizontalScrollView
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabArtistMain"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:tabMode="scrollable" />
+
+            <FrameLayout
+                android:id="@+id/frameArtistTabContent"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollTabInfo"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:scrollbars="none">
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:fillViewport="true">
 
                     <LinearLayout
-                        android:id="@+id/rowArtistActions"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal" />
-                </HorizontalScrollView>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardArtistImage"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    app:cardBackgroundColor="@color/app_surface_input"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/app_text_secondary"
-                    app:strokeWidth="1dp">
-
-                    <ImageView
-                        android:id="@+id/imageArtist"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:adjustViewBounds="true"
-                        android:contentDescription="@string/redacted_artist_screen"
-                        android:maxHeight="220dp"
-                        android:scaleType="fitCenter" />
-                </com.google.android.material.card.MaterialCardView>
+                        android:orientation="vertical"
+                        android:paddingBottom="24dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/redacted_artist_file_lists_search"
-                    android:textColor="@color/app_text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        app:boxStrokeColor="@color/app_accent"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/editFileListQuery"
+                        <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="@string/redacted_artist_file_list_hint"
-                            android:inputType="text"
-                            android:textColor="@color/app_text_primary" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_marginTop="8dp"
+                            android:text="@string/redacted_artist_file_lists_search"
+                            android:textColor="@color/app_text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/buttonFileListSearch"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="@string/redacted_search"
-                        app:strokeColor="@color/app_accent" />
-                </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/labelTags"
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                app:boxStrokeColor="@color/app_accent">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/editFileListQuery"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="@string/redacted_artist_file_list_hint"
+                                    android:inputType="text"
+                                    android:textColor="@color/app_text_primary" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/buttonFileListSearch"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:text="@string/redacted_search"
+                                app:strokeColor="@color/app_accent" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/labelArtistInfo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="@string/redacted_artist_info"
+                            android:textColor="@color/app_text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/textArtistBody"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:textColor="@color/app_text_secondary"
+                            android:textIsSelectable="true"
+                            android:textSize="14sp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
+
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollTabComments"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/redacted_artist_tags"
-                    android:textColor="@color/app_text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chipGroupTags"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:visibility="gone"
-                    app:singleLine="false" />
-
-                <TextView
-                    android:id="@+id/labelSimilar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/redacted_artist_similar"
-                    android:textColor="@color/app_text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <LinearLayout
-                    android:id="@+id/containerSimilarArtists"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:orientation="vertical"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/labelArtistInfo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/redacted_artist_info"
-                    android:textColor="@color/app_text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/textArtistBody"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:textColor="@color/app_text_secondary"
-                    android:textIsSelectable="true"
-                    android:textSize="14sp"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/labelDiscographyJump"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/redacted_artist_discography"
-                    android:textColor="@color/app_text_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:visibility="gone" />
-
-                <HorizontalScrollView
-                    android:id="@+id/scrollJumpReleaseTypes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:scrollbars="none"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:fillViewport="true"
                     android:visibility="gone">
 
                     <LinearLayout
-                        android:id="@+id/rowJumpReleaseTypes"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal" />
-                </HorizontalScrollView>
+                        android:orientation="vertical"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="24dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_artist_comments_tab_hint"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="14sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonCommentsOnSite"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="@string/redacted_artist_view_comments_site"
+                            app:strokeColor="@color/app_accent" />
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
+
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollTabSimilar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="24dp">
+
+                        <TextView
+                            android:id="@+id/labelSimilar"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_artist_similar"
+                            android:textColor="@color/app_text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+
+                        <LinearLayout
+                            android:id="@+id/containerSimilarArtists"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:orientation="vertical"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
+
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/scrollTabTags"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="24dp">
+
+                        <TextView
+                            android:id="@+id/labelTags"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_artist_tags"
+                            android:textColor="@color/app_text_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/chipGroupTags"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:visibility="gone"
+                            app:singleLine="false" />
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
 
                 <LinearLayout
-                    android:id="@+id/containerDiscography"
+                    android:id="@+id/panelDiscography"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:orientation="vertical" />
-            </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.google.android.material.tabs.TabLayout
+                        android:id="@+id/tabDiscographySub"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        app:tabMode="scrollable" />
+
+                    <androidx.core.widget.NestedScrollView
+                        android:id="@+id/scrollDiscography"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:clipToPadding="false"
+                        android:fillViewport="true">
+
+                        <LinearLayout
+                            android:id="@+id/containerDiscography"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="24dp" />
+                    </androidx.core.widget.NestedScrollView>
+                </LinearLayout>
+            </FrameLayout>
+        </LinearLayout>
 
         <ProgressBar
             android:id="@+id/progress"

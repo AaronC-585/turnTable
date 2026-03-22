@@ -25,8 +25,11 @@ class FriendsListAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val row = rows[position]
+        val ctx = holder.itemView.context
         holder.title.text = row.username
-        holder.subtitle.text = holder.itemView.context.getString(R.string.redacted_friends_tap_profile, row.userId)
+        val lastSeen = RedactedLastSeenFormatter.lastOnlineSummary(ctx, row.lastAccessRaw)
+        val tap = ctx.getString(R.string.redacted_friends_tap_profile, row.userId)
+        holder.subtitle.text = "$lastSeen\n$tap"
         holder.itemView.setOnClickListener { onOpen(row) }
         holder.remove.setOnClickListener { onRemove(row) }
     }
