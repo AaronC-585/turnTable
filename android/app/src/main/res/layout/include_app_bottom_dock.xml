@@ -169,6 +169,21 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/homeActionForums"
+            style="@style/HomeActionColumn"
+            android:contentDescription="@string/home_content_cd_forums">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonHomeForums"
+                style="@style/HomeIconActionButton"
+                app:icon="@drawable/ic_cheerleader_horn" />
+
+            <TextView
+                style="@style/HomeActionLabel"
+                android:text="@string/nav_forums" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/homeActionMail"
             style="@style/HomeActionColumn"
             android:contentDescription="@string/home_content_cd_mail">

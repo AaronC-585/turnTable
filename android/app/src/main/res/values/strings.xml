@@ -17,6 +17,7 @@
     <string name="nav_home">Home</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_news">News</string>
+    <string name="nav_forums">Forums</string>
     <string name="nav_mail">Mail</string>
     <string name="nav_friends">Friends</string>
     <string name="settings">Settings</string>
@@ -465,6 +466,7 @@
     <string name="redacted_add_to_collage">Add to collage</string>
     <string name="redacted_upload_info">Upload (API)</string>
     <string name="redacted_forums">Forums</string>
+    <string name="redacted_forum_open_in_browser">Open thread in browser</string>
     <string name="redacted_threads">Threads</string>
     <string name="redacted_thread">Thread</string>
     <string name="redacted_copy_as_rtf">Copy as RTF (links)</string>
@@ -510,6 +512,7 @@
     <string name="home_section_dynamic_title">%1$s</string>
     <string name="home_content_cd_profile">Profile</string>
     <string name="home_content_cd_news">Site news and announcements</string>
+    <string name="home_content_cd_forums">Community forums</string>
     <string name="home_content_cd_mail">Messages inbox</string>
     <string name="home_content_cd_friends">Friends list and user search</string>
     <string name="home_content_cd_mail_unread">Messages inbox, %1$d unread</string>

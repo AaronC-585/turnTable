@@ -94,6 +94,41 @@ fun parseConversationMessageRows(response: JSONObject?): Pair<String, List<Conve
 }
 
 /**
+ * Parses [response] from `forum` `viewthread` into rows with alternating stripes when the author changes.
+ */
+fun parseForumThreadRows(response: JSONObject?): Pair<String, List<ConversationMessageRow>> {
+    if (response == null) return "" to emptyList()
+    val title = response.optString("threadTitle")
+    val posts = response.optJSONArray("posts") ?: return title to emptyList()
+    var lastKey: String? = null
+    var useAlt = false
+    val out = mutableListOf<ConversationMessageRow>()
+    for (i in 0 until posts.length()) {
+        val p = posts.optJSONObject(i) ?: continue
+        val auth = p.optJSONObject("author")
+        val authorId = auth?.optInt("authorId") ?: 0
+        val authorName = auth?.optString("authorName").orEmpty()
+        val key = if (authorId != 0) "id:$authorId" else "name:${authorName.lowercase()}"
+        when {
+            lastKey == null -> lastKey = key
+            key != lastKey -> {
+                lastKey = key
+                useAlt = !useAlt
+            }
+        }
+        out.add(
+            ConversationMessageRow(
+                senderName = authorName,
+                sentDate = p.optString("addedTime"),
+                body = p.optString("bbBody"),
+                useAltStripe = useAlt,
+            ),
+        )
+    }
+    return title to out
+}
+
+/**
  * Resolves the other participant’s user id for [RedactedApiClient.sendPm] when replying in-thread (`convid`).
  * Tries common JSON fields, then infers from [currentUserId] and per-message [senderId] values.
  */

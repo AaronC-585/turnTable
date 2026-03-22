@@ -1,6 +1,6 @@
 # Redacted integration (Android) — kept features
 
-The **hub / “API browser” screen** (`RedactedHubActivity`) was removed. All JSON API and feature screens below remain; primary entry for browsing is **in-app torrent search** (`RedactedBrowseActivity`) from Home, the scanner overflow menu, and Search.
+The **hub / “API browser” screen** (`RedactedHubActivity`) was removed. All JSON API and feature screens below remain; primary entry for browsing is **in-app torrent search** (`RedactedBrowseActivity`) from Home, the scanner overflow menu, and Search. **Forums** also have a **bottom dock** shortcut (cheerleader-horn icon) next to News/Mail, opening `RedactedForumMainActivity`.
 
 ## HTTP client — `redacted/RedactedApiClient.kt`
 
@@ -14,7 +14,7 @@ Sends `Authorization: <api key>` to `https://redacted.sh/ajax.php`. Notable acti
 | Artists | `artist`, `similar_artists` |
 | Requests | `requests`, `request`, `requestfill` |
 | Social | `inbox` (tabs: default inbox, `sentbox`, `staffpm`), `viewconv`, `send_pm`, `usersearch`, `bookmarks`, `subscriptions` |
-| Forums | `forum` (main / viewforum / viewthread) |
+| Forums | `forum` (main / viewforum / viewthread); **POST** `forum&type=takepost&threadid=` + form `body` for replies (Redacted extension; falls back to **Open thread in browser** if unsupported) |
 | Site | `notifications`, `announcements`, `wiki`, `logchecker`, `riplog`, `collage` |
 | Upload | `postUpload` (multipart; client only) |
 

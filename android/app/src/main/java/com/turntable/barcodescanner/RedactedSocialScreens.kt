@@ -31,6 +31,7 @@ import com.turntable.barcodescanner.redacted.RedactedBbCodeToRtf
 import com.turntable.barcodescanner.redacted.InboxRow
 import com.turntable.barcodescanner.redacted.InboxRowsAdapter
 import com.turntable.barcodescanner.redacted.parseConversationMessageRows
+import com.turntable.barcodescanner.redacted.parseForumThreadRows
 import com.turntable.barcodescanner.redacted.resolveConversationReplyRecipientId
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentParse
@@ -586,19 +587,22 @@ class RedactedForumThreadsActivity : AppCompatActivity() {
 
 class RedactedForumThreadActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityRedactedDetailBinding
+    private lateinit var binding: ActivityRedactedConversationBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
+    private val messageAdapter = ConversationMessagesAdapter()
     private var threadResponse: JSONObject? = null
+    private var threadId: Int = 0
+    private var sendingReply: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         api = RedactedUiHelper.requireApi(this) ?: return
-        val threadId = intent.getIntExtra(RedactedExtras.THREAD_ID, 0)
+        threadId = intent.getIntExtra(RedactedExtras.THREAD_ID, 0)
         if (threadId <= 0) {
             finish()
             return
         }
-        binding = ActivityRedactedDetailBinding.inflate(layoutInflater)
+        binding = ActivityRedactedConversationBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -606,48 +610,131 @@ class RedactedForumThreadActivity : AppCompatActivity() {
         setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_thread)
 
-        binding.progress.visibility = View.VISIBLE
+        binding.layoutReplyRecipientId.visibility = View.GONE
+        binding.layoutReplyBody.hint = getString(R.string.redacted_conversation_reply_hint)
+
+        binding.recyclerMessages.layoutManager = LinearLayoutManager(this)
+        binding.recyclerMessages.adapter = messageAdapter
+
+        binding.swipeRefreshConversation.setColorSchemeColors(
+            ContextCompat.getColor(this, R.color.home_token_label),
+            ContextCompat.getColor(this, R.color.home_ratio_ok),
+        )
+        binding.swipeRefreshConversation.setOnRefreshListener {
+            loadThread(isPullRefresh = true)
+        }
+
+        binding.buttonSendReply.setOnClickListener { sendForumReply() }
+
+        binding.cardReply.visibility = View.GONE
+        loadThread(isPullRefresh = false)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_redacted_forum_thread, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_copy_as_rtf -> {
+                val resp = threadResponse
+                if (resp == null) {
+                    Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
+                } else {
+                    val rtf = buildForumThreadRtfDocument(resp)
+                    val plain = buildForumThreadPlainFallback(resp)
+                    RedactedRtfClipboard.copyRtf(this, getString(R.string.redacted_thread), rtf, plain)
+                    Toast.makeText(this, R.string.redacted_rtf_copied, Toast.LENGTH_LONG).show()
+                }
+                return true
+            }
+            R.id.menu_open_forum_in_browser -> {
+                RedactedUiHelper.openSite(this, "forums.php?action=viewthread&threadid=$threadId")
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun sendForumReply() {
+        if (sendingReply) return
+        val body = binding.editReplyBody.text?.toString()?.trim().orEmpty()
+        if (body.isBlank()) {
+            Toast.makeText(this, R.string.redacted_pm_invalid, Toast.LENGTH_SHORT).show()
+            return
+        }
+        sendingReply = true
+        binding.buttonSendReply.isEnabled = false
         Thread {
-            val r = api.forumThread(threadId)
+            val r = api.forumTakePost(threadId, body)
             runOnUiThread {
-                binding.progress.visibility = View.GONE
+                sendingReply = false
+                binding.buttonSendReply.isEnabled = true
                 when (r) {
-                    is RedactedResult.Failure -> {
-                        threadResponse = null
-                        binding.textBody.text = RedactedHtmlSafe.safePlainTextForUi(r.message)
-                    }
+                    is RedactedResult.Failure -> Toast.makeText(
+                        this,
+                        RedactedHtmlSafe.safePlainTextForUi(r.message),
+                        Toast.LENGTH_LONG,
+                    ).show()
                     is RedactedResult.Success -> {
-                        threadResponse = r.response
-                        binding.textBody.text = RedactedHtmlSafe.safePlainTextForUi(formatThread(r.response))
+                        binding.editReplyBody.text?.clear()
+                        loadThread(isPullRefresh = true)
                     }
-                    else -> {
-                        threadResponse = null
-                        binding.textBody.text = ""
-                    }
+                    else -> {}
                 }
             }
         }.start()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_redacted_copy_rtf, menu)
-        return true
+    private fun scrollMessagesToBottom() {
+        val n = messageAdapter.itemCount
+        if (n <= 0) return
+        binding.recyclerMessages.post {
+            binding.recyclerMessages.scrollToPosition(n - 1)
+        }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.menu_copy_as_rtf) {
-            val resp = threadResponse
-            if (resp == null) {
-                Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
-            } else {
-                val rtf = buildForumThreadRtfDocument(resp)
-                val plain = buildForumThreadPlainFallback(resp)
-                RedactedRtfClipboard.copyRtf(this, getString(R.string.redacted_thread), rtf, plain)
-                Toast.makeText(this, R.string.redacted_rtf_copied, Toast.LENGTH_LONG).show()
-            }
-            return true
+    private fun loadThread(isPullRefresh: Boolean) {
+        if (!isPullRefresh) {
+            binding.progress.visibility = View.VISIBLE
         }
-        return super.onOptionsItemSelected(item)
+        binding.textError.visibility = View.GONE
+        Thread {
+            val r = api.forumThread(threadId)
+            runOnUiThread {
+                binding.progress.visibility = View.GONE
+                binding.swipeRefreshConversation.isRefreshing = false
+                when (r) {
+                    is RedactedResult.Failure -> {
+                        threadResponse = null
+                        binding.cardReply.visibility = View.GONE
+                        binding.textError.visibility = View.VISIBLE
+                        binding.textError.text = RedactedHtmlSafe.safePlainTextForUi(r.message)
+                        messageAdapter.rows = emptyList()
+                    }
+                    is RedactedResult.Success -> {
+                        threadResponse = r.response
+                        binding.textError.visibility = View.GONE
+                        val (title, rows) = parseForumThreadRows(r.response)
+                        if (title.isNotBlank()) {
+                            supportActionBar?.title = title
+                        }
+                        messageAdapter.rows = rows
+                        scrollMessagesToBottom()
+                        val locked = r.response?.optBoolean("locked") == true
+                        binding.cardReply.visibility = if (locked) View.GONE else View.VISIBLE
+                    }
+                    else -> {
+                        threadResponse = null
+                        binding.cardReply.visibility = View.GONE
+                        binding.textError.visibility = View.VISIBLE
+                        binding.textError.text = getString(R.string.redacted_unexpected)
+                        messageAdapter.rows = emptyList()
+                    }
+                }
+            }
+        }.start()
     }
 
     private fun buildForumThreadRtfDocument(resp: JSONObject): String {
@@ -683,24 +770,6 @@ class RedactedForumThreadActivity : AppCompatActivity() {
                 }
             },
         )
-
-    private fun formatThread(resp: JSONObject?): String {
-        if (resp == null) return ""
-        val sb = StringBuilder()
-        sb.appendLine(resp.optString("threadTitle")).appendLine()
-        val posts = resp.optJSONArray("posts")
-        if (posts != null) {
-            for (i in 0 until posts.length()) {
-                val p = posts.optJSONObject(i) ?: continue
-                val auth = p.optJSONObject("author")
-                val name = auth?.optString("authorName").orEmpty()
-                sb.appendLine("— $name @ ${p.optString("addedTime")} —")
-                sb.appendLine(p.optString("bbBody"))
-                sb.appendLine()
-            }
-        }
-        return sb.toString()
-    }
 }
 
 class RedactedNotificationsActivity : AppCompatActivity() {

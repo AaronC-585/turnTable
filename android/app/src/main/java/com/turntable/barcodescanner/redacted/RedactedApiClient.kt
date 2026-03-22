@@ -465,6 +465,25 @@ class RedactedApiClient(private val apiKey: String) {
         return executeJson(authorized(buildUrl("forum", p)).get().build())
     }
 
+    /**
+     * Post a reply in a forum thread. Redacted extends the JSON API with `type=takepost` on the
+     * same `forum` action (POST body carries BBCode/plain text). If unsupported, returns failure —
+     * use [RedactedUiHelper.openSite] as a fallback.
+     */
+    fun forumTakePost(threadId: Int, body: String): RedactedResult {
+        val url = buildUrl(
+            "forum",
+            listOf(
+                "type" to "takepost",
+                "threadid" to threadId.toString(),
+            ),
+        )
+        val form = FormBody.Builder()
+            .add("body", body)
+            .build()
+        return executeJson(authorized(url).post(form).build())
+    }
+
     // --- Wiki scope ---
 
     fun wiki(id: Int? = null, name: String? = null): RedactedResult {
