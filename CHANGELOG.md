@@ -2,6 +2,14 @@
 
 All notable changes to the turnTable / 1D Barcode Scanner project are documented here.
 
+## [2026.3.22.866] — Android production release
+
+- **Settings:** Theme, secondary preset, and **Open in browser** use **expandable bullet lists** (`ExpandableBulletChoice`), matching Redacted browse / list screens. **`bindLabelList`** supports an optional **`onItemClick`** for preset → URL fill.
+- **Redacted browse (advanced):** **Has cue**, **Scene**, and **Vanity house** each use **one boolean switch** (on → API `1`; off → no filter).
+- **Torrent group / torrent detail:** Collapsible sections start **collapsed** by default (expand to read).
+- **Album compilation info (torrent group):** **`wikiBody`** rendered with **`AppRichText`** (BBCode + HTML links); long-press **Compilation info** header copies **RTF** with hyperlinks (`RedactedBbCodeToRtf`, including **`htmlToRtfDocument`** for HTML). **`AppRichText`** detects broader BBCode (not only `[url]`).
+- **Release:** APK only from Linux; upload iOS IPA when ready per **RELEASE.md**.
+
 ## [2026.3.22.133] — Android production release
 
 - **Help text & links (Android):** Long settings/help strings use **`AppRichText`** — HTML (`<a href>`) and BBCode-style `[url]` where relevant, plus auto-linking of bare `http(s)://` URLs; **`LinkMovementMethod`** on `TextView`s and API-key dialog message. About, Donate, Settings, qBittorrent settings, Home no-key hint, and list editors updated.
