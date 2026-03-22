@@ -2,6 +2,14 @@
 
 All notable changes to the turnTable / 1D Barcode Scanner project are documented here.
 
+## [2026.3.22.11] — Android production release
+
+- **Theming / forms (Android):** Shared `Widget.Redacted.*` styles for outlined TextInputs, Material buttons, spinner, switch; night theme parity. Bottom shortcut dock uses one solid bar color so icon tiles don’t show seams.
+- **Primary API list (Settings):** Replaced spinners with a **drag-handle** reorderable list, **enable switch per row**, free-text API id + display name, **Add API**; removed “available APIs” dropdown.
+- **Button icons:** Add (+), Remove (−), **Save** (floppy), **Cancel** (X) on edit flows and key actions.
+- **Scan screen:** **Flashlight** toggle as an on-screen control on the camera preview; toolbar **overflow (⋯) removed** — Redacted opens from the toolbar with a compass icon alongside Home, History, Settings.
+- **Release:** APK only from Linux; upload iOS IPA when ready: `gh release upload v2026.3.22.11 <file>.ipa` per **RELEASE.md**.
+
 ## [Unreleased]
 
 - **Docs (future):** **`docs/qbittorrent-api-future.md`** — notes and links for integrating [qBittorrent Web API](https://qbittorrent-api.readthedocs.io/en/latest/) via the Python **`qbittorrent-api`** client (companion scripts / reference for a future Android or LAN flow). **`docs/requirements-qbittorrent.txt`** optional pip pin. README subsection **qBittorrent Web API (future)**.
