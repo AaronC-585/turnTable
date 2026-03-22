@@ -33,24 +33,22 @@
                 android:src="@android:drawable/ic_menu_sort_by_size"
                 app:tint="@color/app_icon_emphasis" />
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchEnabled"
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_weight="1"
+                android:gravity="end|center_vertical"
+                android:labelFor="@id/switchEnabled"
                 android:text="@string/primary_edit_enabled"
-                android:textColor="@color/app_text_secondary" />
+                android:textColor="@color/app_text_secondary"
+                android:textSize="16sp" />
 
-            <ImageButton
-                android:id="@+id/buttonDelete"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/secondary_edit_remove"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_remove_minus"
-                app:tint="@color/app_error" />
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchEnabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp" />
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout

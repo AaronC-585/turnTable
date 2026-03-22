@@ -3,8 +3,7 @@ package com.turntable.barcodescanner
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.Spinner
+import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.turntable.barcodescanner.databinding.ActivityRedactedBrowseBinding
@@ -50,20 +49,17 @@ class RedactedBrowseActivity : AppCompatActivity() {
         yesNoValues = resources.getStringArray(R.array.redacted_browse_yesno_values)
         freeTorrentValues = resources.getStringArray(R.array.redacted_browse_freetorrent_values)
 
-        bindSpinner(binding.spinnerOrderBy, R.array.redacted_browse_order_by)
-        bindSpinner(binding.spinnerOrderWay, R.array.redacted_browse_order_way)
-        bindSpinner(binding.spinnerEncoding, R.array.redacted_browse_encoding)
-        bindSpinner(binding.spinnerFormat, R.array.redacted_browse_format)
-        bindSpinner(binding.spinnerMedia, R.array.redacted_browse_media)
-        bindSpinner(binding.spinnerReleaseType, R.array.redacted_browse_release_type)
-        bindSpinner(binding.spinnerHasLog, R.array.redacted_browse_haslog)
-        bindSpinner(binding.spinnerHasCue, R.array.redacted_browse_yesno)
-        bindSpinner(binding.spinnerScene, R.array.redacted_browse_yesno)
-        bindSpinner(binding.spinnerVanityHouse, R.array.redacted_browse_yesno)
-        bindSpinner(binding.spinnerFreeTorrent, R.array.redacted_browse_freetorrent)
-
-        binding.spinnerOrderBy.setSelection(1.coerceAtMost(orderByValues.size - 1))
-        binding.spinnerOrderWay.setSelection(1.coerceAtMost(orderWayValues.size - 1))
+        bindBrowseList(binding.listOrderBy, R.array.redacted_browse_order_by, 1.coerceAtMost(orderByValues.size - 1))
+        bindBrowseList(binding.listOrderWay, R.array.redacted_browse_order_way, 1.coerceAtMost(orderWayValues.size - 1))
+        bindBrowseList(binding.listEncoding, R.array.redacted_browse_encoding, 0)
+        bindBrowseList(binding.listFormat, R.array.redacted_browse_format, 0)
+        bindBrowseList(binding.listMedia, R.array.redacted_browse_media, 0)
+        bindBrowseList(binding.listReleaseType, R.array.redacted_browse_release_type, 0)
+        bindBrowseList(binding.listHasLog, R.array.redacted_browse_haslog, 0)
+        bindBrowseList(binding.listHasCue, R.array.redacted_browse_yesno, 0)
+        bindBrowseList(binding.listScene, R.array.redacted_browse_yesno, 0)
+        bindBrowseList(binding.listVanityHouse, R.array.redacted_browse_yesno, 0)
+        bindBrowseList(binding.listFreeTorrent, R.array.redacted_browse_freetorrent, 0)
 
         binding.toggleSearchMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
@@ -129,13 +125,8 @@ class RedactedBrowseActivity : AppCompatActivity() {
         }
     }
 
-    private fun bindSpinner(spinner: Spinner, arrayRes: Int) {
-        val adapter = ArrayAdapter.createFromResource(
-            this,
-            arrayRes,
-            android.R.layout.simple_spinner_dropdown_item,
-        )
-        spinner.adapter = adapter
+    private fun bindBrowseList(listView: ListView, arrayRes: Int, initialIndex: Int) {
+        ListViewSingleChoice.bindFromResource(listView, arrayRes, initialIndex)
     }
 
     private fun resetForm() {
@@ -160,23 +151,17 @@ class RedactedBrowseActivity : AppCompatActivity() {
         binding.checkCat6.isChecked = false
         binding.checkCat7.isChecked = false
         binding.toggleSearchMode.check(R.id.btnModeAdvanced)
-        binding.spinnerOrderBy.setSelection(1.coerceAtMost(orderByValues.size - 1))
-        binding.spinnerOrderWay.setSelection(1.coerceAtMost(orderWayValues.size - 1))
-        binding.spinnerEncoding.setSelection(0)
-        binding.spinnerFormat.setSelection(0)
-        binding.spinnerMedia.setSelection(0)
-        binding.spinnerReleaseType.setSelection(0)
-        binding.spinnerHasLog.setSelection(0)
-        binding.spinnerHasCue.setSelection(0)
-        binding.spinnerScene.setSelection(0)
-        binding.spinnerVanityHouse.setSelection(0)
-        binding.spinnerFreeTorrent.setSelection(0)
-    }
-
-    private fun Spinner.apiValue(values: Array<String>): String? {
-        val i = selectedItemPosition
-        if (i < 0 || i >= values.size) return null
-        return values[i].takeIf { it.isNotEmpty() }
+        bindBrowseList(binding.listOrderBy, R.array.redacted_browse_order_by, 1.coerceAtMost(orderByValues.size - 1))
+        bindBrowseList(binding.listOrderWay, R.array.redacted_browse_order_way, 1.coerceAtMost(orderWayValues.size - 1))
+        bindBrowseList(binding.listEncoding, R.array.redacted_browse_encoding, 0)
+        bindBrowseList(binding.listFormat, R.array.redacted_browse_format, 0)
+        bindBrowseList(binding.listMedia, R.array.redacted_browse_media, 0)
+        bindBrowseList(binding.listReleaseType, R.array.redacted_browse_release_type, 0)
+        bindBrowseList(binding.listHasLog, R.array.redacted_browse_haslog, 0)
+        bindBrowseList(binding.listHasCue, R.array.redacted_browse_yesno, 0)
+        bindBrowseList(binding.listScene, R.array.redacted_browse_yesno, 0)
+        bindBrowseList(binding.listVanityHouse, R.array.redacted_browse_yesno, 0)
+        bindBrowseList(binding.listFreeTorrent, R.array.redacted_browse_freetorrent, 0)
     }
 
     private fun MutableList<Pair<String, String?>>.putNonBlank(key: String, edit: TextInputEditText) {
@@ -202,15 +187,15 @@ class RedactedBrowseActivity : AppCompatActivity() {
                 putNonBlank("remasteryear", binding.editRemasterYear)
                 putNonBlank("filelist", binding.editFileList)
                 putNonBlank("description", binding.editTorrentDescription)
-                binding.spinnerEncoding.apiValue(encodingValues)?.let { add("encoding" to it) }
-                binding.spinnerFormat.apiValue(formatValues)?.let { add("format" to it) }
-                binding.spinnerMedia.apiValue(mediaValues)?.let { add("media" to it) }
-                binding.spinnerReleaseType.apiValue(releaseTypeValues)?.let { add("releasetype" to it) }
-                binding.spinnerHasLog.apiValue(hasLogValues)?.let { add("haslog" to it) }
-                binding.spinnerHasCue.apiValue(yesNoValues)?.let { add("hascue" to it) }
-                binding.spinnerScene.apiValue(yesNoValues)?.let { add("scene" to it) }
-                binding.spinnerVanityHouse.apiValue(yesNoValues)?.let { add("vanityhouse" to it) }
-                binding.spinnerFreeTorrent.apiValue(freeTorrentValues)?.let { add("freetorrent" to it) }
+                binding.listEncoding.apiValue(encodingValues)?.let { add("encoding" to it) }
+                binding.listFormat.apiValue(formatValues)?.let { add("format" to it) }
+                binding.listMedia.apiValue(mediaValues)?.let { add("media" to it) }
+                binding.listReleaseType.apiValue(releaseTypeValues)?.let { add("releasetype" to it) }
+                binding.listHasLog.apiValue(hasLogValues)?.let { add("haslog" to it) }
+                binding.listHasCue.apiValue(yesNoValues)?.let { add("hascue" to it) }
+                binding.listScene.apiValue(yesNoValues)?.let { add("scene" to it) }
+                binding.listVanityHouse.apiValue(yesNoValues)?.let { add("vanityhouse" to it) }
+                binding.listFreeTorrent.apiValue(freeTorrentValues)?.let { add("freetorrent" to it) }
             }
         }
 
@@ -220,8 +205,8 @@ class RedactedBrowseActivity : AppCompatActivity() {
             add("tags_type" to if (binding.radioTagsAll.isChecked) "1" else "0")
         }
 
-        binding.spinnerOrderBy.apiValue(orderByValues)?.let { add("order_by" to it) }
-        binding.spinnerOrderWay.apiValue(orderWayValues)?.let { add("order_way" to it) }
+        binding.listOrderBy.apiValue(orderByValues)?.let { add("order_by" to it) }
+        binding.listOrderWay.apiValue(orderWayValues)?.let { add("order_way" to it) }
 
         if (binding.switchGroupResults.isChecked) add("group_results" to "1")
 

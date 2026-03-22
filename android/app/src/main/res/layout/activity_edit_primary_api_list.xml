@@ -42,13 +42,6 @@
         android:paddingHorizontal="16dp"
         android:paddingBottom="16dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonAdd"
-            style="@style/Widget.Redacted.Button.Add"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/primary_add_api" />
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

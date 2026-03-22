@@ -287,32 +287,52 @@
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal">
 
-                                <Spinner
-                                    android:id="@+id/spinnerEncoding"
+                                <ListView
+                                    android:id="@+id/listEncoding"
                                     android:layout_width="140dp"
-                                    android:layout_height="48dp"
+                                    android:layout_height="120dp"
                                     android:layout_marginEnd="6dp"
-                                    android:background="@android:drawable/btn_dropdown" />
+                                    android:background="@drawable/redacted_listbox_background"
+                                    android:choiceMode="singleChoice"
+                                    android:divider="@color/app_stroke_browse_card"
+                                    android:dividerHeight="1dp"
+                                    android:paddingVertical="2dp"
+                                    android:scrollbars="vertical" />
 
-                                <Spinner
-                                    android:id="@+id/spinnerFormat"
+                                <ListView
+                                    android:id="@+id/listFormat"
                                     android:layout_width="120dp"
-                                    android:layout_height="48dp"
+                                    android:layout_height="120dp"
                                     android:layout_marginEnd="6dp"
-                                    android:background="@android:drawable/btn_dropdown" />
+                                    android:background="@drawable/redacted_listbox_background"
+                                    android:choiceMode="singleChoice"
+                                    android:divider="@color/app_stroke_browse_card"
+                                    android:dividerHeight="1dp"
+                                    android:paddingVertical="2dp"
+                                    android:scrollbars="vertical" />
 
-                                <Spinner
-                                    android:id="@+id/spinnerMedia"
+                                <ListView
+                                    android:id="@+id/listMedia"
                                     android:layout_width="120dp"
-                                    android:layout_height="48dp"
+                                    android:layout_height="120dp"
                                     android:layout_marginEnd="6dp"
-                                    android:background="@android:drawable/btn_dropdown" />
+                                    android:background="@drawable/redacted_listbox_background"
+                                    android:choiceMode="singleChoice"
+                                    android:divider="@color/app_stroke_browse_card"
+                                    android:dividerHeight="1dp"
+                                    android:paddingVertical="2dp"
+                                    android:scrollbars="vertical" />
 
-                                <Spinner
-                                    android:id="@+id/spinnerReleaseType"
+                                <ListView
+                                    android:id="@+id/listReleaseType"
                                     android:layout_width="160dp"
-                                    android:layout_height="48dp"
-                                    android:background="@android:drawable/btn_dropdown" />
+                                    android:layout_height="120dp"
+                                    android:background="@drawable/redacted_listbox_background"
+                                    android:choiceMode="singleChoice"
+                                    android:divider="@color/app_stroke_browse_card"
+                                    android:dividerHeight="1dp"
+                                    android:paddingVertical="2dp"
+                                    android:scrollbars="vertical" />
                             </LinearLayout>
                         </HorizontalScrollView>
 
@@ -335,39 +355,64 @@
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal">
 
-                                <Spinner
-                                    android:id="@+id/spinnerHasLog"
+                                <ListView
+                                    android:id="@+id/listHasLog"
                                     android:layout_width="130dp"
-                                    android:layout_height="48dp"
+                                    android:layout_height="120dp"
                                     android:layout_marginEnd="6dp"
-                                    android:background="@android:drawable/btn_dropdown" />
+                                    android:background="@drawable/redacted_listbox_background"
+                                    android:choiceMode="singleChoice"
+                                    android:divider="@color/app_stroke_browse_card"
+                                    android:dividerHeight="1dp"
+                                    android:paddingVertical="2dp"
+                                    android:scrollbars="vertical" />
 
-                                <Spinner
-                                    android:id="@+id/spinnerHasCue"
+                                <ListView
+                                    android:id="@+id/listHasCue"
                                     android:layout_width="110dp"
-                                    android:layout_height="48dp"
+                                    android:layout_height="120dp"
                                     android:layout_marginEnd="6dp"
-                                    android:background="@android:drawable/btn_dropdown" />
+                                    android:background="@drawable/redacted_listbox_background"
+                                    android:choiceMode="singleChoice"
+                                    android:divider="@color/app_stroke_browse_card"
+                                    android:dividerHeight="1dp"
+                                    android:paddingVertical="2dp"
+                                    android:scrollbars="vertical" />
 
-                                <Spinner
-                                    android:id="@+id/spinnerScene"
+                                <ListView
+                                    android:id="@+id/listScene"
                                     android:layout_width="100dp"
-                                    android:layout_height="48dp"
+                                    android:layout_height="120dp"
                                     android:layout_marginEnd="6dp"
-                                    android:background="@android:drawable/btn_dropdown" />
+                                    android:background="@drawable/redacted_listbox_background"
+                                    android:choiceMode="singleChoice"
+                                    android:divider="@color/app_stroke_browse_card"
+                                    android:dividerHeight="1dp"
+                                    android:paddingVertical="2dp"
+                                    android:scrollbars="vertical" />
 
-                                <Spinner
-                                    android:id="@+id/spinnerVanityHouse"
+                                <ListView
+                                    android:id="@+id/listVanityHouse"
                                     android:layout_width="130dp"
-                                    android:layout_height="48dp"
+                                    android:layout_height="120dp"
                                     android:layout_marginEnd="6dp"
-                                    android:background="@android:drawable/btn_dropdown" />
+                                    android:background="@drawable/redacted_listbox_background"
+                                    android:choiceMode="singleChoice"
+                                    android:divider="@color/app_stroke_browse_card"
+                                    android:dividerHeight="1dp"
+                                    android:paddingVertical="2dp"
+                                    android:scrollbars="vertical" />
 
-                                <Spinner
-                                    android:id="@+id/spinnerFreeTorrent"
+                                <ListView
+                                    android:id="@+id/listFreeTorrent"
                                     android:layout_width="140dp"
-                                    android:layout_height="48dp"
-                                    android:background="@android:drawable/btn_dropdown" />
+                                    android:layout_height="120dp"
+                                    android:background="@drawable/redacted_listbox_background"
+                                    android:choiceMode="singleChoice"
+                                    android:divider="@color/app_stroke_browse_card"
+                                    android:dividerHeight="1dp"
+                                    android:paddingVertical="2dp"
+                                    android:scrollbars="vertical" />
                             </LinearLayout>
                         </HorizontalScrollView>
                     </LinearLayout>
@@ -421,20 +466,30 @@
                         android:orientation="horizontal"
                         android:layout_marginBottom="8dp">
 
-                        <Spinner
-                            android:id="@+id/spinnerOrderBy"
+                        <ListView
+                            android:id="@+id/listOrderBy"
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="140dp"
                             android:layout_weight="1"
                             android:layout_marginEnd="6dp"
-                            android:background="@android:drawable/btn_dropdown" />
+                            android:background="@drawable/redacted_listbox_background"
+                            android:choiceMode="singleChoice"
+                            android:divider="@color/app_stroke_browse_card"
+                            android:dividerHeight="1dp"
+                            android:paddingVertical="2dp"
+                            android:scrollbars="vertical" />
 
-                        <Spinner
-                            android:id="@+id/spinnerOrderWay"
+                        <ListView
+                            android:id="@+id/listOrderWay"
                             android:layout_width="0dp"
-                            android:layout_height="48dp"
+                            android:layout_height="140dp"
                             android:layout_weight="1"
-                            android:background="@android:drawable/btn_dropdown" />
+                            android:background="@drawable/redacted_listbox_background"
+                            android:choiceMode="singleChoice"
+                            android:divider="@color/app_stroke_browse_card"
+                            android:dividerHeight="1dp"
+                            android:paddingVertical="2dp"
+                            android:scrollbars="vertical" />
                     </LinearLayout>
 
                     <com.google.android.material.switchmaterial.SwitchMaterial

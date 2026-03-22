@@ -146,10 +146,7 @@
     <string name="cancel">Cancel</string>
     <string name="primary_edit_enabled">Enabled</string>
     <string name="primary_edit_cmd_hint">Search_CMD (API id)</string>
-    <string name="primary_add_api">Add API</string>
-    <string name="primary_api_new_display_name">New API</string>
     <string name="primary_save_need_cmd">Enter at least one API id before saving (e.g. musicbrainz).</string>
-    <string name="primary_edit_need_one">Keep at least one primary API entry.</string>
 
     <!-- Redacted API -->
     <string name="redacted_need_api_key">Add your Redacted API key in Settings (Authorization header).</string>

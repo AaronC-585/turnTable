@@ -4,8 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -23,7 +21,7 @@ class SettingsActivity : AppCompatActivity() {
     private val editListLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        // Reload spinners after edit.
+        // Reload listboxes after edit.
         loadListsAndBind()
     }
 
@@ -63,13 +61,12 @@ class SettingsActivity : AppCompatActivity() {
             SearchPrefs.THEME_DARK to getString(R.string.theme_dark),
             SearchPrefs.THEME_FOLLOW_SYSTEM to getString(R.string.theme_follow_system),
         )
-        binding.spinnerTheme.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            themeChoices.map { it.second }
-        )
         val themeIndex = themeChoices.indexOfFirst { it.first == prefs.themeMode }.takeIf { it >= 0 } ?: 2
-        binding.spinnerTheme.setSelection(themeIndex.coerceIn(0, themeChoices.size - 1))
+        ListViewSingleChoice.bindStrings(
+            binding.listTheme,
+            themeChoices.map { it.second },
+            themeIndex.coerceIn(0, themeChoices.size - 1),
+        )
 
         loadListsAndBind()
 
@@ -77,17 +74,16 @@ class SettingsActivity : AppCompatActivity() {
         binding.editTheAudioDbApiKey.setText(prefs.theAudioDbApiKey ?: "")
 
         browserEntries = getSecondaryBrowserList()
-        binding.spinnerSecondaryBrowser.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            browserEntries.map { it.label }
-        )
         val savedSecondaryPackage = prefs.secondaryBrowserPackage
         val secondaryBrowserIndex = when {
             savedSecondaryPackage == null -> 0
             else -> browserEntries.indexOfFirst { it.packageName == savedSecondaryPackage }.takeIf { it >= 0 } ?: 0
         }
-        binding.spinnerSecondaryBrowser.setSelection(secondaryBrowserIndex.coerceIn(0, browserEntries.size - 1))
+        ListViewSingleChoice.bindStrings(
+            binding.listSecondaryBrowser,
+            browserEntries.map { it.label },
+            secondaryBrowserIndex.coerceIn(0, browserEntries.size - 1),
+        )
 
         binding.buttonEditPrimaryList.setOnClickListener {
             editListLauncher.launch(Intent(this, EditPrimaryApiListActivity::class.java))
@@ -124,7 +120,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.buttonSave.setOnClickListener {
-            val themePos = binding.spinnerTheme.selectedItemPosition.coerceIn(0, themeChoices.size - 1)
+            val themePos = ListViewSingleChoice.selectedIndex(binding.listTheme).coerceIn(0, themeChoices.size - 1)
             val newTheme = themeChoices[themePos].first
             if (newTheme != prefs.themeMode) {
                 prefs.themeMode = newTheme
@@ -139,7 +135,7 @@ class SettingsActivity : AppCompatActivity() {
             prefs.theAudioDbApiKey = binding.editTheAudioDbApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.secondarySearchUrl = binding.editSecondaryUrl.text.normalizeUrlInput().takeIf { it.isNotBlank() }
             prefs.secondarySearchAutoFromMusicBrainz = binding.checkSecondaryAutoMusicBrainz.isChecked
-            val secondaryBrowserPos = binding.spinnerSecondaryBrowser.selectedItemPosition.coerceIn(0, browserEntries.size - 1)
+            val secondaryBrowserPos = ListViewSingleChoice.selectedIndex(binding.listSecondaryBrowser).coerceIn(0, browserEntries.size - 1)
             prefs.secondaryBrowserPackage = browserEntries.getOrNull(secondaryBrowserPos)?.packageName
             Toast.makeText(this, R.string.settings_saved_toast, Toast.LENGTH_SHORT).show()
             finish()
@@ -156,23 +152,18 @@ class SettingsActivity : AppCompatActivity() {
 
         secondaryPresets = SearchPresets.secondaryTrackers(this)
 
-        binding.spinnerSecondaryPreset.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            secondaryPresets.map { it.name }
-        )
         val currentSecondaryUrl = prefs.secondarySearchUrl
         val secondaryPresetIndex = secondaryPresets.indexOfFirst { it.url == currentSecondaryUrl }.takeIf { it >= 0 } ?: 0
-        binding.spinnerSecondaryPreset.setSelection(secondaryPresetIndex)
         binding.editSecondaryUrl.setText(currentSecondaryUrl ?: "")
-        binding.spinnerSecondaryPreset.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val preset = secondaryPresets[position]
-                if (preset.id != SearchPresets.CUSTOM_ID) {
-                    binding.editSecondaryUrl.setText(preset.url)
-                }
+        ListViewSingleChoice.bindStrings(
+            binding.listSecondaryPreset,
+            secondaryPresets.map { it.name },
+            secondaryPresetIndex.coerceIn(0, secondaryPresets.size.coerceAtLeast(1) - 1),
+        ) { position ->
+            val preset = secondaryPresets.getOrNull(position) ?: return@bindStrings
+            if (preset.id != SearchPresets.CUSTOM_ID) {
+                binding.editSecondaryUrl.setText(preset.url)
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
         binding.checkSecondaryAutoMusicBrainz.isChecked = prefs.secondarySearchAutoFromMusicBrainz
     }

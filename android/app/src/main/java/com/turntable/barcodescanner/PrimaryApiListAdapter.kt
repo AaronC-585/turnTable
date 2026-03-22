@@ -11,7 +11,6 @@ import com.turntable.barcodescanner.databinding.ItemPrimaryApiBinding
 class PrimaryApiListAdapter(
     private val entries: MutableList<SearchPresets.PrimaryApiEntry>,
     private val startDrag: (RecyclerView.ViewHolder) -> Unit,
-    private val onRemoveBlocked: () -> Unit,
 ) : RecyclerView.Adapter<PrimaryApiListAdapter.Vh>() {
 
     inner class Vh(val binding: ItemPrimaryApiBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -81,18 +80,6 @@ class PrimaryApiListAdapter(
             }
         }
         binding.editCmd.addTextChangedListener(holder.cmdWatcher)
-
-        binding.buttonDelete.setOnClickListener {
-            val pos = holder.bindingAdapterPosition
-            if (pos !in entries.indices) return@setOnClickListener
-            if (entries.size <= 1) {
-                onRemoveBlocked()
-                return@setOnClickListener
-            }
-            entries.removeAt(pos)
-            notifyItemRemoved(pos)
-            notifyItemRangeChanged(pos, entries.size - pos)
-        }
 
         binding.dragHandle.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN) {

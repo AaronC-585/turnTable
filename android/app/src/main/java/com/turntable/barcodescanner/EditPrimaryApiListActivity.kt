@@ -33,9 +33,6 @@ class EditPrimaryApiListActivity : AppCompatActivity() {
         adapter = PrimaryApiListAdapter(
             entries = entries,
             startDrag = { holder -> itemTouchHelper.startDrag(holder) },
-            onRemoveBlocked = {
-                Toast.makeText(this, R.string.primary_edit_need_one, Toast.LENGTH_SHORT).show()
-            },
         )
         recycler.adapter = adapter
 
@@ -64,19 +61,6 @@ class EditPrimaryApiListActivity : AppCompatActivity() {
             },
         )
         itemTouchHelper.attachToRecyclerView(recycler)
-
-        binding.buttonAdd.setOnClickListener {
-            entries.add(
-                SearchPresets.PrimaryApiEntry(
-                    cmd = "",
-                    enabled = true,
-                    displayName = getString(R.string.primary_api_new_display_name),
-                ),
-            )
-            val pos = entries.lastIndex
-            adapter.notifyItemInserted(pos)
-            recycler.post { recycler.smoothScrollToPosition(pos) }
-        }
 
         binding.buttonSave.setOnClickListener {
             if (entries.none { it.cmd.isNotBlank() }) {

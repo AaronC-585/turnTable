@@ -2,8 +2,6 @@ package com.turntable.barcodescanner
 
 import android.os.Bundle
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivityEditSecondaryListBinding
@@ -13,7 +11,6 @@ class EditSecondaryListActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEditSecondaryListBinding
     private val list = mutableListOf<SearchPresets.Preset>()
     private var selectedIndex = 0
-    private var ignoreSpinnerSelection = false
 
     private val httpMethods = listOf(SearchPrefs.METHOD_GET, SearchPrefs.METHOD_POST)
 
@@ -32,21 +29,11 @@ class EditSecondaryListActivity : AppCompatActivity() {
         binding.editPostBody.setText(prefs.postBody ?: """{"code":"%s"}""")
         binding.editPostHeaders.setText(prefs.postHeaders ?: "")
 
-        binding.spinnerMethod.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            httpMethods,
-        )
         val methodIndex = httpMethods.indexOf(prefs.method).coerceAtLeast(0)
-        binding.spinnerMethod.setSelection(methodIndex)
-        updatePostOptionsVisibility(httpMethods[methodIndex] == SearchPrefs.METHOD_POST)
-
-        binding.spinnerMethod.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updatePostOptionsVisibility(httpMethods[position] == SearchPrefs.METHOD_POST)
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        ListViewSingleChoice.bindStrings(binding.listMethod, httpMethods, methodIndex) { position ->
+            updatePostOptionsVisibility(httpMethods[position] == SearchPrefs.METHOD_POST)
         }
+        updatePostOptionsVisibility(httpMethods[methodIndex] == SearchPrefs.METHOD_POST)
 
         binding.textSecondaryVariablesHelp.text = buildString {
             appendLine(getString(R.string.secondary_variables_get_header))
@@ -64,20 +51,7 @@ class EditSecondaryListActivity : AppCompatActivity() {
         list.clear()
         list.addAll(saved ?: SearchPresets.secondaryTrackersDefault)
 
-        binding.spinnerPresets.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            list.map { it.name }
-        )
-        binding.spinnerPresets.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (ignoreSpinnerSelection) return
-                saveCurrentToIndex(selectedIndex)
-                selectedIndex = position.coerceIn(0, list.size - 1)
-                showPresetAt(selectedIndex)
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
+        bindPresetList()
 
         binding.editName.setOnFocusChangeListener { _, hasFocus -> if (!hasFocus) saveCurrentToIndex(selectedIndex) }
         binding.editUrl.setOnFocusChangeListener { _, hasFocus -> if (!hasFocus) saveCurrentToIndex(selectedIndex) }
@@ -87,7 +61,8 @@ class EditSecondaryListActivity : AppCompatActivity() {
             if (selectedIndex > 0) {
                 list.removeAt(selectedIndex).let { list.add(selectedIndex - 1, it) }
                 selectedIndex--
-                refreshSpinnerAndSelection()
+                refreshPresetListAndSelection()
+                showPresetAt(selectedIndex)
             }
         }
         binding.buttonMoveDown.setOnClickListener {
@@ -95,7 +70,8 @@ class EditSecondaryListActivity : AppCompatActivity() {
             if (selectedIndex < list.size - 1) {
                 list.removeAt(selectedIndex).let { list.add(selectedIndex + 1, it) }
                 selectedIndex++
-                refreshSpinnerAndSelection()
+                refreshPresetListAndSelection()
+                showPresetAt(selectedIndex)
             }
         }
         binding.buttonRemove.setOnClickListener {
@@ -106,14 +82,14 @@ class EditSecondaryListActivity : AppCompatActivity() {
             saveCurrentToIndex(selectedIndex)
             list.removeAt(selectedIndex)
             selectedIndex = selectedIndex.coerceIn(0, list.size - 1)
-            refreshSpinnerAndSelection()
+            refreshPresetListAndSelection()
             showPresetAt(selectedIndex)
         }
         binding.buttonAdd.setOnClickListener {
             saveCurrentToIndex(selectedIndex)
             list.add(SearchPresets.Preset(SearchPresets.CUSTOM_ID, "New search", "https://example.com/search?q=%s"))
             selectedIndex = list.size - 1
-            refreshSpinnerAndSelection()
+            refreshPresetListAndSelection()
             showPresetAt(selectedIndex)
         }
 
@@ -126,7 +102,7 @@ class EditSecondaryListActivity : AppCompatActivity() {
             }
             if (selectedIndex in list.indices) list[selectedIndex] = list[selectedIndex].copy(name = name, url = url)
             prefs.secondaryListText = SearchPresets.serializeSecondaryList(list)
-            val mPos = binding.spinnerMethod.selectedItemPosition.coerceIn(0, httpMethods.lastIndex)
+            val mPos = ListViewSingleChoice.selectedIndex(binding.listMethod).coerceIn(0, httpMethods.lastIndex)
             prefs.method = httpMethods[mPos]
             prefs.postContentType = binding.editContentType.text?.toString()?.trim()
             prefs.postBody = binding.editPostBody.text?.toString()?.trim()
@@ -141,6 +117,14 @@ class EditSecondaryListActivity : AppCompatActivity() {
 
     private val prefs: SearchPrefs get() = SearchPrefs(this)
 
+    private fun bindPresetList() {
+        ListViewSingleChoice.bindStrings(binding.listPresets, list.map { it.name }, selectedIndex.coerceIn(0, list.lastIndex.coerceAtLeast(0))) { position ->
+            saveCurrentToIndex(selectedIndex)
+            selectedIndex = position.coerceIn(0, list.size - 1)
+            showPresetAt(selectedIndex)
+        }
+    }
+
     private fun saveCurrentToIndex(index: Int) {
         if (index !in list.indices) return
         val name = binding.editName.text?.toString()?.trim().orEmpty()
@@ -150,22 +134,17 @@ class EditSecondaryListActivity : AppCompatActivity() {
 
     private fun showPresetAt(index: Int) {
         if (index !in list.indices) return
-        ignoreSpinnerSelection = true
         binding.editName.setText(list[index].name)
         binding.editUrl.setText(list[index].url)
-        binding.spinnerPresets.setSelection(index)
-        ignoreSpinnerSelection = false
+        binding.listPresets.post {
+            if (index in list.indices) {
+                binding.listPresets.setItemChecked(index, true)
+            }
+        }
     }
 
-    private fun refreshSpinnerAndSelection() {
-        ignoreSpinnerSelection = true
-        binding.spinnerPresets.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            list.map { it.name }
-        )
-        binding.spinnerPresets.setSelection(selectedIndex.coerceIn(0, list.size - 1))
-        ignoreSpinnerSelection = false
+    private fun refreshPresetListAndSelection() {
+        bindPresetList()
     }
 
     private fun updatePostOptionsVisibility(show: Boolean) {

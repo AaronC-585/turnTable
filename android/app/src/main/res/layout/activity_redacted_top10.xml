@@ -15,17 +15,29 @@
         app:titleTextColor="@color/app_text_primary"
         app:navigationIconTint="@color/app_icon_emphasis" />
 
-    <Spinner
-        android:id="@+id/spinnerType"
+    <ListView
+        android:id="@+id/listType"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp" />
+        android:layout_height="132dp"
+        android:layout_margin="8dp"
+        android:background="@drawable/redacted_listbox_background"
+        android:choiceMode="singleChoice"
+        android:divider="@color/app_stroke_browse_card"
+        android:dividerHeight="1dp"
+        android:paddingVertical="4dp"
+        android:scrollbars="vertical" />
 
-    <Spinner
-        android:id="@+id/spinnerLimit"
+    <ListView
+        android:id="@+id/listLimit"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="8dp" />
+        android:layout_height="120dp"
+        android:layout_marginHorizontal="8dp"
+        android:background="@drawable/redacted_listbox_background"
+        android:choiceMode="singleChoice"
+        android:divider="@color/app_stroke_browse_card"
+        android:dividerHeight="1dp"
+        android:paddingVertical="4dp"
+        android:scrollbars="vertical" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonLoad"

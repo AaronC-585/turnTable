@@ -2,6 +2,12 @@
 
 All notable changes to the turnTable / 1D Barcode Scanner project are documented here.
 
+## [2026.3.22.32] — Android production release
+
+- **UI — listboxes (Android):** Replaced **Spinner** dropdowns with in-place **single-choice ListViews** (scrollable listboxes) on Settings (theme, secondary preset, browser), secondary list editor, Redacted browse filters / order, Top 10 / Bookmarks / User torrents, and the torrent-group format picker dialog. Shared **`ListViewSingleChoice`** helper and listbox background drawable.
+- **Primary APIs (Settings):** Removed **Add** and per-row **Remove**; list is fixed-size for reorder/toggle/edit only. **Enabled** label is **right-aligned** beside the switch.
+- **Release:** APK only from Linux; upload iOS IPA when ready per **RELEASE.md**.
+
 ## [2026.3.22.11] — Android production release
 
 - **Theming / forms (Android):** Shared `Widget.Redacted.*` styles for outlined TextInputs, Material buttons, spinner, switch; night theme parity. Bottom shortcut dock uses one solid bar color so icon tiles don’t show seams.

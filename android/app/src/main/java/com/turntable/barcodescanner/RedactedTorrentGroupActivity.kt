@@ -23,7 +23,7 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.Spinner
+import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -615,17 +615,13 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             text = getString(R.string.redacted_edition_pick_format)
             setTextColor(ContextCompat.getColor(this@RedactedTorrentGroupActivity, R.color.app_text_primary))
         }
-        val spinner = Spinner(this)
+        val formatList = ListView(this)
         val formatLabels = bucketListIndices.map { idx ->
             torrentObjects.getOrNull(idx)?.let { t ->
                 buildTorrentTitleLine(t, RedactedGazelleTorrentUser.isUserSeedingTorrent(t))
             } ?: "—"
         }
-        spinner.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            formatLabels,
-        )
+        ListViewSingleChoice.bindStrings(formatList, formatLabels, 0)
         val useTokenSwitch = SwitchMaterial(this).apply {
             text = getString(R.string.redacted_use_token)
         }
@@ -654,12 +650,13 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             )
         }
         root.addView(fmtLabel)
-        val lpSpinner = LinearLayout.LayoutParams(
+        val listH = (200 * resources.displayMetrics.density).toInt()
+        val lpFormatList = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
+            listH,
         )
-        lpSpinner.topMargin = pad / 2
-        root.addView(spinner, lpSpinner)
+        lpFormatList.topMargin = pad / 2
+        root.addView(formatList, lpFormatList)
         if (showFlSwitch) {
             val lpSw = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -692,7 +689,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         root.addView(permalink, lpPl)
 
         fun selectedListIndex(): Int =
-            bucketListIndices[spinner.selectedItemPosition.coerceIn(bucketListIndices.indices)]
+            bucketListIndices[ListViewSingleChoice.selectedIndex(formatList).coerceIn(bucketListIndices.indices)]
         fun selectedTorrentId(): Int? = torrentIds.getOrNull(selectedListIndex())
 
         val dialog = MaterialAlertDialogBuilder(this)

@@ -3,7 +3,6 @@ package com.turntable.barcodescanner
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -24,6 +23,9 @@ class RedactedTop10Activity : AppCompatActivity() {
     private lateinit var binding: ActivityRedactedTop10Binding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
 
+    private val top10Types = listOf("torrents", "tags", "users")
+    private val top10Limits = listOf("10", "100", "250")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val c = RedactedUiHelper.requireApi(this) ?: return
@@ -35,16 +37,8 @@ class RedactedTop10Activity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
 
-        binding.spinnerType.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            listOf("torrents", "tags", "users"),
-        )
-        binding.spinnerLimit.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            listOf("10", "100", "250"),
-        )
+        ListViewSingleChoice.bindStrings(binding.listType, top10Types, 0)
+        ListViewSingleChoice.bindStrings(binding.listLimit, top10Limits, 0)
 
         val adapter = TwoLineRowsAdapter { /* read-only list */ }
         binding.recycler.layoutManager = LinearLayoutManager(this)
@@ -54,8 +48,8 @@ class RedactedTop10Activity : AppCompatActivity() {
     }
 
     private fun loadTop10(adapter: TwoLineRowsAdapter) {
-        val type = binding.spinnerType.selectedItem.toString()
-        val limit = binding.spinnerLimit.selectedItem.toString().toIntOrNull() ?: 10
+        val type = top10Types[ListViewSingleChoice.selectedIndex(binding.listType).coerceIn(top10Types.indices)]
+        val limit = top10Limits[ListViewSingleChoice.selectedIndex(binding.listLimit).coerceIn(top10Limits.indices)].toIntOrNull() ?: 10
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.top10(type, limit)
@@ -126,6 +120,7 @@ class RedactedBookmarksActivity : AppCompatActivity() {
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private val groupIds = mutableListOf<Int>()
     private val artistIds = mutableListOf<Int>()
+    private val bookmarkTypes = listOf("torrents", "artists")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -138,14 +133,10 @@ class RedactedBookmarksActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
 
-        binding.spinnerType.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            listOf("torrents", "artists"),
-        )
+        ListViewSingleChoice.bindStrings(binding.listType, bookmarkTypes, 0)
 
         val adapter = TwoLineRowsAdapter { pos ->
-            when (binding.spinnerType.selectedItemPosition) {
+            when (ListViewSingleChoice.selectedIndex(binding.listType)) {
                 0 -> {
                     val gid = groupIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
                     startActivity(
@@ -169,7 +160,7 @@ class RedactedBookmarksActivity : AppCompatActivity() {
     }
 
     private fun loadBookmarks(adapter: TwoLineRowsAdapter) {
-        val type = binding.spinnerType.selectedItem.toString()
+        val type = bookmarkTypes[ListViewSingleChoice.selectedIndex(binding.listType).coerceIn(bookmarkTypes.indices)]
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.bookmarks(type)
@@ -306,6 +297,7 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRedactedUserTorrentsBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private val groupIds = mutableListOf<Int>()
+    private val userTorrentTypes = listOf("seeding", "leeching", "uploaded", "snatched")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -318,11 +310,7 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
 
-        binding.spinnerType.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_dropdown_item,
-            listOf("seeding", "leeching", "uploaded", "snatched"),
-        )
+        ListViewSingleChoice.bindStrings(binding.listType, userTorrentTypes, 0)
 
         val adapter = TwoLineRowsAdapter { pos ->
             val gid = groupIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
@@ -351,7 +339,7 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.redacted_invalid_id, Toast.LENGTH_SHORT).show()
             return
         }
-        val type = binding.spinnerType.selectedItem.toString()
+        val type = userTorrentTypes[ListViewSingleChoice.selectedIndex(binding.listType).coerceIn(userTorrentTypes.indices)]
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.userTorrents(uid, type, limit = 100)

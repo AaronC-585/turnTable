@@ -53,14 +53,17 @@
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
-        <Spinner
-            android:id="@+id/spinnerTheme"
+        <ListView
+            android:id="@+id/listTheme"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:layout_marginBottom="20dp" />
+            android:layout_height="144dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/redacted_listbox_background"
+            android:choiceMode="singleChoice"
+            android:divider="@color/app_stroke_browse_card"
+            android:dividerHeight="1dp"
+            android:paddingVertical="4dp"
+            android:scrollbars="vertical" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -230,14 +233,17 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
 
-        <Spinner
-            android:id="@+id/spinnerSecondaryPreset"
+        <ListView
+            android:id="@+id/listSecondaryPreset"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="200dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/redacted_listbox_background"
+            android:choiceMode="singleChoice"
+            android:divider="@color/app_stroke_browse_card"
+            android:dividerHeight="1dp"
+            android:paddingVertical="4dp"
+            android:scrollbars="vertical" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonEditSecondaryList"
@@ -281,14 +287,17 @@
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
-        <Spinner
-            android:id="@+id/spinnerSecondaryBrowser"
+        <ListView
+            android:id="@+id/listSecondaryBrowser"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:layout_marginBottom="8dp" />
+            android:layout_height="280dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/redacted_listbox_background"
+            android:choiceMode="singleChoice"
+            android:divider="@color/app_stroke_browse_card"
+            android:dividerHeight="1dp"
+            android:paddingVertical="4dp"
+            android:scrollbars="vertical" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkSecondaryAutoMusicBrainz"
