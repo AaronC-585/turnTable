@@ -58,10 +58,33 @@ else
   echo "Created release $TAG with APK only; upload IPA when ready: gh release upload $TAG <file>.ipa"
 fi
 
-# In-app update fallback reads this from raw.githubusercontent.com (see GithubAppUpdateChecker).
+# In-app update manifest (raw.githubusercontent.com); see GithubAppUpdateChecker.
+NAME_OWNER="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
+OWNER="${NAME_OWNER%%/*}"
+REPO="${NAME_OWNER#*/}"
+VERSION_PLAIN="${TAG#v}"
+APK_BASENAME="$(basename "$APK")"
+APK_URL="https://github.com/${OWNER}/${REPO}/releases/download/${TAG}/${APK_BASENAME}"
+MANIFEST="$ROOT/CurrentVersion.json"
+IPA_JSON_SUFFIX=""
+if [[ -n "$IPA" ]]; then
+  IPA_JSON_SUFFIX=",
+    \"ipa\": \"https://github.com/${OWNER}/${REPO}/releases/download/${TAG}/$(basename "$IPA")\""
+fi
+{
+  echo "{"
+  echo "    \"version\": \"${VERSION_PLAIN}\","
+  echo "    \"releasePageUrl\": \"https://github.com/${OWNER}/${REPO}/releases/latest\","
+  echo "    \"assets\": {"
+  echo "        \"apk\": \"${APK_URL}\"${IPA_JSON_SUFFIX}"
+  echo "    }"
+  echo "}"
+} > "$MANIFEST"
+echo "Wrote $MANIFEST — commit and push so the update check sees the new version on your default branch."
+
 VERSION_FILE="$ROOT/android/app/update-check-latest-version.txt"
 {
-  echo "# Latest Android release version (no leading v). Updated by scripts/release-github.sh."
-  echo "${TAG#v}"
+  echo "# Latest Android release version (no leading v). Legacy plain-text fallback for the in-app updater."
+  echo "${VERSION_PLAIN}"
 } > "$VERSION_FILE"
-echo "Wrote $VERSION_FILE — commit and push so the update check sees the new version on your default branch."
+echo "Wrote $VERSION_FILE (legacy fallback)."

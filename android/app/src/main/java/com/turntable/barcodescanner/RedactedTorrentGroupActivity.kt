@@ -333,7 +333,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         val base = "${t.optString("format")} / ${t.optString("encoding")} / ${t.optString("media")}"
         val status = t.optString("userStatus").trim()
         if (status.isBlank()) return base
-        // µ icon denotes seeding; avoid duplicating “Seeding” in the title line.
+        // Acorn in the row denotes seeding; avoid duplicating “Seeding” in the title line.
         if (isUserSeeding && RedactedGazelleTorrentUser.isUserSeeding(status)) return base
         return "$base — $status"
     }

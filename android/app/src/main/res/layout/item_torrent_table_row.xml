@@ -28,7 +28,7 @@
             android:importantForAccessibility="no"
             android:scaleType="fitCenter"
             android:visibility="gone"
-            app:srcCompat="@drawable/ic_utorrent_seed"
+            app:srcCompat="@drawable/ic_acorn_seeding"
             app:tint="@null" />
         <!-- Vector sets its own stroke color; @null tint keeps drawable colors -->
 

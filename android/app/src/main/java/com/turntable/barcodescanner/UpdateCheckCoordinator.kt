@@ -29,7 +29,7 @@ object UpdateCheckCoordinator {
     private const val BACKGROUND_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000
 
     fun requestBackgroundCheckIfDue(activity: AppCompatActivity) {
-        if (GithubAppUpdateChecker.latestReleaseApiUrl(activity) == null) return
+        if (!GithubAppUpdateChecker.isGithubUpdateConfigured(activity)) return
         val prefs = UpdatePrefs(activity)
         val now = System.currentTimeMillis()
         if (now - prefs.lastBackgroundCheckWallTimeMs < BACKGROUND_CHECK_INTERVAL_MS) return
@@ -58,7 +58,7 @@ object UpdateCheckCoordinator {
     }
 
     fun checkManually(activity: AppCompatActivity) {
-        if (GithubAppUpdateChecker.latestReleaseApiUrl(activity) == null) {
+        if (!GithubAppUpdateChecker.isGithubUpdateConfigured(activity)) {
             Toast.makeText(
                 activity,
                 R.string.github_update_not_configured,
@@ -77,12 +77,27 @@ object UpdateCheckCoordinator {
                         if (GithubAppUpdateChecker.isRemoteNewerThanLocal(info.tagNameRaw, localVer)) {
                             val apkUrl = info.apkBrowserDownloadUrl?.trim().orEmpty()
                             if (apkUrl.isNotEmpty()) {
-                                Toast.makeText(
-                                    activity,
-                                    R.string.github_update_auto_downloading,
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                                startVisibleApkDownload(activity, apkUrl)
+                                val sp = SearchPrefs(activity)
+                                if (sp.downloadOverWifiOnly &&
+                                    !DownloadNetworkPolicy.allowsLargeDownload(activity, true)
+                                ) {
+                                    Toast.makeText(
+                                        activity,
+                                        R.string.github_update_wifi_only_blocked,
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                                    showUpdateDialog(activity, info, localVer) {
+                                        UpdatePrefs(activity).skippedReleaseTag =
+                                            GithubAppUpdateChecker.normalizedTag(info.tagNameRaw)
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        activity,
+                                        R.string.github_update_auto_downloading,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                    startVisibleApkDownload(activity, apkUrl)
+                                }
                             } else {
                                 showUpdateDialog(activity, info, localVer) {
                                     UpdatePrefs(activity).skippedReleaseTag =
@@ -167,6 +182,16 @@ object UpdateCheckCoordinator {
 
     /** In-app download with progress, then system package installer (FileProvider). */
     private fun startVisibleApkDownload(activity: AppCompatActivity, apkUrl: String) {
+        if (SearchPrefs(activity).downloadOverWifiOnly &&
+            !DownloadNetworkPolicy.allowsLargeDownload(activity, true)
+        ) {
+            Toast.makeText(
+                activity,
+                R.string.github_update_wifi_only_blocked,
+                Toast.LENGTH_LONG,
+            ).show()
+            return
+        }
         OutgoingUrlLog.log("GET", apkUrl)
         val view = LayoutInflater.from(activity).inflate(R.layout.dialog_github_apk_download, null)
         val textStatus = view.findViewById<TextView>(R.id.textDownloadStatus)

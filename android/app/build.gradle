@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+import groovy.util.XmlSlurper
 import java.time.ZoneId
 
 plugins {
@@ -161,3 +163,40 @@ tasks.register("printAppVersion") {
         println "${versionNameAuto} (${versionCodeAuto})"
     }
 }
+
+/**
+ * Writes [CurrentVersion.json] at the git repo root with [versionNameAuto], [releasePageUrl], and
+ * [assets.apk] (URLs from [github_update_owner] / [github_update_repo] in github_update.xml).
+ * Same [version] as android.defaultConfig.versionName. Runs before every :app build.
+ */
+tasks.register("writeCurrentVersion") {
+    doLast {
+        def repoRoot = rootProject.projectDir.parentFile
+        def outFile = new File(repoRoot, "CurrentVersion.json")
+        def owner = ""
+        def repo = ""
+        def xmlFile = file("src/main/res/values/github_update.xml")
+        if (xmlFile.exists()) {
+            try {
+                def parsed = new XmlSlurper().parse(xmlFile)
+                parsed.string.each { s ->
+                    def n = s.@name?.toString()
+                    if ("github_update_owner" == n) owner = s.text().trim()
+                    if ("github_update_repo" == n) repo = s.text().trim()
+                }
+            } catch (Exception e) {
+                logger.warn("writeCurrentVersion: could not parse github_update.xml: ${e.message}")
+            }
+        }
+        def releasePage = (owner && repo) ? "https://github.com/${owner}/${repo}/releases/latest" : ""
+        def apkAsset = (owner && repo) ? "https://github.com/${owner}/${repo}/releases/download/v${versionNameAuto}/turnTable.release-${versionNameAuto}.apk" : ""
+        def payload = [
+            version         : versionNameAuto,
+            releasePageUrl  : releasePage,
+            assets          : [apk: apkAsset],
+        ]
+        outFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(payload)) + System.lineSeparator()
+    }
+}
+
+tasks.named("preBuild").configure { dependsOn("writeCurrentVersion") }

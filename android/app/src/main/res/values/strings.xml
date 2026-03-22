@@ -97,6 +97,7 @@
     <string name="search_filled_from_redacted">Filled from Redacted (first match)</string>
     <string name="search_no_redacted_hit">No Redacted match; kept your search text</string>
     <string name="beep_on_scan">Beep on successful scan</string>
+    <string name="pref_download_wifi_only">Downloads over Wi‑Fi only</string>
     <string name="settings_theme">Theme</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
@@ -328,6 +329,7 @@
     <string name="redacted_send_pm">Send PM</string>
     <string name="redacted_notifications">Notifications</string>
     <string name="redacted_announcements">Announcements</string>
+    <string name="redacted_announcement_image_cd">Announcement image</string>
     <string name="redacted_user_search">User search</string>
     <string name="redacted_friends_title">Friends</string>
     <string name="redacted_friends_section_list">Your list</string>
@@ -445,6 +447,7 @@
     <string name="github_update_not_configured">GitHub update check isn’t configured. Add your GitHub user or org in github_update.xml (github_update_owner), then rebuild.</string>
     <string name="github_update_checking">Checking GitHub…</string>
     <string name="github_update_auto_downloading">Update available — downloading…</string>
+    <string name="github_update_wifi_only_blocked">Wi‑Fi only is on — connect to Wi‑Fi to download the update, or use “Open release page”.</string>
     <string name="github_update_enable_unknown_sources_hint">Allow installs from this app in Settings, then use Check for updates again (or your file manager) to install the downloaded APK.</string>
     <string name="github_update_dialog_title">Update available</string>
     <string name="github_update_dialog_summary_fmt">Installed: %1$s\nLatest release: %2$s</string>

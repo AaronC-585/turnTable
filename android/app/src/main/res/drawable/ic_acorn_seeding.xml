@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Acorn mark for “you are seeding” (torrent lists). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Cap -->
+    <path
+        android:fillColor="@color/app_icon_emphasis"
+        android:pathData="M9,4.5 L15,4.5 L16.2,8.2 L7.8,8.2 Z" />
+    <!-- Nut -->
+    <path
+        android:fillColor="@color/app_icon_emphasis"
+        android:pathData="M8,8.5 Q12,7.2 16,8.5 Q18.2,12 16.4,16.3 Q14.2,19.8 12,20.3 Q9.8,19.8 7.6,16.3 Q5.8,12 8,8.5 Z" />
+</vector>

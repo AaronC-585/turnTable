@@ -7,6 +7,26 @@ import org.json.JSONObject
  */
 object RedactedAnnouncementHtml {
 
+    private val imgTagRegex = Regex("""<img\b[^>]*>""", RegexOption.IGNORE_CASE)
+
+    /**
+     * `src` values from `<img>` tags in announcement HTML / BBCode output (absolute URLs or site-relative).
+     */
+    fun extractImageSrcs(html: String): List<String> {
+        if (html.isBlank()) return emptyList()
+        val srcRegex =
+            Regex("""<img[^>]+src\s*=\s*["']?([^"'>\s]+)["']?""", RegexOption.IGNORE_CASE)
+        return srcRegex.findAll(html)
+            .map { it.groupValues[1].trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .toList()
+    }
+
+    /** Removes `<img …>` so [HtmlCompat.fromHtml] in a [android.widget.TextView] does not show broken placeholders. */
+    fun stripImgTags(html: String): String =
+        if (html.isBlank()) html else imgTagRegex.replace(html, "")
+
     /** Prefer API `body` (HTML); otherwise convert `bbBody`. */
     fun contentHtml(o: JSONObject): String {
         val body = o.optString("body").trim()

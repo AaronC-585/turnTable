@@ -8,8 +8,10 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -25,11 +27,48 @@ class MainActivity : AppCompatActivity() {
     private var lastCode: String? = null
     private var lastCodeTime = 0L
     private val throttleMs = 1500L
+    private var camera: Camera? = null
+    private var torchEnabled = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        binding.topToolbar.inflateMenu(R.menu.main_toolbar_menu)
+        binding.topToolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_home -> {
+                    navigateToHome()
+                    true
+                }
+                R.id.action_settings -> {
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                    true
+                }
+                R.id.action_history -> {
+                    startActivity(Intent(this, SearchHistoryActivity::class.java))
+                    true
+                }
+                R.id.action_flashlight -> {
+                    toggleFlashlight()
+                    true
+                }
+                R.id.action_redacted -> {
+                    if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
+                        Toast.makeText(
+                            this,
+                            R.string.redacted_need_api_key,
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    } else {
+                        startActivity(Intent(this, RedactedBrowseActivity::class.java))
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
 
         if (!hasCameraPermission()) {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA)
@@ -82,10 +121,22 @@ class MainActivity : AppCompatActivity() {
 
         try {
             provider.unbindAll()
-            provider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
+            camera = provider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
+            torchEnabled = false
         } catch (e: Exception) {
             Log.e(TAG, "Bind failed", e)
         }
+    }
+
+    private fun toggleFlashlight() {
+        val c = camera ?: return
+        val hasFlash = c.cameraInfo.hasFlashUnit()
+        if (!hasFlash) {
+            Log.w(TAG, "Flash unit not available on this camera")
+            return
+        }
+        torchEnabled = !torchEnabled
+        c.cameraControl.enableTorch(torchEnabled)
     }
 
     private fun analyze(imageProxy: ImageProxy) {

@@ -56,6 +56,7 @@ class SettingsActivity : AppCompatActivity() {
         val prefs = SearchPrefs(this)
 
         binding.checkBeepOnScan.isChecked = prefs.beepOnScan
+        binding.checkDownloadWifiOnly.isChecked = prefs.downloadOverWifiOnly
 
         val themeChoices = listOf(
             SearchPrefs.THEME_LIGHT to getString(R.string.theme_light),
@@ -133,6 +134,7 @@ class SettingsActivity : AppCompatActivity() {
             }
 
             prefs.beepOnScan = binding.checkBeepOnScan.isChecked
+            prefs.downloadOverWifiOnly = binding.checkDownloadWifiOnly.isChecked
             prefs.redactedApiKey = binding.editRedactedApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.theAudioDbApiKey = binding.editTheAudioDbApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.secondarySearchUrl = binding.editSecondaryUrl.text.normalizeUrlInput().takeIf { it.isNotBlank() }

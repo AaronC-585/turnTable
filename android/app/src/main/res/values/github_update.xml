@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Update checks:
-  1) GET https://api.github.com/repos/{owner}/{repo}/releases/latest (when it succeeds).
-  2) Fallback: plain-text file in this repo at android/app/update-check-latest-version.txt
-     served as https://raw.githubusercontent.com/{owner}/{repo}/{ref}/android/app/update-check-latest-version.txt
-     (avoids API rate limits / 404 from wrong endpoints).
+  Update checks (raw manifest JSON, no GitHub API):
+  1) CurrentVersion.json at repo root — version, releasePageUrl, assets.apk (URLs). Gradle writes it each :app build;
+     scripts/release-github.sh refreshes it after a release with exact asset URLs.
+  2) Legacy: CurrentVersion.txt (one line) then android/app/update-check-latest-version.txt.
 
-  Set github_update_owner / github_update_repo. Leave owner empty to disable checks.
+  Set github_update_owner / github_update_repo (used by Gradle for default URLs in the manifest). Leave owner empty to disable checks.
   github_update_version_ref = branch or tag for the raw URL (usually main).
 -->
 <resources>

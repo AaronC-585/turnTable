@@ -21,7 +21,7 @@ The **iOS app binary** is built in **Xcode** (`open ios/turnTable.xcodeproj`); `
 
 Publish **Android APK** and **iOS IPA** on each release (attach both to the same tag). See **`RELEASE.md`** and **`scripts/release-github.sh`**.
 
-**In-app update check (Android):** Set `github_update_owner` (and optionally `github_update_version_ref`, usually `main`) in **`android/app/src/main/res/values/github_update.xml`** to your GitHub user or org (same repo as releases). The app calls the public [latest release](https://docs.github.com/en/rest/releases/releases#get-the-latest-release) API when possible; if that fails (e.g. rate limit), it falls back to **`android/app/update-check-latest-version.txt`** via `raw.githubusercontent.com`. **`scripts/release-github.sh`** updates that file when you cut a release—commit and push it so the fallback stays in sync. Tags / version lines use the dotted form (e.g. `v2026.3.19.1373` on GitHub, `2026.3.19.1373` in the text file).
+**In-app update check (Android):** Set `github_update_owner` / `github_update_repo` (and optionally `github_update_version_ref`, usually `main`) in **`android/app/src/main/res/values/github_update.xml`**. The app reads **`CurrentVersion.json`** at the repo root from `raw.githubusercontent.com`: **`version`** (dotted, same as `versionName`), **`releasePageUrl`**, and **`assets.apk`** (full GitHub release download URL). Gradle **`writeCurrentVersion`** (runs on each `:app` preBuild) generates this file; **`scripts/release-github.sh`** rewrites it after a release with the exact APK URL. No GitHub releases API. Legacy fallbacks: **`CurrentVersion.txt`** (one line) and **`android/app/update-check-latest-version.txt`**.
 
 ## Android
 

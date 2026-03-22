@@ -55,6 +55,14 @@ class SearchPrefs(context: Context) {
         set(value) = prefs.edit { putBoolean(KEY_BEEP_ON_SCAN, value) }
 
     /**
+     * If true, large downloads (app update APK, announcement images) run only on Wi‑Fi.
+     * Default false — same behavior as before the setting existed.
+     */
+    var downloadOverWifiOnly: Boolean
+        get() = prefs.getBoolean(KEY_DOWNLOAD_OVER_WIFI_ONLY, false)
+        set(value) = prefs.edit { putBoolean(KEY_DOWNLOAD_OVER_WIFI_ONLY, value) }
+
+    /**
      * UI theme: [THEME_LIGHT], [THEME_DARK], or [THEME_FOLLOW_SYSTEM] (default).
      * Applied at app start and when saved in Settings (see [AppTheme]).
      */
@@ -138,6 +146,7 @@ class SearchPrefs(context: Context) {
         const val KEY_SECONDARY_BROWSER_PACKAGE = "secondary_browser_package"
         const val KEY_SECONDARY_AUTO_MUSICBRAINZ = "secondary_auto_musicbrainz"
         const val KEY_BEEP_ON_SCAN = "beep_on_scan"
+        const val KEY_DOWNLOAD_OVER_WIFI_ONLY = "download_over_wifi_only"
         const val KEY_THEME_MODE = "theme_mode"
 
         const val THEME_LIGHT = "light"

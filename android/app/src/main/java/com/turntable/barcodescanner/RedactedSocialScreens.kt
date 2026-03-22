@@ -587,13 +587,14 @@ class RedactedNotificationsActivity : AppCompatActivity() {
 class RedactedAnnouncementsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRedactedPagedListBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
+    private lateinit var announcementsAdapter: AnnouncementsAdapter
     private var page = 1
-    private val announcementsAdapter = AnnouncementsAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val c = RedactedUiHelper.requireApi(this) ?: return
         api = c
+        announcementsAdapter = AnnouncementsAdapter(api.redactedAuthorizationValue())
         binding = ActivityRedactedPagedListBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
@@ -649,11 +650,15 @@ class RedactedAnnouncementsActivity : AppCompatActivity() {
                         if (arr != null) {
                             for (i in 0 until arr.length()) {
                                 val o = arr.optJSONObject(i) ?: continue
+                                val rawHtml = RedactedAnnouncementHtml.contentHtml(o)
+                                val imageUrls = RedactedAnnouncementHtml.extractImageSrcs(rawHtml)
+                                val htmlBody = RedactedAnnouncementHtml.stripImgTags(rawHtml)
                                 rows.add(
                                     AnnouncementRow(
                                         title = o.optString("title"),
                                         time = o.optString("newsTime"),
-                                        htmlContent = RedactedAnnouncementHtml.contentHtml(o),
+                                        htmlContent = htmlBody,
+                                        imageUrls = imageUrls,
                                         useAltStripe = i % 2 == 1,
                                     ),
                                 )

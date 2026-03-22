@@ -17,6 +17,8 @@ cd android
 # APK: app/build/outputs/apk/release/turnTable.release-<version>.apk
 ```
 
+**`CurrentVersion.json`** at the repo root is overwritten on every `:app` build (task `writeCurrentVersion`, wired to `preBuild`) with **`version`** (same as APK `versionName`), **`releasePageUrl`**, and **`assets.apk`** (default GitHub download URL pattern from `github_update.xml` owner/repo). The in-app update check reads this manifest from **raw.githubusercontent.com** (no GitHub releases API). After **`scripts/release-github.sh`**, the script rewrites **`CurrentVersion.json`** with the exact APK (and optional IPA) asset URLs.
+
 Configure release signing via `keystore.properties` or env vars if needed; otherwise Gradle may sign with the debug keystore (with a warning).
 
 ---
@@ -50,7 +52,7 @@ gh release create v<version> \
 
 **Option C:** Create the release in the GitHub UI and **Attach binaries** for both files.
 
-After **Option A**, the script updates **`android/app/update-check-latest-version.txt`** (used by the in-app update checker when the GitHub API is unavailable). **Commit and push** that file on your release branch (e.g. `main`) so the raw GitHub URL stays correct.
+After **Option A**, the script updates **`CurrentVersion.json`** (primary) and **`android/app/update-check-latest-version.txt`** (legacy plain-text fallback). **Commit and push** `CurrentVersion.json` on your default branch so raw GitHub matches the shipped release.
 
 ---
 

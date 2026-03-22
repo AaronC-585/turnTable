@@ -35,7 +35,7 @@ class RedactedTorrentGroupRowsAdapter(
             val seeders: Int,
             val leechers: Int,
             val listIndex: Int,
-            /** Show µ-style mark when this release is one you are seeding. */
+            /** Show acorn when this release is one you are seeding. */
             val isUserSeeding: Boolean = false,
         ) : Row()
     }

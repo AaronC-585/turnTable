@@ -13,7 +13,7 @@ data class TwoLineRow(
     val subtitle: String = "",
     /** Optional cover from Redacted `browse` / similar JSON (`cover` field). */
     val coverUrl: String? = null,
-    /** µTorrent-style mark when this row is a torrent you are seeding (e.g. user torrents list). */
+    /** Acorn when this row is a torrent you are seeding (e.g. user torrents list). */
     val showSeedingUtorrentIcon: Boolean = false,
 )
 
