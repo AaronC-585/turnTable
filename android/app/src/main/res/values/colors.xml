@@ -33,6 +33,9 @@
     <!-- Icons: maximum contrast on surfaces (toolbar, lists, vectors) -->
     <color name="app_icon_emphasis">#FF000000</color>
     <color name="app_error">#C62828</color>
+    <!-- Tracker status strip (bottom dock): SVG icons tinted green when up, app red when down -->
+    <color name="tracker_status_up">#2E7D32</color>
+    <color name="tracker_status_down">@color/app_error</color>
     <color name="app_text_on_button">#FFFFFF</color>
     <color name="app_button_secondary">#9E9E9E</color>
     <color name="app_button_neutral">#757575</color>

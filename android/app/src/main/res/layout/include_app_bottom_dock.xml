@@ -37,7 +37,8 @@
                 android:padding="4dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/tracker_status_service_website"
-                android:src="@drawable/tracker_status_ie_bad" />
+                android:src="@drawable/tracker_status_website"
+                android:tint="@color/tracker_status_down" />
         </FrameLayout>
 
         <FrameLayout
@@ -56,7 +57,8 @@
                 android:padding="4dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/tracker_status_service_http"
-                android:src="@drawable/tracker_status_http_bad" />
+                android:src="@drawable/tracker_status_http"
+                android:tint="@color/tracker_status_down" />
         </FrameLayout>
 
         <FrameLayout
@@ -75,7 +77,8 @@
                 android:padding="4dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/tracker_status_service_https"
-                android:src="@drawable/tracker_status_https_bad" />
+                android:src="@drawable/tracker_status_https"
+                android:tint="@color/tracker_status_down" />
         </FrameLayout>
 
         <FrameLayout
@@ -94,7 +97,8 @@
                 android:padding="4dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/tracker_status_service_irc"
-                android:src="@drawable/tracker_status_irc_bad" />
+                android:src="@drawable/tracker_status_irc"
+                android:tint="@color/tracker_status_down" />
         </FrameLayout>
 
         <FrameLayout
@@ -113,7 +117,8 @@
                 android:padding="4dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/tracker_status_service_announcer"
-                android:src="@drawable/tracker_status_announcer_bad" />
+                android:src="@drawable/tracker_status_announcer"
+                android:tint="@color/tracker_status_down" />
         </FrameLayout>
 
         <FrameLayout
@@ -132,7 +137,8 @@
                 android:padding="4dp"
                 android:scaleType="fitCenter"
                 android:contentDescription="@string/tracker_status_service_user_id"
-                android:src="@drawable/tracker_status_userid_bad" />
+                android:src="@drawable/tracker_status_userid"
+                android:tint="@color/tracker_status_down" />
         </FrameLayout>
     </LinearLayout>
 

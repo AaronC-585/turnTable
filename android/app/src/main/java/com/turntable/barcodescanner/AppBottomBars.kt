@@ -3,6 +3,7 @@ package com.turntable.barcodescanner
 import android.app.Activity
 import android.app.Application
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import android.os.SystemClock
@@ -12,6 +13,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import com.turntable.barcodescanner.redacted.RedactedApiClient
 import com.turntable.barcodescanner.redacted.RedactedIndexNotifications
 import com.turntable.barcodescanner.redacted.RedactedResult
@@ -266,8 +269,15 @@ object AppBottomBars {
         result.fold(
             onSuccess = { rows ->
                 rows.zip(views).forEach { (row, iv) ->
-                    iv.setImageResource(
-                        if (row.ok) row.service.iconOk else row.service.iconBad,
+                    iv.setImageResource(row.service.icon)
+                    ImageViewCompat.setImageTintList(
+                        iv,
+                        ColorStateList.valueOf(
+                            ContextCompat.getColor(
+                                activity,
+                                if (row.ok) R.color.tracker_status_up else R.color.tracker_status_down,
+                            ),
+                        ),
                     )
                     val state = activity.getString(
                         if (row.ok) R.string.tracker_status_up else R.string.tracker_status_down,
@@ -284,7 +294,13 @@ object AppBottomBars {
             },
             onFailure = {
                 Service.entries.zip(views).forEach { (svc, iv) ->
-                    iv.setImageResource(svc.iconBad)
+                    iv.setImageResource(svc.icon)
+                    ImageViewCompat.setImageTintList(
+                        iv,
+                        ColorStateList.valueOf(
+                            ContextCompat.getColor(activity, R.color.tracker_status_down),
+                        ),
+                    )
                     val title = activity.getString(trackerTitleRes(svc))
                     iv.contentDescription = activity.getString(
                         R.string.tracker_status_a11y,

@@ -2,6 +2,11 @@
 
 All notable changes to the turnTable / 1D Barcode Scanner project are documented here.
 
+## [2026.3.22.54] — Android production release
+
+- **Tracker status strip (bottom dock):** Replaced PNG **up/down** pairs with **vector** icons (one shape per service). **Green** tint when service is up, **red** when down (`tracker_status_down`: `@color/app_error` in light; **#EF5350** in night for a clear red on dark bars).
+- **Release:** APK only from Linux; upload iOS IPA when ready per **RELEASE.md**.
+
 ## [2026.3.22.32] — Android production release
 
 - **UI — listboxes (Android):** Replaced **Spinner** dropdowns with in-place **single-choice ListViews** (scrollable listboxes) on Settings (theme, secondary preset, browser), secondary list editor, Redacted browse filters / order, Top 10 / Bookmarks / User torrents, and the torrent-group format picker dialog. Shared **`ListViewSingleChoice`** helper and listbox background drawable.

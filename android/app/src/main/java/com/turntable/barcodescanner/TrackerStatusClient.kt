@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 /**
  * [red.trackerstatus.info](https://red.trackerstatus.info/) public status API.
- * Icons match the legacy REDacted client: blue = up, red = down.
+ * Icons are vector drawables; [AppBottomBars] tints **green** when up, **red** when down.
  */
 object TrackerStatusClient {
 
@@ -24,39 +24,14 @@ object TrackerStatusClient {
 
     enum class Service(
         val jsonKey: String,
-        @DrawableRes val iconOk: Int,
-        @DrawableRes val iconBad: Int,
+        @DrawableRes val icon: Int,
     ) {
-        WEBSITE(
-            "Website",
-            R.drawable.tracker_status_ie_ok,
-            R.drawable.tracker_status_ie_bad,
-        ),
-        TRACKER_HTTP(
-            "TrackerHTTP",
-            R.drawable.tracker_status_http_ok,
-            R.drawable.tracker_status_http_bad,
-        ),
-        TRACKER_HTTPS(
-            "TrackerHTTPS",
-            R.drawable.tracker_status_https_ok,
-            R.drawable.tracker_status_https_bad,
-        ),
-        IRC(
-            "IRC",
-            R.drawable.tracker_status_irc_ok,
-            R.drawable.tracker_status_irc_bad,
-        ),
-        IRC_TORRENT_ANNOUNCER(
-            "IRCTorrentAnnouncer",
-            R.drawable.tracker_status_announcer_ok,
-            R.drawable.tracker_status_announcer_bad,
-        ),
-        IRC_USER_IDENTIFIER(
-            "IRCUserIdentifier",
-            R.drawable.tracker_status_userid_ok,
-            R.drawable.tracker_status_userid_bad,
-        ),
+        WEBSITE("Website", R.drawable.tracker_status_website),
+        TRACKER_HTTP("TrackerHTTP", R.drawable.tracker_status_http),
+        TRACKER_HTTPS("TrackerHTTPS", R.drawable.tracker_status_https),
+        IRC("IRC", R.drawable.tracker_status_irc),
+        IRC_TORRENT_ANNOUNCER("IRCTorrentAnnouncer", R.drawable.tracker_status_announcer),
+        IRC_USER_IDENTIFIER("IRCUserIdentifier", R.drawable.tracker_status_userid),
     }
 
     data class Row(
