@@ -20,6 +20,7 @@ class TurnTableApp : Application() {
     override fun onCreate() {
         AppTheme.applyPersistentNightMode(this)
         super.onCreate()
+        ForegroundActivityHolder.register(this)
         CrashReporter.install(this)
         CrashReporter.ingestPendingCrashIfAny(this)
         registerActivityLifecycleCallbacks(ThemeEpochCoordinator(themeEpoch))

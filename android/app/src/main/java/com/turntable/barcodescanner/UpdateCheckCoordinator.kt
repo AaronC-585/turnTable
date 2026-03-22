@@ -1,9 +1,12 @@
 package com.turntable.barcodescanner
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.widget.ProgressBar
@@ -21,13 +24,97 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * Background check (home screen, throttled) and manual check (About / Settings).
- * Manual check: if a newer release has a direct APK URL, downloads and opens the installer automatically;
- * otherwise shows the release dialog (e.g. open in browser).
+ * Update checks: **splash** (cold start), **home** (throttled background), and **manual** (About / Settings).
+ * Splash runs the same 24h-throttled fetch as the home background check so only one network call applies
+ * per day when both run in sequence. Pending updates are shown on the first non-splash screen.
+ * Manual check: if a newer release has a direct APK URL, may auto-download; otherwise shows the release dialog.
  */
 object UpdateCheckCoordinator {
 
     private const val BACKGROUND_CHECK_INTERVAL_MS = 24L * 60 * 60 * 1000
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private data class SplashPendingUpdate(
+        val info: GithubAppUpdateChecker.ReleaseInfo,
+        val localVersion: String,
+    )
+
+    private val splashPendingLock = Any()
+    private var pendingSplashUpdate: SplashPendingUpdate? = null
+
+    /**
+     * Called from [SplashActivity] on cold start. Uses the same throttle as [requestBackgroundCheckIfDue];
+     * if an update is available, queues it for [consumePendingSplashUpdateIfAny] or immediate delivery
+     * when the foreground activity is not [SplashActivity].
+     */
+    fun requestSplashLaunchUpdateCheckIfDue(context: Context) {
+        val app = context.applicationContext
+        if (!GithubAppUpdateChecker.isGithubUpdateConfigured(app)) return
+        val prefs = UpdatePrefs(app)
+        val now = System.currentTimeMillis()
+        if (now - prefs.lastBackgroundCheckWallTimeMs < BACKGROUND_CHECK_INTERVAL_MS) return
+        prefs.lastBackgroundCheckWallTimeMs = now
+
+        Thread {
+            val localVer = currentVersionName(app) ?: ""
+            val result = GithubAppUpdateChecker.fetchLatestReleaseWithFallback(app)
+            mainHandler.post {
+                result.fold(
+                    onSuccess = { info ->
+                        if (!GithubAppUpdateChecker.isRemoteNewerThanLocal(info.tagNameRaw, localVer)) {
+                            return@fold
+                        }
+                        val norm = GithubAppUpdateChecker.normalizedTag(info.tagNameRaw)
+                        if (norm == UpdatePrefs(app).skippedReleaseTag) return@fold
+                        synchronized(splashPendingLock) {
+                            pendingSplashUpdate = SplashPendingUpdate(info, localVer)
+                        }
+                        tryDeliverPendingSplashUpdate()
+                    },
+                    onFailure = { /* silent */ },
+                )
+            }
+        }.start()
+    }
+
+    /**
+     * Call from [HomeActivity] / [PermissionOnboardingActivity] [android.app.Activity.onResume] so a
+     * pending splash-time update is shown after leaving the splash screen.
+     */
+    fun consumePendingSplashUpdateIfAny(activity: AppCompatActivity) {
+        if (activity is SplashActivity) return
+        val pending = synchronized(splashPendingLock) {
+            pendingSplashUpdate?.also { pendingSplashUpdate = null }
+        } ?: return
+        if (activity.isFinishing) {
+            synchronized(splashPendingLock) {
+                if (pendingSplashUpdate == null) pendingSplashUpdate = pending
+            }
+            return
+        }
+        val prefs = UpdatePrefs(activity)
+        val norm = GithubAppUpdateChecker.normalizedTag(pending.info.tagNameRaw)
+        if (norm == prefs.skippedReleaseTag) return
+        showUpdateDialog(activity, pending.info, pending.localVersion) {
+            prefs.skippedReleaseTag = norm
+        }
+    }
+
+    private fun tryDeliverPendingSplashUpdate() {
+        val act = ForegroundActivityHolder.current() ?: return
+        if (act is SplashActivity) return
+        if (act.isFinishing) return
+        val pending = synchronized(splashPendingLock) {
+            pendingSplashUpdate?.also { pendingSplashUpdate = null }
+        } ?: return
+        val prefs = UpdatePrefs(act)
+        val norm = GithubAppUpdateChecker.normalizedTag(pending.info.tagNameRaw)
+        if (norm == prefs.skippedReleaseTag) return
+        showUpdateDialog(act, pending.info, pending.localVersion) {
+            prefs.skippedReleaseTag = norm
+        }
+    }
 
     fun requestBackgroundCheckIfDue(activity: AppCompatActivity) {
         if (!GithubAppUpdateChecker.isGithubUpdateConfigured(activity)) return
@@ -69,7 +156,7 @@ object UpdateCheckCoordinator {
         }
         Toast.makeText(activity, R.string.github_update_checking, Toast.LENGTH_SHORT).show()
         Thread {
-            val localVer = currentVersionName(activity) ?: "—"
+            val localVer = currentVersionName(activity.applicationContext) ?: "—"
             val result = GithubAppUpdateChecker.fetchLatestReleaseWithFallback(activity)
             activity.runOnUiThread {
                 if (activity.isFinishing) return@runOnUiThread
@@ -338,9 +425,9 @@ object UpdateCheckCoordinator {
         return String.format(Locale.US, "%.2f GB", mb / 1024.0)
     }
 
-    private fun currentVersionName(activity: AppCompatActivity): String? = try {
-        val pm = activity.packageManager
-        val pkg = activity.packageName
+    private fun currentVersionName(context: Context): String? = try {
+        val pm = context.packageManager
+        val pkg = context.packageName
         if (Build.VERSION.SDK_INT >= 33) {
             pm.getPackageInfo(pkg, PackageManager.PackageInfoFlags.of(0)).versionName
         } else {

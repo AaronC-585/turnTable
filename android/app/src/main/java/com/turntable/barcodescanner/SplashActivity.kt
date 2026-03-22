@@ -14,6 +14,8 @@ class SplashActivity : AppCompatActivity() {
         val binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        UpdateCheckCoordinator.requestSplashLaunchUpdateCheckIfDue(applicationContext)
+
         Handler(Looper.getMainLooper()).postDelayed({
             val prefs = getSharedPreferences(PermissionOnboardingActivity.PREFS_NAME, MODE_PRIVATE)
             val onboardingDone = prefs.getBoolean(PermissionOnboardingActivity.KEY_ONBOARDING_DONE, false)

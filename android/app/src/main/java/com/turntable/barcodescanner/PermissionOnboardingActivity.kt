@@ -40,6 +40,11 @@ class PermissionOnboardingActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        UpdateCheckCoordinator.consumePendingSplashUpdateIfAny(this)
+    }
+
     private fun updateCameraStatusFromOs() {
         val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED

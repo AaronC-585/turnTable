@@ -111,6 +111,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         maybeRequestNotificationPermissionOnce()
+        UpdateCheckCoordinator.consumePendingSplashUpdateIfAny(this)
         UpdateCheckCoordinator.requestBackgroundCheckIfDue(this)
         if (!SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
             scheduleAutoRefresh()
