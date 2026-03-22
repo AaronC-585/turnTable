@@ -66,8 +66,9 @@ class SettingsActivity : AppCompatActivity() {
             SearchPrefs.THEME_FOLLOW_SYSTEM to getString(R.string.theme_follow_system),
         )
         val themeIndex = themeChoices.indexOfFirst { it.first == prefs.themeMode }.takeIf { it >= 0 } ?: 2
-        ListViewSingleChoice.bindStrings(
-            binding.listTheme,
+        ExpandableBulletChoice.bindLabelList(
+            binding.expandTheme,
+            getString(R.string.settings_theme),
             themeChoices.map { it.second },
             themeIndex.coerceIn(0, themeChoices.size - 1),
         )
@@ -83,8 +84,9 @@ class SettingsActivity : AppCompatActivity() {
             savedSecondaryPackage == null -> 0
             else -> browserEntries.indexOfFirst { it.packageName == savedSecondaryPackage }.takeIf { it >= 0 } ?: 0
         }
-        ListViewSingleChoice.bindStrings(
-            binding.listSecondaryBrowser,
+        ExpandableBulletChoice.bindLabelList(
+            binding.expandSecondaryBrowser,
+            getString(R.string.open_secondary_in_browser),
             browserEntries.map { it.label },
             secondaryBrowserIndex.coerceIn(0, browserEntries.size - 1),
         )
@@ -124,7 +126,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.buttonSave.setOnClickListener {
-            val themePos = ListViewSingleChoice.selectedIndex(binding.listTheme).coerceIn(0, themeChoices.size - 1)
+            val themePos = ListViewSingleChoice.selectedIndex(binding.expandTheme.listExpandChoices).coerceIn(0, themeChoices.size - 1)
             val newTheme = themeChoices[themePos].first
             if (newTheme != prefs.themeMode) {
                 prefs.themeMode = newTheme
@@ -139,7 +141,7 @@ class SettingsActivity : AppCompatActivity() {
             prefs.theAudioDbApiKey = binding.editTheAudioDbApiKey.text?.toString()?.trim()?.takeIf { it.isNotBlank() }
             prefs.secondarySearchUrl = binding.editSecondaryUrl.text.normalizeUrlInput().takeIf { it.isNotBlank() }
             prefs.secondarySearchAutoFromMusicBrainz = binding.checkSecondaryAutoMusicBrainz.isChecked
-            val secondaryBrowserPos = ListViewSingleChoice.selectedIndex(binding.listSecondaryBrowser).coerceIn(0, browserEntries.size - 1)
+            val secondaryBrowserPos = ListViewSingleChoice.selectedIndex(binding.expandSecondaryBrowser.listExpandChoices).coerceIn(0, browserEntries.size - 1)
             prefs.secondaryBrowserPackage = browserEntries.getOrNull(secondaryBrowserPos)?.packageName
             Toast.makeText(this, R.string.settings_saved_toast, Toast.LENGTH_SHORT).show()
             finish()
@@ -159,16 +161,18 @@ class SettingsActivity : AppCompatActivity() {
         val currentSecondaryUrl = prefs.secondarySearchUrl
         val secondaryPresetIndex = secondaryPresets.indexOfFirst { it.url == currentSecondaryUrl }.takeIf { it >= 0 } ?: 0
         binding.editSecondaryUrl.setText(currentSecondaryUrl ?: "")
-        ListViewSingleChoice.bindStrings(
-            binding.listSecondaryPreset,
+        ExpandableBulletChoice.bindLabelList(
+            binding.expandSecondaryPreset,
+            getString(R.string.secondary_search),
             secondaryPresets.map { it.name },
             secondaryPresetIndex.coerceIn(0, secondaryPresets.size.coerceAtLeast(1) - 1),
-        ) { position ->
-            val preset = secondaryPresets.getOrNull(position) ?: return@bindStrings
-            if (preset.id != SearchPresets.CUSTOM_ID) {
-                binding.editSecondaryUrl.setText(preset.url)
-            }
-        }
+            onItemClick = { position ->
+                val preset = secondaryPresets.getOrNull(position)
+                if (preset != null && preset.id != SearchPresets.CUSTOM_ID) {
+                    binding.editSecondaryUrl.setText(preset.url)
+                }
+            },
+        )
         binding.checkSecondaryAutoMusicBrainz.isChecked = prefs.secondarySearchAutoFromMusicBrainz
     }
 

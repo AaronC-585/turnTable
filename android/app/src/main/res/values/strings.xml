@@ -284,6 +284,7 @@
     <string name="redacted_section_torrents">Torrents</string>
     <string name="redacted_section_site_tools">Site &amp; tools</string>
     <string name="redacted_compilation_info">Compilation info</string>
+    <string name="redacted_copied_wiki_rtf">Compilation info copied (RTF)</string>
     <string name="redacted_section_chevron" translatable="false">▾</string>
     <string name="redacted_link_request_format">Request format</string>
     <string name="redacted_link_view_history">History</string>

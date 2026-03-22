@@ -38,6 +38,7 @@ import com.turntable.barcodescanner.SearchPrefs
 import com.turntable.barcodescanner.debug.AppEventLog
 import com.turntable.barcodescanner.debug.OutgoingUrlLog
 import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
+import com.turntable.barcodescanner.redacted.RedactedBbCodeToRtf
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedFormatters
 import com.turntable.barcodescanner.redacted.RedactedFreeleechTokens
@@ -74,10 +75,13 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
     /** From [index] `userstats` while loading this group; FL token UI only if &gt; 0. */
     private var freeleechTokenCount: Int = 0
 
+    /** Raw [wikiBody] from API for RTF clipboard (long-press compilation header). */
+    private var currentWikiBody: String = ""
+
     /** Collapsible sections (Redacted-style boxes). */
-    private var sectionAlbumExpanded = true
-    private var sectionTorrentsExpanded = true
-    private var sectionWikiExpanded = true
+    private var sectionAlbumExpanded = false
+    private var sectionTorrentsExpanded = false
+    private var sectionWikiExpanded = false
     private var sectionActionsExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -173,6 +177,21 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         )
     }
 
+    /** Long-press the compilation header to copy RTF (hyperlinks preserved for Word/LibreOffice). */
+    private fun copyWikiCompilationRtfToClipboard() {
+        val raw = currentWikiBody
+        if (raw.isBlank()) return
+        val rtf = when {
+            AppRichText.isLikelyHtml(raw) -> RedactedBbCodeToRtf.htmlToRtfDocument(raw)
+            AppRichText.isLikelyBbCode(raw) || raw.contains("[url", ignoreCase = true) ->
+                RedactedBbCodeToRtf.bbToRtfDocument(raw)
+            else -> RedactedBbCodeToRtf.wrapDocument(RedactedBbCodeToRtf.escapeRtfPlain(raw))
+        }
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        cm.setPrimaryClip(ClipData.newPlainText("text/rtf", rtf))
+        Toast.makeText(this, R.string.redacted_copied_wiki_rtf, Toast.LENGTH_SHORT).show()
+    }
+
     private fun wireTorrentGroupCollapsibleSections() {
         binding.headerSectionAlbum.setOnClickListener {
             sectionAlbumExpanded = !sectionAlbumExpanded
@@ -197,6 +216,11 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
                 binding.chevronWiki,
                 sectionWikiExpanded,
             )
+        }
+        binding.headerSectionWiki.isLongClickable = true
+        binding.headerSectionWiki.setOnLongClickListener {
+            copyWikiCompilationRtfToClipboard()
+            true
         }
         binding.headerSectionActions.setOnClickListener {
             sectionActionsExpanded = !sectionActionsExpanded
@@ -257,9 +281,9 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         binding.textMeta.text = ""
         binding.textWikiBody.text = ""
         binding.sectionWiki.visibility = View.GONE
-        sectionAlbumExpanded = true
-        sectionTorrentsExpanded = true
-        sectionWikiExpanded = true
+        sectionAlbumExpanded = false
+        sectionTorrentsExpanded = false
+        sectionWikiExpanded = false
         sectionActionsExpanded = false
         torrentIds.clear()
         torrentObjects.clear()
@@ -348,14 +372,16 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         binding.textMeta.visibility = View.GONE
 
         val wikiBody = group.optString("wikiBody").trim()
+        currentWikiBody = wikiBody
         val wikiPlain = RedactedGazelleTorrentParse.stripBbCodeForPreview(wikiBody)
         if (wikiPlain.isNotBlank()) {
             binding.sectionWiki.visibility = View.VISIBLE
-            binding.textWikiBody.text = wikiPlain
-            sectionWikiExpanded = true
+            AppRichText.applyTo(binding.textWikiBody, wikiBody)
+            sectionWikiExpanded = false
         } else {
             binding.sectionWiki.visibility = View.GONE
             binding.textWikiBody.text = ""
+            currentWikiBody = ""
         }
 
         val torrents: JSONArray? = resp.optJSONArray("torrents")

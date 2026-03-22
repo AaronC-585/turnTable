@@ -1,8 +1,14 @@
 package com.turntable.barcodescanner.redacted
 
+import android.text.Spanned
+import android.text.style.URLSpan
+import androidx.core.text.HtmlCompat
+
 /**
  * Converts Gazelle-style BBCode to an RTF fragment (no document wrapper) or full document via [bbToRtfDocument].
  * Hyperlinks use standard Word-style `HYPERLINK` fields so pasted RTF keeps **clickable links** in Word, LibreOffice, etc.
+ *
+ * [htmlToRtfDocument] converts sanitized HTML (e.g. site-rendered wiki) to RTF with URL hyperlinks.
  */
 object RedactedBbCodeToRtf {
 
@@ -131,4 +137,35 @@ object RedactedBbCodeToRtf {
 
     /** Full RTF document with font table (Arial + Courier for [code]). */
     fun bbToRtfDocument(bb: String): String = wrapDocument(bbToRtf(bb, 0))
+
+    /**
+     * HTML (e.g. wiki `body`) → RTF with [URLSpan] hyperlinks. Strips images; sanitizes like [RedactedHtmlSafe] / TextView.
+     */
+    fun htmlToRtfDocument(html: String): String {
+        if (html.isBlank()) return wrapDocument("")
+        val spanned = HtmlCompat.fromHtml(
+            RedactedHtmlSafe.sanitizeHtmlForTextView(RedactedAnnouncementHtml.stripImgTags(html)),
+            HtmlCompat.FROM_HTML_MODE_COMPACT,
+        )
+        return wrapDocument(spannedToRtfFragment(spanned))
+    }
+
+    private fun spannedToRtfFragment(spanned: Spanned): String {
+        val spans = spanned.getSpans(0, spanned.length, URLSpan::class.java)
+        if (spans.isEmpty()) return escapeRtfPlain(spanned.toString())
+        val sb = StringBuilder()
+        var pos = 0
+        for (span in spans.sortedWith(compareBy<URLSpan> { spanned.getSpanStart(it) }.thenByDescending { spanned.getSpanEnd(it) })) {
+            val st = spanned.getSpanStart(span)
+            val en = spanned.getSpanEnd(span)
+            if (st < pos) continue
+            if (st > pos) sb.append(escapeRtfPlain(spanned.subSequence(pos, st).toString()))
+            val url = span.url ?: ""
+            val label = escapeRtfPlain(spanned.subSequence(st, en).toString())
+            sb.append(rtfHyperlinkField(url, label))
+            pos = en
+        }
+        if (pos < spanned.length) sb.append(escapeRtfPlain(spanned.subSequence(pos, spanned.length).toString()))
+        return sb.toString()
+    }
 }

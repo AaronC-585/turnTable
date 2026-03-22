@@ -337,28 +337,12 @@
                                         android:paddingHorizontal="6dp"
                                         android:paddingVertical="4dp">
 
-                                        <TextView
+                                        <com.google.android.material.switchmaterial.SwitchMaterial
+                                            android:id="@+id/switchHasCue"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:ellipsize="end"
-                                            android:maxLines="2"
+                                            android:minWidth="140dp"
                                             android:text="@string/redacted_browse_col_hascue"
-                                            android:textColor="@color/app_text_muted"
-                                            android:textSize="11sp" />
-
-                                        <com.google.android.material.switchmaterial.SwitchMaterial
-                                            android:id="@+id/switchHasCueYes"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:text="@string/redacted_browse_yes"
-                                            android:textColor="@color/app_text_secondary"
-                                            android:textSize="12sp" />
-
-                                        <com.google.android.material.switchmaterial.SwitchMaterial
-                                            android:id="@+id/switchHasCueNo"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:text="@string/redacted_browse_no"
                                             android:textColor="@color/app_text_secondary"
                                             android:textSize="12sp" />
                                     </LinearLayout>
@@ -372,28 +356,12 @@
                                         android:paddingHorizontal="6dp"
                                         android:paddingVertical="4dp">
 
-                                        <TextView
+                                        <com.google.android.material.switchmaterial.SwitchMaterial
+                                            android:id="@+id/switchScene"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:ellipsize="end"
-                                            android:maxLines="2"
+                                            android:minWidth="140dp"
                                             android:text="@string/redacted_browse_col_scene"
-                                            android:textColor="@color/app_text_muted"
-                                            android:textSize="11sp" />
-
-                                        <com.google.android.material.switchmaterial.SwitchMaterial
-                                            android:id="@+id/switchSceneYes"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:text="@string/redacted_browse_yes"
-                                            android:textColor="@color/app_text_secondary"
-                                            android:textSize="12sp" />
-
-                                        <com.google.android.material.switchmaterial.SwitchMaterial
-                                            android:id="@+id/switchSceneNo"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:text="@string/redacted_browse_no"
                                             android:textColor="@color/app_text_secondary"
                                             android:textSize="12sp" />
                                     </LinearLayout>
@@ -407,28 +375,12 @@
                                         android:paddingHorizontal="6dp"
                                         android:paddingVertical="4dp">
 
-                                        <TextView
+                                        <com.google.android.material.switchmaterial.SwitchMaterial
+                                            android:id="@+id/switchVanityHouse"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:ellipsize="end"
-                                            android:maxLines="2"
+                                            android:minWidth="140dp"
                                             android:text="@string/redacted_browse_col_vanity"
-                                            android:textColor="@color/app_text_muted"
-                                            android:textSize="11sp" />
-
-                                        <com.google.android.material.switchmaterial.SwitchMaterial
-                                            android:id="@+id/switchVanityHouseYes"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:text="@string/redacted_browse_yes"
-                                            android:textColor="@color/app_text_secondary"
-                                            android:textSize="12sp" />
-
-                                        <com.google.android.material.switchmaterial.SwitchMaterial
-                                            android:id="@+id/switchVanityHouseNo"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:text="@string/redacted_browse_no"
                                             android:textColor="@color/app_text_secondary"
                                             android:textSize="12sp" />
                                     </LinearLayout>

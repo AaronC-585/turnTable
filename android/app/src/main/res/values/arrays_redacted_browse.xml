@@ -166,7 +166,7 @@
         <item>-1</item>
     </string-array>
 
-    <!-- Has cue / scene / vanity house: Yes/No filters use switches in [RedactedBrowseActivity]. -->
+    <!-- Has cue / scene / vanity house: one boolean switch each (on → API 1) in [RedactedBrowseActivity]. -->
 
     <string-array name="redacted_browse_freetorrent">
         <item>Leech status</item>

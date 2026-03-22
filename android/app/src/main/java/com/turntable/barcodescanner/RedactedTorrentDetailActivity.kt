@@ -34,10 +34,10 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
     private var groupId: Int = 0
     private var freeleechTokenCount: Int = 0
 
-    private var sectionReleaseExpanded = true
-    private var sectionTorrentExpanded = true
-    private var sectionDescriptionExpanded = true
-    private var sectionFilesExpanded = true
+    private var sectionReleaseExpanded = false
+    private var sectionTorrentExpanded = false
+    private var sectionDescriptionExpanded = false
+    private var sectionFilesExpanded = false
     private var sectionActionsExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -270,7 +270,7 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
         if (descPlain.isNotBlank()) {
             binding.sectionTorrentDescription.visibility = View.VISIBLE
             binding.textTorrentDescription.text = descPlain
-            sectionDescriptionExpanded = true
+            sectionDescriptionExpanded = false
         } else {
             binding.sectionTorrentDescription.visibility = View.GONE
             binding.textTorrentDescription.text = ""
@@ -282,7 +282,7 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
             binding.textTorrentFileList.text = files.joinToString("\n") { f ->
                 "${f.name} — ${RedactedFormatters.bytes(f.sizeBytes)}"
             }
-            sectionFilesExpanded = true
+            sectionFilesExpanded = false
         } else {
             binding.sectionTorrentFiles.visibility = View.GONE
             binding.textTorrentFileList.text = ""

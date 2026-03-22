@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.turntable.barcodescanner.databinding.ActivityRedactedBrowseBinding
 import com.turntable.barcodescanner.redacted.RedactedBrowseParamsCodec
@@ -48,10 +47,6 @@ class RedactedBrowseActivity : AppCompatActivity() {
         freeTorrentValues = resources.getStringArray(R.array.redacted_browse_freetorrent_values)
 
         bindExpandableBrowseFilters()
-
-        wireMutuallyExclusiveYesNo(binding.switchHasCueYes, binding.switchHasCueNo)
-        wireMutuallyExclusiveYesNo(binding.switchSceneYes, binding.switchSceneNo)
-        wireMutuallyExclusiveYesNo(binding.switchVanityHouseYes, binding.switchVanityHouseNo)
 
         binding.toggleSearchMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
@@ -138,22 +133,6 @@ class RedactedBrowseActivity : AppCompatActivity() {
         }
     }
 
-    /** Yes / No are mutually exclusive; both off = no API filter. */
-    private fun wireMutuallyExclusiveYesNo(yesSw: SwitchMaterial, noSw: SwitchMaterial) {
-        yesSw.setOnCheckedChangeListener { _, checked ->
-            if (checked) noSw.isChecked = false
-        }
-        noSw.setOnCheckedChangeListener { _, checked ->
-            if (checked) yesSw.isChecked = false
-        }
-    }
-
-    private fun triStateYesNoApiValue(yesSw: SwitchMaterial, noSw: SwitchMaterial): String? = when {
-        yesSw.isChecked -> "1"
-        noSw.isChecked -> "0"
-        else -> null
-    }
-
     private fun resetForm() {
         binding.editSearchStr.text?.clear()
         binding.editArtistName.text?.clear()
@@ -176,12 +155,9 @@ class RedactedBrowseActivity : AppCompatActivity() {
         binding.checkCat6.isChecked = false
         binding.checkCat7.isChecked = false
         binding.toggleSearchMode.check(R.id.btnModeAdvanced)
-        binding.switchHasCueYes.isChecked = false
-        binding.switchHasCueNo.isChecked = false
-        binding.switchSceneYes.isChecked = false
-        binding.switchSceneNo.isChecked = false
-        binding.switchVanityHouseYes.isChecked = false
-        binding.switchVanityHouseNo.isChecked = false
+        binding.switchHasCue.isChecked = false
+        binding.switchScene.isChecked = false
+        binding.switchVanityHouse.isChecked = false
         bindExpandableBrowseFilters()
     }
 
@@ -213,10 +189,9 @@ class RedactedBrowseActivity : AppCompatActivity() {
                 binding.expandMedia.listExpandChoices.apiValue(mediaValues)?.let { add("media" to it) }
                 binding.expandReleaseType.listExpandChoices.apiValue(releaseTypeValues)?.let { add("releasetype" to it) }
                 binding.expandHasLog.listExpandChoices.apiValue(hasLogValues)?.let { add("haslog" to it) }
-                triStateYesNoApiValue(binding.switchHasCueYes, binding.switchHasCueNo)?.let { add("hascue" to it) }
-                triStateYesNoApiValue(binding.switchSceneYes, binding.switchSceneNo)?.let { add("scene" to it) }
-                triStateYesNoApiValue(binding.switchVanityHouseYes, binding.switchVanityHouseNo)
-                    ?.let { add("vanityhouse" to it) }
+                if (binding.switchHasCue.isChecked) add("hascue" to "1")
+                if (binding.switchScene.isChecked) add("scene" to "1")
+                if (binding.switchVanityHouse.isChecked) add("vanityhouse" to "1")
                 binding.expandFreeTorrent.listExpandChoices.apiValue(freeTorrentValues)?.let { add("freetorrent" to it) }
             }
         }

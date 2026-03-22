@@ -49,6 +49,21 @@ object AppRichText {
         return false
     }
 
+    /** True when [raw] looks like Gazelle-style BBCode (not only `[url]`). */
+    private val bbCodeTagRegex =
+        Regex("""\[(/?)(url|b|i|u|s|quote|code|img|list|size|color|\*)""", RegexOption.IGNORE_CASE)
+
+    private fun looksLikeBbCode(raw: String): Boolean {
+        if (!raw.contains('[')) return false
+        return bbCodeTagRegex.containsMatchIn(raw)
+    }
+
+    /** For clipboard / export: HTML fragment (tags, entities). */
+    fun isLikelyHtml(s: String): Boolean = looksLikeHtmlFragment(s)
+
+    /** For clipboard / export: BBCode (wiki body, descriptions). */
+    fun isLikelyBbCode(s: String): Boolean = looksLikeBbCode(s)
+
     private fun plainTextWithUrlsToHtml(s: String): String {
         if (s.isEmpty()) return ""
         val b = StringBuilder()
@@ -77,9 +92,9 @@ object AppRichText {
         if (raw.isBlank()) return ""
         val intermediate =
             when {
-                raw.contains("[url", ignoreCase = true) ->
-                    RedactedAnnouncementHtml.bbToHtml(raw, depth = 0)
                 looksLikeHtmlFragment(raw) -> raw
+                raw.contains("[url", ignoreCase = true) || looksLikeBbCode(raw) ->
+                    RedactedAnnouncementHtml.bbToHtml(raw, depth = 0)
                 else -> plainTextWithUrlsToHtml(raw)
             }
         val stripped = RedactedAnnouncementHtml.stripImgTags(intermediate)

@@ -45,25 +45,12 @@
             android:textColor="@color/app_text_secondary"
             android:layout_marginBottom="12dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/settings_theme"
-            android:textColor="@color/app_text_label"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp" />
-
-        <ListView
-            android:id="@+id/listTheme"
+        <include
+            android:id="@+id/expandTheme"
+            layout="@layout/expandable_bullet_choice"
             android:layout_width="match_parent"
-            android:layout_height="144dp"
-            android:layout_marginBottom="20dp"
-            android:background="@drawable/redacted_listbox_background"
-            android:choiceMode="singleChoice"
-            android:divider="@color/app_stroke_browse_card"
-            android:dividerHeight="1dp"
-            android:paddingVertical="4dp"
-            android:scrollbars="vertical" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -227,26 +214,13 @@
                 android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
+        <include
+            android:id="@+id/expandSecondaryPreset"
+            layout="@layout/expandable_bullet_choice"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/secondary_search"
-            android:textColor="@color/app_text_hint"
-            android:textSize="14sp"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
-
-        <ListView
-            android:id="@+id/listSecondaryPreset"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/redacted_listbox_background"
-            android:choiceMode="singleChoice"
-            android:divider="@color/app_stroke_browse_card"
-            android:dividerHeight="1dp"
-            android:paddingVertical="4dp"
-            android:scrollbars="vertical" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonEditSecondaryList"
@@ -282,25 +256,12 @@
                 android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/open_secondary_in_browser"
-            android:textColor="@color/app_text_hint"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp" />
-
-        <ListView
-            android:id="@+id/listSecondaryBrowser"
+        <include
+            android:id="@+id/expandSecondaryBrowser"
+            layout="@layout/expandable_bullet_choice"
             android:layout_width="match_parent"
-            android:layout_height="280dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/redacted_listbox_background"
-            android:choiceMode="singleChoice"
-            android:divider="@color/app_stroke_browse_card"
-            android:dividerHeight="1dp"
-            android:paddingVertical="4dp"
-            android:scrollbars="vertical" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/checkSecondaryAutoMusicBrainz"

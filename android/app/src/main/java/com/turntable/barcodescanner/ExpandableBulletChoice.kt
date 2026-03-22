@@ -39,6 +39,7 @@ object ExpandableBulletChoice {
         title: String,
         labels: List<String>,
         initialIndex: Int,
+        onItemClick: (position: Int) -> Unit = {},
     ) {
         binding.textExpandTitle.text = title
         fun summaryLabel(idx: Int): String =
@@ -51,6 +52,7 @@ object ExpandableBulletChoice {
             initialIndex,
         ) { pos ->
             binding.textExpandSummary.text = summaryLabel(pos)
+            onItemClick(pos)
         }
         wireToggle(binding)
     }
