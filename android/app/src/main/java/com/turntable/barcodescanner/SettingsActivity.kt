@@ -198,22 +198,55 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun updateTorrentClientsSummary() {
         val prefs = SearchPrefs(this)
-        val qbtLine = if (prefs.isQbittorrentConfigured()) {
-            getString(R.string.torrent_clients_line_qbt_fmt, prefs.qbittorrentBaseUrl?.trim().orEmpty())
-        } else {
-            getString(R.string.torrent_clients_line_qbt_off)
+        val qbtLine = torrentClientSummaryLine(
+            prefs.qbittorrentClientEnabled,
+            prefs.isQbittorrentConfigured(),
+            prefs.qbittorrentBaseUrl?.trim().orEmpty(),
+            R.string.torrent_client_name_qbt,
+            R.string.torrent_clients_line_qbt_fmt,
+            R.string.torrent_clients_line_qbt_off,
+        )
+        val trLine = torrentClientSummaryLine(
+            prefs.transmissionClientEnabled,
+            prefs.isTransmissionConfigured(),
+            prefs.transmissionRpcUrl?.trim().orEmpty(),
+            R.string.torrent_client_name_transmission,
+            R.string.torrent_clients_line_transmission_fmt,
+            R.string.torrent_clients_line_transmission_off,
+        )
+        val rtLine = torrentClientSummaryLine(
+            prefs.rtorrentClientEnabled,
+            prefs.isRtorrentConfigured(),
+            prefs.rtorrentXmlRpcUrl?.trim().orEmpty(),
+            R.string.torrent_client_name_rtorrent,
+            R.string.torrent_clients_line_rtorrent_fmt,
+            R.string.torrent_clients_line_rtorrent_off,
+        )
+        val dLine = torrentClientSummaryLine(
+            prefs.delugeClientEnabled,
+            prefs.isDelugeConfigured(),
+            prefs.delugeWebUrl?.trim().orEmpty(),
+            R.string.torrent_client_name_deluge,
+            R.string.torrent_clients_line_deluge_fmt,
+            R.string.torrent_clients_line_deluge_off,
+        )
+        binding.textTorrentClientsSummary.text = "$qbtLine\n$trLine\n$rtLine\n$dLine"
+    }
+
+    private fun torrentClientSummaryLine(
+        enabled: Boolean,
+        configured: Boolean,
+        url: String,
+        nameRes: Int,
+        configuredFmt: Int,
+        notConfiguredLine: Int,
+    ): String {
+        val name = getString(nameRes)
+        return when {
+            !enabled -> getString(R.string.torrent_clients_line_disabled_fmt, name)
+            configured -> getString(configuredFmt, url)
+            else -> getString(notConfiguredLine)
         }
-        val trLine = if (prefs.isTransmissionConfigured()) {
-            getString(R.string.torrent_clients_line_transmission_fmt, prefs.transmissionRpcUrl?.trim().orEmpty())
-        } else {
-            getString(R.string.torrent_clients_line_transmission_off)
-        }
-        val rtLine = if (prefs.isRtorrentConfigured()) {
-            getString(R.string.torrent_clients_line_rtorrent_fmt, prefs.rtorrentXmlRpcUrl?.trim().orEmpty())
-        } else {
-            getString(R.string.torrent_clients_line_rtorrent_off)
-        }
-        binding.textTorrentClientsSummary.text = "$qbtLine\n$trLine\n$rtLine"
     }
 
     private fun updateTorrentDirSummary() {

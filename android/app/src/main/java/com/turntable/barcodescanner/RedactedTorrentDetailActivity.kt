@@ -76,6 +76,8 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
         binding.buttonTorrentTransmissionToken.setOnClickListener { confirmTokenSendToTransmission(torrentId) }
         binding.buttonTorrentRtorrent.setOnClickListener { sendTorrentToRtorrent(torrentId, false) }
         binding.buttonTorrentRtorrentToken.setOnClickListener { confirmTokenSendToRtorrent(torrentId) }
+        binding.buttonTorrentDeluge.setOnClickListener { sendTorrentToDeluge(torrentId, false) }
+        binding.buttonTorrentDelugeToken.setOnClickListener { confirmTokenSendToDeluge(torrentId) }
         binding.buttonTorrentEdit.setOnClickListener {
             startActivity(
                 Intent(this, RedactedTorrentEditActivity::class.java)
@@ -293,9 +295,10 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
         }
 
         val prefs = SearchPrefs(this)
-        val qbt = prefs.isQbittorrentConfigured()
-        val tr = prefs.isTransmissionConfigured()
-        val rt = prefs.isRtorrentConfigured()
+        val qbt = prefs.isQbittorrentAvailable()
+        val tr = prefs.isTransmissionAvailable()
+        val rt = prefs.isRtorrentAvailable()
+        val dg = prefs.isDelugeAvailable()
         binding.buttonTorrentDownloadToken.visibility =
             if (freeleechTokenCount > 0) View.VISIBLE else View.GONE
         binding.buttonTorrentQbt.visibility = if (qbt) View.VISIBLE else View.GONE
@@ -307,6 +310,9 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
         binding.buttonTorrentRtorrent.visibility = if (rt) View.VISIBLE else View.GONE
         binding.buttonTorrentRtorrentToken.visibility =
             if (rt && freeleechTokenCount > 0) View.VISIBLE else View.GONE
+        binding.buttonTorrentDeluge.visibility = if (dg) View.VISIBLE else View.GONE
+        binding.buttonTorrentDelugeToken.visibility =
+            if (dg && freeleechTokenCount > 0) View.VISIBLE else View.GONE
 
         applySectionUi()
     }
@@ -387,6 +393,19 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
             .setTitle(R.string.redacted_send_rtorrent_token_confirm_title)
             .setMessage(R.string.redacted_send_rtorrent_token_confirm_message)
             .setPositiveButton(android.R.string.ok) { _, _ -> sendTorrentToRtorrent(torrentId, true) }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun confirmTokenSendToDeluge(torrentId: Int) {
+        if (freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.redacted_send_deluge_token_confirm_title)
+            .setMessage(R.string.redacted_send_deluge_token_confirm_message)
+            .setPositiveButton(android.R.string.ok) { _, _ -> sendTorrentToDeluge(torrentId, true) }
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
@@ -498,6 +517,47 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
                                 Toast.makeText(
                                     this,
                                     getString(R.string.rtorrent_failed_fmt, e.message ?: e.javaClass.simpleName),
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                            },
+                        )
+                    }
+                }
+                is RedactedResult.Failure -> runOnUiThread {
+                    Toast.makeText(this, r.message, Toast.LENGTH_LONG).show()
+                }
+                else -> runOnUiThread {
+                    Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
+    private fun sendTorrentToDeluge(torrentId: Int, useToken: Boolean) {
+        val prefs = SearchPrefs(this)
+        val client = DelugeWebClient.fromPrefs(prefs)
+        if (client == null) {
+            Toast.makeText(this, R.string.deluge_not_configured, Toast.LENGTH_LONG).show()
+            return
+        }
+        if (useToken && freeleechTokenCount <= 0) {
+            Toast.makeText(this, R.string.redacted_no_fl_tokens, Toast.LENGTH_LONG).show()
+            return
+        }
+        Toast.makeText(this, R.string.deluge_sending, Toast.LENGTH_SHORT).show()
+        Thread {
+            when (val r = api.downloadTorrent(torrentId, useToken)) {
+                is RedactedResult.Binary -> {
+                    val result = client.addTorrentFromBytes("redacted_$torrentId.torrent", r.bytes)
+                    runOnUiThread {
+                        result.fold(
+                            onSuccess = {
+                                Toast.makeText(this, R.string.deluge_sent, Toast.LENGTH_LONG).show()
+                            },
+                            onFailure = { e ->
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.deluge_failed_fmt, e.message ?: e.javaClass.simpleName),
                                     Toast.LENGTH_LONG,
                                 ).show()
                             },

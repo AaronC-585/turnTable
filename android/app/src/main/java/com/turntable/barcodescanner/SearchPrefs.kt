@@ -134,6 +134,14 @@ class SearchPrefs(context: Context) {
     fun isQbittorrentConfigured(): Boolean =
         QbittorrentWebClient.normalizeBaseUrl(qbittorrentBaseUrl) != null
 
+    /** When false, hide “send to qBittorrent” actions even if a URL is saved. Default true. */
+    var qbittorrentClientEnabled: Boolean
+        get() = prefs.getBoolean(KEY_QBT_CLIENT_ENABLED, true)
+        set(value) = prefs.edit { putBoolean(KEY_QBT_CLIENT_ENABLED, value) }
+
+    fun isQbittorrentAvailable(): Boolean =
+        qbittorrentClientEnabled && isQbittorrentConfigured()
+
     /**
      * Transmission RPC URL, e.g. `http://192.168.1.5:9091` or full `…/transmission/rpc`.
      * See [TransmissionRpcClient].
@@ -162,6 +170,13 @@ class SearchPrefs(context: Context) {
     fun isTransmissionConfigured(): Boolean =
         TransmissionRpcClient.normalizeRpcUrl(transmissionRpcUrl) != null
 
+    var transmissionClientEnabled: Boolean
+        get() = prefs.getBoolean(KEY_TRANSMISSION_CLIENT_ENABLED, true)
+        set(value) = prefs.edit { putBoolean(KEY_TRANSMISSION_CLIENT_ENABLED, value) }
+
+    fun isTransmissionAvailable(): Boolean =
+        transmissionClientEnabled && isTransmissionConfigured()
+
     /**
      * rTorrent XML-RPC HTTP endpoint, e.g. `http://192.168.1.5:80` or `…/RPC2`.
      * See [RtorrentXmlRpcClient].
@@ -189,6 +204,41 @@ class SearchPrefs(context: Context) {
 
     fun isRtorrentConfigured(): Boolean =
         RtorrentXmlRpcClient.normalizeXmlRpcUrl(rtorrentXmlRpcUrl) != null
+
+    var rtorrentClientEnabled: Boolean
+        get() = prefs.getBoolean(KEY_RTORRENT_CLIENT_ENABLED, true)
+        set(value) = prefs.edit { putBoolean(KEY_RTORRENT_CLIENT_ENABLED, value) }
+
+    fun isRtorrentAvailable(): Boolean =
+        rtorrentClientEnabled && isRtorrentConfigured()
+
+    /**
+     * Deluge Web UI base URL; `json` path is appended if missing (see [DelugeWebClient]).
+     * Reference: [jessielw/deluge-web-client](https://github.com/jessielw/deluge-web-client).
+     */
+    var delugeWebUrl: String?
+        get() = prefs.getString(KEY_DELUGE_WEB_URL, null)?.takeIf { it.isNotBlank() }
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_DELUGE_WEB_URL)
+            else putString(KEY_DELUGE_WEB_URL, value.trim())
+        }
+
+    var delugePassword: String?
+        get() = prefs.getString(KEY_DELUGE_PASSWORD, null)
+        set(value) = prefs.edit {
+            if (value.isNullOrBlank()) remove(KEY_DELUGE_PASSWORD)
+            else putString(KEY_DELUGE_PASSWORD, value)
+        }
+
+    var delugeClientEnabled: Boolean
+        get() = prefs.getBoolean(KEY_DELUGE_CLIENT_ENABLED, true)
+        set(value) = prefs.edit { putBoolean(KEY_DELUGE_CLIENT_ENABLED, value) }
+
+    fun isDelugeConfigured(): Boolean =
+        DelugeWebClient.normalizeJsonEndpoint(delugeWebUrl) != null
+
+    fun isDelugeAvailable(): Boolean =
+        delugeClientEnabled && isDelugeConfigured()
 
     companion object {
         const val PREFS_NAME = "search_prefs"
@@ -221,6 +271,12 @@ class SearchPrefs(context: Context) {
         const val KEY_RTORRENT_XMLRPC_URL = "rtorrent_xmlrpc_url"
         const val KEY_RTORRENT_USERNAME = "rtorrent_username"
         const val KEY_RTORRENT_PASSWORD = "rtorrent_password"
+        const val KEY_QBT_CLIENT_ENABLED = "qbittorrent_client_enabled"
+        const val KEY_TRANSMISSION_CLIENT_ENABLED = "transmission_client_enabled"
+        const val KEY_RTORRENT_CLIENT_ENABLED = "rtorrent_client_enabled"
+        const val KEY_DELUGE_WEB_URL = "deluge_web_url"
+        const val KEY_DELUGE_PASSWORD = "deluge_password"
+        const val KEY_DELUGE_CLIENT_ENABLED = "deluge_client_enabled"
         const val METHOD_GET = "GET"
         const val METHOD_POST = "POST"
     }

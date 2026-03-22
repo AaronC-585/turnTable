@@ -474,6 +474,22 @@
                             app:backgroundTint="@color/app_button_secondary" />
 
                         <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonTorrentDeluge"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_send_deluge"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonTorrentDelugeToken"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_send_deluge_with_token"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentEdit"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
