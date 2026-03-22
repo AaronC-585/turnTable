@@ -13,6 +13,7 @@ import com.turntable.barcodescanner.databinding.ActivityRedactedTorrentEditBindi
 import com.turntable.barcodescanner.databinding.ActivityRedactedUploadInfoBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedWikiBinding
 import com.turntable.barcodescanner.redacted.RedactedExtras
+import com.turntable.barcodescanner.redacted.RedactedHtmlSafe
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 import org.json.JSONObject
@@ -40,8 +41,8 @@ class RedactedWikiActivity : AppCompatActivity() {
                 runOnUiThread {
                     binding.progress.visibility = View.GONE
                     binding.textBody.text = when (r) {
-                        is RedactedResult.Failure -> r.message
-                        is RedactedResult.Success -> r.response?.toString(2) ?: ""
+                        is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(r.message)
+                        is RedactedResult.Success -> RedactedHtmlSafe.safeJsonPretty(r.response)
                         else -> ""
                     }
                 }
@@ -60,8 +61,8 @@ class RedactedWikiActivity : AppCompatActivity() {
                 runOnUiThread {
                     binding.progress.visibility = View.GONE
                     binding.textBody.text = when (r) {
-                        is RedactedResult.Failure -> r.message
-                        is RedactedResult.Success -> r.response?.toString(2) ?: ""
+                        is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(r.message)
+                        is RedactedResult.Success -> RedactedHtmlSafe.safeJsonPretty(r.response)
                         else -> ""
                     }
                 }
@@ -93,8 +94,9 @@ class RedactedLogcheckerActivity : AppCompatActivity() {
                 runOnUiThread {
                     binding.buttonCheck.isEnabled = true
                     binding.textResult.text = when (r) {
-                        is RedactedResult.Failure -> r.message
-                        is RedactedResult.Success -> formatLogchecker(r.response)
+                        is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(r.message)
+                        is RedactedResult.Success ->
+                            RedactedHtmlSafe.safePlainTextForUi(formatLogchecker(r.response))
                         else -> ""
                     }
                 }
@@ -139,15 +141,17 @@ class RedactedRipLogActivity : AppCompatActivity() {
                 val r = api.ripLog(tid, lid)
                 runOnUiThread {
                     binding.textBody.text = when (r) {
-                        is RedactedResult.Failure -> r.message
+                        is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(r.message)
                         is RedactedResult.Success -> {
                             val o = r.response
                             if (o == null) {
                                 ""
                             } else {
                                 val log = o.optString("log")
-                                "score: ${o.optInt("score")}\nlogid: ${o.optInt("logid")}\n\n" +
-                                    if (log.length > 4000) log.take(4000) + "\n…" else log
+                                RedactedHtmlSafe.safePlainTextForUi(
+                                    "score: ${o.optInt("score")}\nlogid: ${o.optInt("logid")}\n\n" +
+                                        if (log.length > 4000) log.take(4000) + "\n…" else log,
+                                )
                             }
                         }
                         else -> ""
@@ -188,8 +192,11 @@ class RedactedGroupEditActivity : AppCompatActivity() {
                 )
                 runOnUiThread {
                     binding.textResult.text = when (r) {
-                        is RedactedResult.Failure -> r.message
-                        is RedactedResult.Success -> r.responseString ?: r.root.toString()
+                        is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(r.message)
+                        is RedactedResult.Success ->
+                            RedactedHtmlSafe.safePlainTextForUi(
+                                r.responseString ?: r.root.toString(),
+                            )
                         else -> ""
                     }
                 }
@@ -232,8 +239,11 @@ class RedactedTorrentEditActivity : AppCompatActivity() {
                 val r = api.torrentEditPost(id, fields)
                 runOnUiThread {
                     binding.textResult.text = when (r) {
-                        is RedactedResult.Failure -> r.message
-                        is RedactedResult.Success -> r.responseString ?: r.root.toString()
+                        is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(r.message)
+                        is RedactedResult.Success ->
+                            RedactedHtmlSafe.safePlainTextForUi(
+                                r.responseString ?: r.root.toString(),
+                            )
                         else -> ""
                     }
                 }
@@ -268,8 +278,8 @@ class RedactedAddToCollageActivity : AppCompatActivity() {
                 val r = api.addToCollage(cid, gids)
                 runOnUiThread {
                     binding.textResult.text = when (r) {
-                        is RedactedResult.Failure -> r.message
-                        is RedactedResult.Success -> r.response?.toString(2) ?: ""
+                        is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(r.message)
+                        is RedactedResult.Success -> RedactedHtmlSafe.safeJsonPretty(r.response)
                         else -> ""
                     }
                 }
@@ -297,18 +307,29 @@ class RedactedSendPmActivity : AppCompatActivity() {
                 Toast.makeText(this, R.string.redacted_pm_invalid, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            binding.buttonSend.isEnabled = false
             Thread {
                 val r = api.sendPm(toUserId = to, subject = subj.takeIf { it.isNotBlank() }, body = body)
                 runOnUiThread {
-                    Toast.makeText(
-                        this,
-                        when (r) {
-                            is RedactedResult.Failure -> r.message
-                            is RedactedResult.Success -> r.responseString ?: getString(R.string.redacted_ok)
-                            else -> ""
-                        },
-                        Toast.LENGTH_LONG,
-                    ).show()
+                    binding.buttonSend.isEnabled = true
+                    when (r) {
+                        is RedactedResult.Failure -> Toast.makeText(
+                            this,
+                            RedactedHtmlSafe.safePlainTextForUi(r.message),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                        is RedactedResult.Success -> {
+                            Toast.makeText(
+                                this,
+                                RedactedHtmlSafe.safePlainTextForUi(
+                                    r.responseString ?: getString(R.string.redacted_ok),
+                                ),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                            finish()
+                        }
+                        else -> {}
+                    }
                 }
             }.start()
         }

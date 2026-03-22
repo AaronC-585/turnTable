@@ -76,7 +76,7 @@
             android:textColor="@color/app_text_help"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonRequestCamera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -94,7 +94,7 @@
             android:visibility="gone"
             android:layout_marginBottom="24dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonContinue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -410,14 +410,14 @@
                         android:paddingEnd="8dp"
                         android:paddingBottom="8dp">
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentDownload"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_download"
                             app:backgroundTint="@color/app_accent" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentDownloadToken"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -425,7 +425,7 @@
                             android:visibility="gone"
                             app:backgroundTint="@color/app_button_secondary" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentQbt"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -433,7 +433,7 @@
                             android:visibility="gone"
                             app:backgroundTint="@color/app_button_secondary" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentQbtToken"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -441,21 +441,21 @@
                             android:visibility="gone"
                             app:backgroundTint="@color/app_button_secondary" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentEdit"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_edit_torrent_short"
                             app:backgroundTint="@color/app_chip_stroke" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentOpenSite"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_open_on_site"
                             app:backgroundTint="@color/app_button_secondary" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentCopyPermalink"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

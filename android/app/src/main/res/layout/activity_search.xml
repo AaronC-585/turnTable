@@ -32,10 +32,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/scanned_code"
-            app:boxBackgroundColor="@color/app_surface_input"
             app:hintTextColor="@color/app_text_label"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent"
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -51,10 +49,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/secondary_search_terms_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
             app:hintTextColor="@color/app_text_label"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent"
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="24dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -65,7 +61,7 @@
                 android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSubmit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -73,7 +69,7 @@
             android:textColor="@color/app_text_on_button"
             app:backgroundTint="@color/app_accent" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonRedactedSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

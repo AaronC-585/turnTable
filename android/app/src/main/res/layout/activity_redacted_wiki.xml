@@ -20,9 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:hint="@string/redacted_wiki_name"
-        app:boxBackgroundColor="@color/app_surface_input"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        app:boxStrokeColor="@color/app_accent">
+        style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editName"
@@ -32,7 +30,7 @@
             android:textColor="@color/app_text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonByName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -45,9 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:hint="@string/redacted_wiki_id_hint"
-        app:boxBackgroundColor="@color/app_surface_input"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        app:boxStrokeColor="@color/app_accent">
+        style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editWikiId"
@@ -57,7 +53,7 @@
             android:textColor="@color/app_text_primary" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonById"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

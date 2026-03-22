@@ -24,6 +24,9 @@ class RedactedApiClient(private val apiKey: String) {
     /** Same value as the JSON API [Authorization] header — needed for gated cover URLs on redacted.sh. */
     fun redactedAuthorizationValue(): String = apiKey.trim()
 
+    private fun apiFailure(message: String, code: Int, retryAfter: Int? = null) =
+        RedactedResult.Failure(RedactedHtmlSafe.safePlainTextForUi(message), code, retryAfter)
+
     private val http = OkHttpClient.Builder()
         .addInterceptor(OutgoingUrlInterceptor)
         .connectTimeout(45, TimeUnit.SECONDS)
@@ -59,7 +62,7 @@ class RedactedApiClient(private val apiKey: String) {
         return try {
             http.newCall(request).execute().use { resp -> handleResponseJson(resp) }
         } catch (e: Exception) {
-            RedactedResult.Failure(e.message ?: "Network error", 0, null)
+            apiFailure(e.message ?: "Network error", 0, null)
         }
     }
 
@@ -67,14 +70,14 @@ class RedactedApiClient(private val apiKey: String) {
         val code = response.code
         val retryAfter = response.header("Retry-After")?.toIntOrNull()
         if (code == 429) {
-            return RedactedResult.Failure("Rate limited (429). Wait before retrying.", code, retryAfter)
+            return apiFailure("Rate limited (429). Wait before retrying.", code, retryAfter)
         }
         val bodyStr = response.body?.string().orEmpty()
         if (bodyStr.isBlank()) {
-            return RedactedResult.Failure("Empty response (HTTP $code)", code, retryAfter)
+            return apiFailure("Empty response (HTTP $code)", code, retryAfter)
         }
         if (!response.isSuccessful) {
-            return RedactedResult.Failure("HTTP $code: ${bodyStr.take(500)}", code, retryAfter)
+            return apiFailure("HTTP $code: ${bodyStr.take(500)}", code, retryAfter)
         }
         return try {
             val root = JSONObject(bodyStr)
@@ -84,19 +87,19 @@ class RedactedApiClient(private val apiKey: String) {
                     val err = root.optString("error")
                         .ifBlank { root.optString("message") }
                         .ifBlank { "Request failed" }
-                    RedactedResult.Failure(err, code, retryAfter)
+                    apiFailure(err, code, retryAfter)
                 }
                 else -> {
                     // Download endpoint returns binary; if we got JSON with unknown shape:
                     if (bodyStr.trimStart().startsWith("{")) {
                         RedactedResult.Success(root)
                     } else {
-                        RedactedResult.Failure("Unexpected response", code, retryAfter)
+                        apiFailure("Unexpected response", code, retryAfter)
                     }
                 }
             }
         } catch (e: Exception) {
-            RedactedResult.Failure("Invalid JSON: ${e.message}", code, retryAfter)
+            apiFailure("Invalid JSON: ${e.message}", code, retryAfter)
         }
     }
 
@@ -106,7 +109,7 @@ class RedactedApiClient(private val apiKey: String) {
                 val code = resp.code
                 val retryAfter = resp.header("Retry-After")?.toIntOrNull()
                 if (code == 429) {
-                    return RedactedResult.Failure("Rate limited (429)", code, retryAfter)
+                    return apiFailure("Rate limited (429)", code, retryAfter)
                 }
                 val bytes = resp.body?.bytes() ?: ByteArray(0)
                 val ct = resp.header("Content-Type").orEmpty()
@@ -121,22 +124,22 @@ class RedactedApiClient(private val apiKey: String) {
                                 val err = root.optString("error")
                                     .ifBlank { root.optString("message") }
                                     .ifBlank { "Request failed" }
-                                RedactedResult.Failure(err, code, retryAfter)
+                                apiFailure(err, code, retryAfter)
                             }
                             "success" -> RedactedResult.Success(root)
-                            else -> RedactedResult.Failure(s.take(300), code, retryAfter)
+                            else -> apiFailure(s.take(300), code, retryAfter)
                         }
                     } catch (e: Exception) {
-                        RedactedResult.Failure("Invalid JSON: ${e.message}", code, retryAfter)
+                        apiFailure("Invalid JSON: ${e.message}", code, retryAfter)
                     }
                 }
                 if (!resp.isSuccessful) {
-                    return RedactedResult.Failure("HTTP $code", code, retryAfter)
+                    return apiFailure("HTTP $code", code, retryAfter)
                 }
                 RedactedResult.Binary(bytes, ct)
             }
         } catch (e: Exception) {
-            RedactedResult.Failure(e.message ?: "Network error", 0, null)
+            apiFailure(e.message ?: "Network error", 0, null)
         }
     }
 

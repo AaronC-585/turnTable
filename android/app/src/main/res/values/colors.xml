@@ -2,12 +2,16 @@
 <resources>
     <!-- Light theme; values-night/colors.xml overrides for dark mode -->
     <color name="app_bg_main">#FAFAFA</color>
+    <!-- Status bar: soft white–green (distinct from main window fill) -->
+    <color name="app_status_bar">#E8F5E9</color>
     <color name="app_bg_root_browse">#F0F0F0</color>
     <color name="app_bg_toolbar">#EEEEEE</color>
     <color name="app_bg_toolbar_alt">#E8E8E8</color>
     <color name="app_surface_input">#FFFFFF</color>
     <color name="app_bg_bottom_dock">#F5F5F5</color>
     <color name="app_bg_bottom_nav">#EEEEEE</color>
+    <!-- Ripple on bottom bar icon buttons (same hue as bar; subtle) -->
+    <color name="app_bottom_bar_icon_ripple">#26000000</color>
     <color name="app_card_surface">#F5F5F5</color>
     <color name="app_card_browse">#FFFFFF</color>
     <color name="app_stroke_browse_card">#E0E0E0</color>

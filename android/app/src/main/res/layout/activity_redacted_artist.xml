@@ -114,11 +114,10 @@
                             android:orientation="horizontal">
 
                             <com.google.android.material.textfield.TextInputLayout
-                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                app:boxStrokeColor="@color/app_accent">
+                                android:layout_weight="1">
 
                                 <com.google.android.material.textfield.TextInputEditText
                                     android:id="@+id/editFileListQuery"
@@ -131,12 +130,11 @@
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonFileListSearch"
-                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                style="@style/Widget.Redacted.Button.Outlined"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
-                                android:text="@string/redacted_search"
-                                app:strokeColor="@color/app_accent" />
+                                android:text="@string/redacted_search" />
                         </LinearLayout>
 
                         <TextView
@@ -186,12 +184,11 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonCommentsOnSite"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.Redacted.Button.Outlined"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="@string/redacted_artist_view_comments_site"
-                            app:strokeColor="@color/app_accent" />
+                            android:text="@string/redacted_artist_view_comments_site" />
                     </LinearLayout>
                 </androidx.core.widget.NestedScrollView>
 

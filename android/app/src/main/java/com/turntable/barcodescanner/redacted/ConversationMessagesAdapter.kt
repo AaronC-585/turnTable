@@ -92,3 +92,42 @@ fun parseConversationMessageRows(response: JSONObject?): Pair<String, List<Conve
     }
     return subject to out
 }
+
+/**
+ * Resolves the other participant’s user id for [RedactedApiClient.sendPm] when replying in-thread (`convid`).
+ * Tries common JSON fields, then infers from [currentUserId] and per-message [senderId] values.
+ */
+fun resolveConversationReplyRecipientId(resp: JSONObject?, currentUserId: Int): Int {
+    if (resp == null) return 0
+    fun tryDirect(): Int {
+        for (key in listOf("recipientId", "recipientUserId", "toUserId", "userId")) {
+            val v = resp.optInt(key, 0)
+            if (v > 0 && (currentUserId <= 0 || v != currentUserId)) return v
+        }
+        resp.optJSONObject("recipient")?.optInt("id", 0)?.takeIf { it > 0 }?.let { return it }
+        resp.optJSONObject("otherUser")?.optInt("id", 0)?.takeIf { it > 0 }?.let { return it }
+        resp.optJSONObject("with")?.optInt("id", 0)?.takeIf { it > 0 }?.let { return it }
+        return 0
+    }
+    val direct = tryDirect()
+    if (direct > 0) return direct
+
+    val arr = resp.optJSONArray("messages") ?: return 0
+    val senderIds = LinkedHashSet<Int>()
+    for (i in 0 until arr.length()) {
+        val sid = arr.optJSONObject(i)?.optInt("senderId") ?: 0
+        if (sid > 0) senderIds.add(sid)
+    }
+    if (currentUserId > 0) {
+        senderIds.remove(currentUserId)
+        if (senderIds.size == 1) return senderIds.first()
+        // Last message from someone else (multi-party / edge cases)
+        for (i in arr.length() - 1 downTo 0) {
+            val sid = arr.optJSONObject(i)?.optInt("senderId") ?: 0
+            if (sid > 0 && sid != currentUserId) return sid
+        }
+    } else {
+        if (senderIds.size == 1) return senderIds.first()
+    }
+    return senderIds.firstOrNull() ?: 0
+}

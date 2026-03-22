@@ -44,6 +44,9 @@
     <string name="debug_event_log_save_failed">Could not save file: %1$s</string>
     <string name="debug_event_log_share_failed">No app could handle share</string>
     <string name="flashlight">Flashlight</string>
+    <string name="flashlight_cd_off">Turn flashlight on</string>
+    <string name="flashlight_cd_on">Turn flashlight off</string>
+    <string name="flashlight_unavailable">Flashlight not available on this device</string>
     <string name="scan">Scan</string>
     <string name="search_url">Search URL</string>
     <string name="search_url_hint">https://example.com/search?q=%s</string>
@@ -115,7 +118,7 @@
     <string name="permission_continue">Continue</string>
     <string name="edit_primary_list">Edit primary list</string>
     <string name="edit_primary_list_title">Primary APIs (music info)</string>
-    <string name="edit_primary_list_help">Enable/disable and use Move up/Move down to reorder. Search tries each enabled API in order until one returns a result.</string>
+    <string name="edit_primary_list_help">Drag using the handle to reorder. Each row has an enable switch. Search tries each enabled API in order until one returns a result. API id must be one of: musicbrainz, discogs, theaudiodb (other ids are skipped until supported).</string>
     <string name="drag_to_reorder">Drag to reorder</string>
     <string name="edit_secondary_list">Edit secondary list</string>
     <string name="edit_secondary_list_title">Edit secondary search list</string>
@@ -143,7 +146,9 @@
     <string name="cancel">Cancel</string>
     <string name="primary_edit_enabled">Enabled</string>
     <string name="primary_edit_cmd_hint">Search_CMD (API id)</string>
-    <string name="primary_edit_add_from_dropdown">Add from available APIs</string>
+    <string name="primary_add_api">Add API</string>
+    <string name="primary_api_new_display_name">New API</string>
+    <string name="primary_save_need_cmd">Enter at least one API id before saving (e.g. musicbrainz).</string>
     <string name="primary_edit_need_one">Keep at least one primary API entry.</string>
 
     <!-- Redacted API -->
@@ -340,6 +345,9 @@
     <string name="redacted_inbox_menu_copy_subject">Copy subject</string>
     <string name="redacted_inbox_subject_copied">Subject copied</string>
     <string name="redacted_inbox_hints">Double-tap to open · Swipe sideways for menu</string>
+    <string name="redacted_conversation_reply_hint">Reply</string>
+    <string name="redacted_reply_recipient_user_id_hint">Their user ID (if not detected)</string>
+    <string name="redacted_reply_need_recipient">Enter the other person’s user ID to send a reply.</string>
     <string name="redacted_conversation_meta_fmt">%1$s · %2$s</string>
     <string name="redacted_send_pm">Send PM</string>
     <string name="redacted_notifications">Notifications</string>
@@ -398,6 +406,8 @@
     <string name="redacted_forums">Forums</string>
     <string name="redacted_threads">Threads</string>
     <string name="redacted_thread">Thread</string>
+    <string name="redacted_copy_as_rtf">Copy as RTF (links)</string>
+    <string name="redacted_rtf_copied">Copied RTF — paste in Word or another app that supports RTF hyperlinks</string>
     <string name="redacted_search_users_hint">Username</string>
     <string name="redacted_group_ids_csv">Group IDs (comma-separated)</string>
     <string name="redacted_torrent_id">Torrent ID</string>

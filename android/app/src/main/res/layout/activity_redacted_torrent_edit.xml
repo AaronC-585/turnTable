@@ -25,9 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/redacted_torrent_id"
-            app:boxBackgroundColor="@color/app_surface_input"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent">
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTorrentId"
@@ -42,9 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="@string/redacted_format_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent">
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editFormat"
@@ -58,9 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="@string/redacted_media_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent">
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editMedia"
@@ -74,9 +68,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="@string/redacted_bitrate_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent">
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editBitrate"
@@ -90,9 +82,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:hint="@string/redacted_release_desc_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent">
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editReleaseDesc"
@@ -104,7 +94,7 @@
                 android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSubmit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

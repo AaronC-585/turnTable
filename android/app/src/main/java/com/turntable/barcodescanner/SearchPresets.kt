@@ -87,7 +87,7 @@ object SearchPresets {
             val parts = line.split("|")
             if (parts.size < 2) continue
             val cmd = parts[0].trim()
-            if (cmd.isBlank()) continue
+            // Blank cmd allowed (in-progress rows in primary API editor)
 
             val enabledRaw = parts[1].trim()
             val enabled = enabledRaw == "1" || enabledRaw.equals("true", ignoreCase = true)

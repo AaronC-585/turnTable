@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- All Redacted / settings forms: outlined fields, accent stroke, surface fill -->
+    <style name="Widget.Redacted.TextInputLayout.OutlinedBox" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/app_surface_input</item>
+        <item name="boxStrokeColor">@color/redacted_textinput_box_stroke</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxCornerRadiusTopStart">4dp</item>
+        <item name="boxCornerRadiusTopEnd">4dp</item>
+        <item name="boxCornerRadiusBottomStart">4dp</item>
+        <item name="boxCornerRadiusBottomEnd">4dp</item>
+        <item name="hintTextColor">@color/app_text_hint</item>
+        <item name="android:textColorHint">@color/app_text_hint</item>
+        <item name="editTextStyle">@style/Widget.Redacted.TextInputEditText</item>
+    </style>
+
+    <style name="Widget.Redacted.TextInputEditText" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="android:textColor">@color/app_text_primary</item>
+        <item name="android:textColorHint">@color/app_text_hint</item>
+    </style>
+
+    <!-- Primary filled actions (theme default for MaterialButton) -->
+    <style name="Widget.Redacted.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/app_accent</item>
+        <item name="android:textColor">@color/app_text_on_button</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
+
+    <!-- Legacy AppCompat Button → same look as Material filled -->
+    <style name="Widget.Redacted.Button.Legacy" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/app_accent</item>
+        <item name="android:textColor">@color/app_text_on_button</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">4dp</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
+
+    <style name="Widget.Redacted.Button.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/app_accent</item>
+        <item name="android:textColor">@color/app_accent</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
+
+    <!-- Add: large white + on accent (filled) -->
+    <style name="Widget.Redacted.Button.Add" parent="Widget.Redacted.Button">
+        <item name="icon">@drawable/ic_add_plus</item>
+        <item name="iconTint">@color/app_text_on_button</item>
+        <item name="iconSize">32dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">8dp</item>
+    </style>
+
+    <!-- Add on light surfaces: large + matches accent text (TextButton) -->
+    <style name="Widget.Redacted.Button.AddTextLink" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="icon">@drawable/ic_add_plus</item>
+        <item name="iconTint">@color/app_accent</item>
+        <item name="iconSize">32dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">8dp</item>
+        <item name="android:textColor">@color/app_accent</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
+
+    <!-- Cancel: X on neutral/secondary fill -->
+    <style name="Widget.Redacted.Button.Cancel" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/app_button_secondary</item>
+        <item name="android:textColor">@color/app_text_on_button</item>
+        <item name="icon">@drawable/ic_cancel_x</item>
+        <item name="iconTint">@color/app_text_on_button</item>
+        <item name="iconSize">28dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">8dp</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
+
+    <!-- Save: floppy icon on accent fill -->
+    <style name="Widget.Redacted.Button.Save" parent="Widget.Redacted.Button">
+        <item name="icon">@drawable/ic_save_floppy</item>
+        <item name="iconTint">@color/app_text_on_button</item>
+        <item name="iconSize">28dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">8dp</item>
+    </style>
+
+    <!-- Remove: white − on danger fill -->
+    <style name="Widget.Redacted.Button.Remove" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/app_button_danger</item>
+        <item name="android:textColor">@color/app_text_on_button</item>
+        <item name="icon">@drawable/ic_remove_minus</item>
+        <item name="iconTint">@color/app_text_on_button</item>
+        <item name="iconSize">28dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">8dp</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
+
+    <style name="Widget.Redacted.Switch" parent="Widget.MaterialComponents.CompoundButton.Switch">
+        <item name="useMaterialThemeColors">true</item>
+    </style>
+
+    <style name="Widget.Redacted.Spinner" parent="Widget.AppCompat.Spinner">
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:background">@drawable/redacted_spinner_background</item>
+        <item name="android:popupBackground">@drawable/redacted_spinner_popup_background</item>
+    </style>
+</resources>

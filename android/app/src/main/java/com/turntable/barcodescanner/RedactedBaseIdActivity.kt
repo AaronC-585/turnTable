@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivityRedactedIdDetailBinding
 import com.turntable.barcodescanner.redacted.RedactedExtras
+import com.turntable.barcodescanner.redacted.RedactedHtmlSafe
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 
@@ -59,7 +60,8 @@ abstract class RedactedBaseIdActivity : AppCompatActivity() {
             runOnUiThread {
                 binding.progress.visibility = View.GONE
                 when (result) {
-                    is RedactedResult.Failure -> binding.textBody.text = result.message
+                    is RedactedResult.Failure -> binding.textBody.text =
+                        RedactedHtmlSafe.safePlainTextForUi(result.message)
                     is RedactedResult.Success -> binding.textBody.text = formatBody(result)
                     else -> binding.textBody.text = getString(R.string.redacted_unexpected)
                 }

@@ -38,9 +38,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:boxBackgroundColor="@color/app_surface_input"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent"
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -59,7 +57,7 @@
             android:orientation="horizontal"
             android:layout_marginBottom="12dp">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonReset"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -72,23 +70,21 @@
                 android:layout_width="12dp"
                 android:layout_height="1dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSave"
+                style="@style/Widget.Redacted.Button.Save"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/edit_list_save"
-                android:textColor="@color/app_text_on_button"
-                app:backgroundTint="@color/app_accent" />
+                android:text="@string/edit_list_save" />
         </LinearLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonCancel"
+            style="@style/Widget.Redacted.Button.Cancel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/cancel"
-            android:textColor="@color/app_text_on_button"
-            app:backgroundTint="@color/app_button_secondary" />
+            android:text="@string/cancel" />
     </LinearLayout>
     </ScrollView>
 </LinearLayout>

@@ -70,7 +70,7 @@
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonEditPrimaryList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -96,10 +96,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/redacted_api_key_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
             app:hintTextColor="@color/app_text_hint"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent"
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
             app:endIconMode="password_toggle"
             android:layout_marginBottom="20dp">
 
@@ -142,7 +140,7 @@
             android:orientation="horizontal"
             android:layout_marginBottom="20dp">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonPickTorrentDir"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -151,7 +149,7 @@
                 app:backgroundTint="@color/app_accent"
                 android:layout_marginEnd="8dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonClearTorrentDir"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -185,7 +183,7 @@
             android:layout_marginBottom="8dp"
             tools:text="@string/qbt_summary_not_configured" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonQbittorrentSettings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -211,10 +209,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/theaudiodb_api_key_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
             app:hintTextColor="@color/app_text_hint"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent"
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="12dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -243,7 +239,7 @@
             android:paddingEnd="12dp"
             android:layout_marginBottom="8dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonEditSecondaryList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -261,10 +257,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/secondary_search_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
             app:hintTextColor="@color/app_text_hint"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent"
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="8dp">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -313,7 +307,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonAbout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -322,7 +316,7 @@
             app:backgroundTint="@color/app_button_neutral"
             android:layout_marginBottom="8dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonCheckUpdates"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -331,7 +325,7 @@
             app:backgroundTint="@color/app_accent_green_dark"
             android:layout_marginBottom="8dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonDonate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -340,13 +334,12 @@
             app:backgroundTint="@color/app_paypal"
             android:layout_marginBottom="20dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSave"
+            style="@style/Widget.Redacted.Button.Save"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/save"
-            android:textColor="@color/app_text_on_button"
-            app:backgroundTint="@color/app_accent" />
+            android:text="@string/save" />
     </LinearLayout>
     </ScrollView>
 </LinearLayout>

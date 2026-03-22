@@ -25,9 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="@string/redacted_id_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent">
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editId"
@@ -37,7 +35,7 @@
                 android:textColor="@color/app_text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonLoad"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -2,13 +2,29 @@
 <resources>
     <style name="Theme.BarcodeScanner" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/app_accent</item>
-        <item name="android:statusBarColor">@color/app_bg_main</item>
+        <item name="colorPrimaryDark">@color/app_accent</item>
+        <item name="colorAccent">@color/app_accent</item>
+        <item name="colorOnPrimary">@color/app_text_on_button</item>
+        <item name="colorSurface">@color/app_surface_input</item>
+        <item name="colorOnSurface">@color/app_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/app_text_secondary</item>
+        <item name="colorError">@color/app_error</item>
+        <item name="colorOnError">@color/app_text_on_button</item>
+        <item name="android:statusBarColor">@color/app_status_bar</item>
+        <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">@color/app_bg_main</item>
         <item name="android:windowBackground">@color/app_bg_main</item>
         <!-- Icons / controls follow light–dark (spinners, some system drawables, overflow where themed). -->
         <item name="colorControlNormal">@color/app_icon_emphasis</item>
+        <item name="colorControlActivated">@color/app_accent</item>
         <item name="android:textColorPrimary">@color/app_text_primary</item>
         <item name="android:textColorSecondary">@color/app_text_secondary</item>
+        <!-- Forms: TextInput, MaterialButton, Spinner, Switch -->
+        <item name="textInputStyle">@style/Widget.Redacted.TextInputLayout.OutlinedBox</item>
+        <item name="materialButtonStyle">@style/Widget.Redacted.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.Redacted.Button.Outlined</item>
+        <item name="switchStyle">@style/Widget.Redacted.Switch</item>
+        <item name="android:spinnerStyle">@style/Widget.Redacted.Spinner</item>
     </style>
 
     <style name="HomeActionColumn">
@@ -28,7 +44,11 @@
         <item name="android:gravity">center</item>
         <item name="android:minWidth">48dp</item>
         <item name="android:minHeight">48dp</item>
-        <item name="backgroundTint">@color/home_card_bg</item>
+        <!-- Match bottom bar so icon chips don’t read as separate tiles -->
+        <item name="backgroundTint">@color/app_bg_bottom_nav</item>
+        <item name="rippleColor">@color/app_bottom_bar_icon_ripple</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="strokeColor">@android:color/transparent</item>
         <item name="iconTint">@color/app_icon_emphasis</item>
         <item name="iconSize">@dimen/home_action_icon_size</item>
         <item name="android:insetTop">0dp</item>

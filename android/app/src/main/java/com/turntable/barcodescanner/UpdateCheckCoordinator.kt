@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.turntable.barcodescanner.debug.OutgoingUrlLog
+import com.turntable.barcodescanner.redacted.RedactedHtmlSafe
 import okhttp3.Call
 import java.io.File
 import java.util.Locale
@@ -142,8 +143,9 @@ object UpdateCheckCoordinator {
             info.tagNameRaw,
         )
         val bodyPreview = info.body?.let { b ->
+            val safe = RedactedHtmlSafe.safePlainTextForUi(b)
             val max = 400
-            if (b.length <= max) "\n\n$b" else "\n\n${b.take(max)}…"
+            if (safe.length <= max) "\n\n$safe" else "\n\n${safe.take(max)}…"
         }.orEmpty()
         val message = summary + bodyPreview
 

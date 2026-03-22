@@ -38,4 +38,18 @@
         app:layout_constraintStart_toStartOf="@id/previewView"
         app:layout_constraintTop_toTopOf="@id/previewView" />
 
+    <ImageButton
+        android:id="@+id/buttonFlashlight"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_scan_flashlight"
+        android:contentDescription="@string/flashlight_cd_off"
+        android:padding="14dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_flashlight"
+        app:layout_constraintEnd_toEndOf="@id/previewView"
+        app:layout_constraintTop_toTopOf="@id/previewView"
+        app:tint="@color/app_text_on_button" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/app_bg_main">
+    android:background="@color/app_bg_main"
+    android:orientation="vertical">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
@@ -15,173 +14,62 @@
         app:title="@string/edit_primary_list_title"
         app:titleTextColor="@color/app_text_primary" />
 
-    <ScrollView
+    <TextView
+        android:id="@+id/textHelp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="4dp"
+        android:textColor="@color/app_text_help"
+        android:textSize="13sp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerPrimaryApis"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:scrollbars="vertical" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="16dp">
 
-        <TextView
-            android:id="@+id/textHelp"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonAdd"
+            style="@style/Widget.Redacted.Button.Add"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/app_text_help"
-            android:textSize="13sp"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/secondary_edit_dropdown_label"
-            android:textColor="@color/app_text_label"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp" />
-
-        <Spinner
-            android:id="@+id/spinnerPrimaryEntries"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:layout_marginBottom="12dp" />
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/checkPrimaryEnabled"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/primary_edit_enabled"
-            android:textColor="@color/app_text_secondary"
-            android:layout_marginBottom="12dp" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/secondary_edit_name_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
-            app:hintTextColor="@color/app_text_label"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent"
-            android:layout_marginBottom="12dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editDisplayName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text"
-                android:textColor="@color/app_text_primary" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/primary_edit_cmd_hint"
-            app:boxBackgroundColor="@color/app_surface_input"
-            app:hintTextColor="@color/app_text_label"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/app_accent"
-            android:layout_marginBottom="16dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editSearchCmd"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textMultiLine|textNoSuggestions"
-                android:minLines="6"
-                android:typeface="monospace"
-                android:textColor="@color/app_text_primary" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/primary_edit_add_from_dropdown"
-            android:textColor="@color/app_text_label"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp" />
-
-        <Spinner
-            android:id="@+id/spinnerPrimaryApiTypes"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:layout_marginBottom="18dp" />
+            android:text="@string/primary_add_api" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
             android:gravity="end"
-            android:layout_marginBottom="18dp">
+            android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/buttonMoveUp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/secondary_edit_move_up"
-                android:textColor="@color/app_text_on_button"
-                app:backgroundTint="@color/app_chip_stroke"
-                android:layout_marginEnd="8dp" />
-
-            <Button
-                android:id="@+id/buttonMoveDown"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/secondary_edit_move_down"
-                android:textColor="@color/app_text_on_button"
-                app:backgroundTint="@color/app_chip_stroke"
-                android:layout_marginEnd="8dp" />
-
-            <Button
-                android:id="@+id/buttonRemove"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/secondary_edit_remove"
-                android:textColor="@color/app_text_on_button"
-                app:backgroundTint="@color/app_button_danger"
-                android:layout_marginEnd="8dp" />
-
-            <Button
-                android:id="@+id/buttonAdd"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/secondary_edit_add"
-                android:textColor="@color/app_text_on_button"
-                app:backgroundTint="@color/app_accent" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end">
-
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonCancel"
+                style="@style/Widget.Redacted.Button.Cancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/cancel"
-                android:textColor="@color/app_text_on_button"
-                app:backgroundTint="@color/app_button_secondary"
-                android:layout_marginEnd="12dp" />
+                android:layout_marginEnd="12dp"
+                android:text="@string/cancel" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSave"
+                style="@style/Widget.Redacted.Button.Save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/edit_list_save"
-                android:textColor="@color/app_text_on_button"
-                app:backgroundTint="@color/app_accent" />
+                android:text="@string/edit_list_save" />
         </LinearLayout>
-
     </LinearLayout>
-    </ScrollView>
 </LinearLayout>

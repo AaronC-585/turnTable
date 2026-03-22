@@ -391,7 +391,7 @@
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal">
 
-                                <Button
+                                <com.google.android.material.button.MaterialButton
                                     android:id="@+id/buttonRequestFormat"
                                     style="@style/Widget.MaterialComponents.Button.TextButton"
                                     android:layout_width="wrap_content"
@@ -399,7 +399,7 @@
                                     android:text="@string/redacted_link_request_format"
                                     android:textColor="@color/app_accent" />
 
-                                <Button
+                                <com.google.android.material.button.MaterialButton
                                     android:id="@+id/buttonViewHistory"
                                     style="@style/Widget.MaterialComponents.Button.TextButton"
                                     android:layout_width="wrap_content"
@@ -407,7 +407,7 @@
                                     android:text="@string/redacted_link_view_history"
                                     android:textColor="@color/app_accent" />
 
-                                <Button
+                                <com.google.android.material.button.MaterialButton
                                     android:id="@+id/buttonGroupLog"
                                     style="@style/Widget.MaterialComponents.Button.TextButton"
                                     android:layout_width="wrap_content"
@@ -415,15 +415,14 @@
                                     android:text="@string/redacted_link_group_log"
                                     android:textColor="@color/app_accent" />
 
-                                <Button
+                                <com.google.android.material.button.MaterialButton
                                     android:id="@+id/buttonAddToCollageFromGroup"
-                                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                                    style="@style/Widget.Redacted.Button.AddTextLink"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/redacted_add_to_collage"
-                                    android:textColor="@color/app_accent" />
+                                    android:text="@string/redacted_add_to_collage" />
 
-                                <Button
+                                <com.google.android.material.button.MaterialButton
                                     android:id="@+id/buttonCommentsOnSite"
                                     style="@style/Widget.MaterialComponents.Button.TextButton"
                                     android:layout_width="wrap_content"
@@ -438,7 +437,7 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
-                            <Button
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonOpenSite"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -446,16 +445,16 @@
                                 android:text="@string/redacted_open_on_site"
                                 app:backgroundTint="@color/app_button_secondary" />
 
-                            <Button
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/buttonAddTag"
+                                style="@style/Widget.Redacted.Button.Add"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="@string/redacted_add_tag"
-                                app:backgroundTint="@color/app_accent" />
+                                android:text="@string/redacted_add_tag" />
                         </LinearLayout>
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonEditGroup"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

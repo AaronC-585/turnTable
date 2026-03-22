@@ -39,10 +39,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/qbt_base_url_hint"
-                app:boxBackgroundColor="@color/app_surface_input"
                 app:hintTextColor="@color/app_text_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxStrokeColor="@color/app_accent"
+                style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                 android:layout_marginBottom="8dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -57,10 +55,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/qbt_username_hint"
-                app:boxBackgroundColor="@color/app_surface_input"
                 app:hintTextColor="@color/app_text_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxStrokeColor="@color/app_accent"
+                style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                 android:layout_marginBottom="8dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -75,10 +71,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/qbt_password_hint"
-                app:boxBackgroundColor="@color/app_surface_input"
                 app:hintTextColor="@color/app_text_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxStrokeColor="@color/app_accent"
+                style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                 app:endIconMode="password_toggle"
                 android:layout_marginBottom="20dp">
 
@@ -90,13 +84,12 @@
                     android:textColor="@color/app_text_primary" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonSave"
+                style="@style/Widget.Redacted.Button.Save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/save"
-                android:textColor="@color/app_text_on_button"
-                app:backgroundTint="@color/app_accent" />
+                android:text="@string/save" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

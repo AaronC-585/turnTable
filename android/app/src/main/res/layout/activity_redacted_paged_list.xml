@@ -20,7 +20,7 @@
         android:orientation="horizontal"
         android:padding="8dp">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonPrev"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
             android:gravity="center"
             android:textColor="@color/app_text_label" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonNext"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

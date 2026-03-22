@@ -20,9 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
         android:hint="@string/redacted_user_id"
-        app:boxBackgroundColor="@color/app_surface_input"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        app:boxStrokeColor="@color/app_accent">
+        style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editUserId"
@@ -38,7 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonLoad"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

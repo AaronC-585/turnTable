@@ -3,6 +3,7 @@ package com.turntable.barcodescanner
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.ImageFormat
 import android.media.AudioManager
 import android.media.ToneGenerator
@@ -50,10 +51,6 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this, SearchHistoryActivity::class.java))
                     true
                 }
-                R.id.action_flashlight -> {
-                    toggleFlashlight()
-                    true
-                }
                 R.id.action_redacted -> {
                     if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
                         Toast.makeText(
@@ -69,6 +66,8 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+
+        binding.buttonFlashlight.setOnClickListener { toggleFlashlight() }
 
         if (!hasCameraPermission()) {
             requestPermissions(arrayOf(Manifest.permission.CAMERA), REQUEST_CAMERA)
@@ -123,20 +122,55 @@ class MainActivity : AppCompatActivity() {
             provider.unbindAll()
             camera = provider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
             torchEnabled = false
+            runOnUiThread { updateFlashlightAppearance() }
         } catch (e: Exception) {
             Log.e(TAG, "Bind failed", e)
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (::binding.isInitialized) {
+            updateFlashlightAppearance()
+        }
+    }
+
+    override fun onPause() {
+        camera?.cameraControl?.enableTorch(false)
+        torchEnabled = false
+        super.onPause()
+    }
+
+    private fun updateFlashlightAppearance() {
+        val c = camera
+        val hasFlash = c?.cameraInfo?.hasFlashUnit() == true
+        binding.buttonFlashlight.isEnabled = hasFlash
+        binding.buttonFlashlight.alpha = if (hasFlash) 1f else 0.45f
+        val colorRes = when {
+            !hasFlash -> R.color.app_text_on_button
+            torchEnabled -> R.color.app_accent
+            else -> R.color.app_text_on_button
+        }
+        binding.buttonFlashlight.imageTintList = ColorStateList.valueOf(
+            ContextCompat.getColor(this, colorRes),
+        )
+        binding.buttonFlashlight.contentDescription = when {
+            !hasFlash -> getString(R.string.flashlight_unavailable)
+            torchEnabled -> getString(R.string.flashlight_cd_on)
+            else -> getString(R.string.flashlight_cd_off)
+        }
+    }
+
     private fun toggleFlashlight() {
         val c = camera ?: return
-        val hasFlash = c.cameraInfo.hasFlashUnit()
-        if (!hasFlash) {
+        if (!c.cameraInfo.hasFlashUnit()) {
+            Toast.makeText(this, R.string.flashlight_unavailable, Toast.LENGTH_SHORT).show()
             Log.w(TAG, "Flash unit not available on this camera")
             return
         }
         torchEnabled = !torchEnabled
         c.cameraControl.enableTorch(torchEnabled)
+        updateFlashlightAppearance()
     }
 
     private fun analyze(imageProxy: ImageProxy) {

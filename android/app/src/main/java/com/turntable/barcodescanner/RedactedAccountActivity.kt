@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.turntable.barcodescanner.databinding.ActivityRedactedDetailBinding
+import com.turntable.barcodescanner.redacted.RedactedHtmlSafe
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 import org.json.JSONObject
@@ -27,8 +28,9 @@ class RedactedAccountActivity : AppCompatActivity() {
             runOnUiThread {
                 binding.progress.visibility = View.GONE
                 binding.textBody.text = when (result) {
-                    is RedactedResult.Failure -> result.message
-                    is RedactedResult.Success -> formatIndex(result.response)
+                    is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(result.message)
+                    is RedactedResult.Success ->
+                        RedactedHtmlSafe.safePlainTextForUi(formatIndex(result.response))
                     else -> getString(R.string.redacted_unexpected)
                 }
             }
@@ -52,7 +54,7 @@ class RedactedAccountActivity : AppCompatActivity() {
                 appendLine("class: ${u.optString("class")}")
             }
             appendLine()
-            appendLine(resp.toString(2))
+            appendLine(RedactedHtmlSafe.safeJsonPretty(resp))
         }
     }
 }

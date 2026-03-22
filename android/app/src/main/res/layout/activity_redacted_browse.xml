@@ -61,7 +61,7 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnModeBasic"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.Redacted.Button.Outlined"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_browse_mode_basic"
@@ -70,7 +70,7 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnModeAdvanced"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.Redacted.Button.Outlined"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_browse_mode_advanced"
@@ -89,10 +89,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/redacted_browse_search_terms"
-                            app:boxBackgroundColor="@color/app_surface_input"
                             app:hintTextColor="@color/app_text_label"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            app:boxStrokeColor="@color/app_accent">
+                            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/editSearchStr"
@@ -114,10 +112,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/redacted_browse_artist_name"
-                            app:boxBackgroundColor="@color/app_surface_input"
                             app:hintTextColor="@color/app_text_label"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            app:boxStrokeColor="@color/app_accent"
+                            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                             android:layout_marginBottom="6dp">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -132,10 +128,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/redacted_browse_album_torrent_name"
-                            app:boxBackgroundColor="@color/app_surface_input"
                             app:hintTextColor="@color/app_text_label"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            app:boxStrokeColor="@color/app_accent"
+                            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                             android:layout_marginBottom="6dp">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -150,10 +144,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/redacted_browse_record_label"
-                            app:boxBackgroundColor="@color/app_surface_input"
                             app:hintTextColor="@color/app_text_label"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            app:boxStrokeColor="@color/app_accent"
+                            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                             android:layout_marginBottom="6dp">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -174,10 +166,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:hint="@string/redacted_browse_catalogue_number"
-                                app:boxBackgroundColor="@color/app_surface_input"
                                 app:hintTextColor="@color/app_text_label"
-                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                                app:boxStrokeColor="@color/app_accent"
+                                style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                                 android:layout_marginEnd="6dp"
                                 android:layout_marginBottom="6dp">
 
@@ -193,10 +183,8 @@
                                 android:layout_width="100dp"
                                 android:layout_height="wrap_content"
                                 android:hint="@string/redacted_browse_year"
-                                app:boxBackgroundColor="@color/app_surface_input"
                                 app:hintTextColor="@color/app_text_label"
-                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                                app:boxStrokeColor="@color/app_accent"
+                                style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                                 android:layout_marginBottom="6dp">
 
                                 <com.google.android.material.textfield.TextInputEditText
@@ -218,10 +206,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:hint="@string/redacted_browse_edition_title"
-                                app:boxBackgroundColor="@color/app_surface_input"
                                 app:hintTextColor="@color/app_text_label"
-                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                                app:boxStrokeColor="@color/app_accent"
+                                style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                                 android:layout_marginEnd="6dp"
                                 android:layout_marginBottom="6dp">
 
@@ -237,10 +223,8 @@
                                 android:layout_width="100dp"
                                 android:layout_height="wrap_content"
                                 android:hint="@string/redacted_browse_edition_year"
-                                app:boxBackgroundColor="@color/app_surface_input"
                                 app:hintTextColor="@color/app_text_label"
-                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                                app:boxStrokeColor="@color/app_accent"
+                                style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                                 android:layout_marginBottom="6dp">
 
                                 <com.google.android.material.textfield.TextInputEditText
@@ -256,10 +240,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/redacted_browse_file_list"
-                            app:boxBackgroundColor="@color/app_surface_input"
                             app:hintTextColor="@color/app_text_label"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            app:boxStrokeColor="@color/app_accent"
+                            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                             android:layout_marginBottom="6dp">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -274,10 +256,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/redacted_browse_torrent_description"
-                            app:boxBackgroundColor="@color/app_surface_input"
                             app:hintTextColor="@color/app_text_label"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                            app:boxStrokeColor="@color/app_accent"
+                            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                             android:layout_marginBottom="8dp">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -396,10 +376,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/redacted_browse_tags_hint"
-                        app:boxBackgroundColor="@color/app_surface_input"
                         app:hintTextColor="@color/app_text_label"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                        app:boxStrokeColor="@color/app_accent"
+                        style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
                         android:layout_marginTop="4dp"
                         android:layout_marginBottom="6dp">
 
@@ -538,7 +516,7 @@
                         android:orientation="horizontal"
                         android:gravity="center">
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonReset"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -547,7 +525,7 @@
                             app:backgroundTint="@color/app_button_secondary"
                             android:layout_marginEnd="6dp" />
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonSearch"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"

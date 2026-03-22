@@ -1,37 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingVertical="12dp"
-    android:paddingEnd="8dp"
-    android:background="?attr/selectableItemBackground">
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="@color/app_card_browse"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/app_stroke_browse_card"
+    app:strokeWidth="1dp">
 
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/checkEnabled"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/app_text_secondary" />
+        android:orientation="vertical"
+        android:padding="12dp">
 
-    <TextView
-        android:id="@+id/textApiName"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginStart="8dp"
-        android:textColor="@color/app_text_primary"
-        android:textSize="16sp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-    <ImageButton
-        android:id="@+id/dragHandle"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:contentDescription="@string/drag_to_reorder"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@android:drawable/ic_menu_sort_by_size"
-        android:scaleType="centerInside"
-        app:tint="@color/app_icon_emphasis" />
-</LinearLayout>
+            <ImageButton
+                android:id="@+id/dragHandle"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/drag_to_reorder"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_menu_sort_by_size"
+                app:tint="@color/app_icon_emphasis" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchEnabled"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="@string/primary_edit_enabled"
+                android:textColor="@color/app_text_secondary" />
+
+            <ImageButton
+                android:id="@+id/buttonDelete"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/secondary_edit_remove"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_remove_minus"
+                app:tint="@color/app_error" />
+        </LinearLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutDisplayName"
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/secondary_edit_name_hint"
+            app:hintTextColor="@color/app_text_label">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editDisplayName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textColor="@color/app_text_primary"
+                tools:text="MusicBrainz (API)" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutCmd"
+            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/primary_edit_cmd_hint"
+            app:hintTextColor="@color/app_text_label">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editCmd"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text|textNoSuggestions"
+                android:textColor="@color/app_text_primary"
+                android:typeface="monospace"
+                tools:text="musicbrainz" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

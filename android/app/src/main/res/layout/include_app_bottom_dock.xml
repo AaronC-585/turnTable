@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@color/app_bg_main"
+    android:background="@color/app_bg_bottom_nav"
     android:elevation="6dp">
 
     <LinearLayout
@@ -140,8 +140,9 @@
         android:id="@+id/layoutHomeActions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="0dp"
         android:layout_marginBottom="4dp"
+        android:background="@color/app_bg_bottom_nav"
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingHorizontal="8dp">

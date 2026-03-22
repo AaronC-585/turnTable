@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,12 +27,17 @@ import com.turntable.barcodescanner.redacted.AnnouncementRow
 import com.turntable.barcodescanner.redacted.AnnouncementsAdapter
 import com.turntable.barcodescanner.redacted.ConversationMessagesAdapter
 import com.turntable.barcodescanner.redacted.RedactedAnnouncementHtml
+import com.turntable.barcodescanner.redacted.RedactedBbCodeToRtf
 import com.turntable.barcodescanner.redacted.InboxRow
 import com.turntable.barcodescanner.redacted.InboxRowsAdapter
 import com.turntable.barcodescanner.redacted.parseConversationMessageRows
+import com.turntable.barcodescanner.redacted.resolveConversationReplyRecipientId
 import com.turntable.barcodescanner.redacted.RedactedExtras
+import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentParse
 import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentUser
+import com.turntable.barcodescanner.redacted.RedactedHtmlSafe
 import com.turntable.barcodescanner.redacted.RedactedResult
+import com.turntable.barcodescanner.redacted.RedactedRtfClipboard
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 import com.turntable.barcodescanner.redacted.TwoLineRow
 import com.turntable.barcodescanner.redacted.TwoLineRowsAdapter
@@ -223,6 +230,9 @@ class RedactedConversationActivity : AppCompatActivity() {
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
     private val messageAdapter = ConversationMessagesAdapter()
     private var convId: Int = 0
+    private var replyToUserId: Int = 0
+    private var sendingReply: Boolean = false
+    private var lastConvResponse: JSONObject? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -251,7 +261,116 @@ class RedactedConversationActivity : AppCompatActivity() {
             loadConversation(isPullRefresh = true)
         }
 
+        binding.buttonSendReply.setOnClickListener { sendReply() }
+
         loadConversation(isPullRefresh = false)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_redacted_copy_rtf, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.menu_copy_as_rtf) {
+            val resp = lastConvResponse
+            if (resp == null) {
+                Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
+            } else {
+                val rtf = buildConversationRtfDocument(resp)
+                val plain = buildConversationPlainFallback(resp)
+                RedactedRtfClipboard.copyRtf(this, getString(R.string.redacted_inbox), rtf, plain)
+                Toast.makeText(this, R.string.redacted_rtf_copied, Toast.LENGTH_LONG).show()
+            }
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun buildConversationRtfDocument(resp: JSONObject): String {
+        val sb = StringBuilder()
+        val subject = resp.optString("subject")
+        if (subject.isNotBlank()) {
+            sb.append("\\b ").append(RedactedBbCodeToRtf.escapeRtfPlain(subject)).append("\\b0\\line\\line ")
+        }
+        val arr = resp.optJSONArray("messages")
+        if (arr != null) {
+            for (i in 0 until arr.length()) {
+                val m = arr.optJSONObject(i) ?: continue
+                val head = "${m.optString("senderName")} · ${m.optString("sentDate")}"
+                sb.append(RedactedBbCodeToRtf.escapeRtfPlain(head)).append("\\line ")
+                sb.append(RedactedBbCodeToRtf.bbToRtf(m.optString("bbBody"), 0))
+                sb.append("\\par\\par ")
+            }
+        }
+        return RedactedBbCodeToRtf.wrapDocument(sb.toString())
+    }
+
+    private fun buildConversationPlainFallback(resp: JSONObject): String =
+        RedactedGazelleTorrentParse.stripBbCodeForPreview(
+            buildString {
+                append(resp.optString("subject")).append("\n\n")
+                val arr = resp.optJSONArray("messages")
+                if (arr != null) {
+                    for (i in 0 until arr.length()) {
+                        append(arr.optJSONObject(i)?.optString("bbBody")).append("\n\n")
+                    }
+                }
+            },
+        )
+
+    private fun updateReplyRecipientUi() {
+        if (replyToUserId > 0) {
+            binding.layoutReplyRecipientId.visibility = View.GONE
+        } else {
+            binding.layoutReplyRecipientId.visibility = View.VISIBLE
+        }
+    }
+
+    private fun sendReply() {
+        if (sendingReply) return
+        val body = binding.editReplyBody.text?.toString()?.trim().orEmpty()
+        if (body.isBlank()) {
+            Toast.makeText(this, R.string.redacted_pm_invalid, Toast.LENGTH_SHORT).show()
+            return
+        }
+        var toId = replyToUserId
+        if (toId <= 0) {
+            toId = binding.editReplyRecipientId.text?.toString()?.toIntOrNull() ?: 0
+        }
+        if (toId <= 0) {
+            Toast.makeText(this, R.string.redacted_reply_need_recipient, Toast.LENGTH_LONG).show()
+            return
+        }
+        sendingReply = true
+        binding.buttonSendReply.isEnabled = false
+        Thread {
+            val r = api.sendPm(toUserId = toId, subject = null, body = body, convId = convId)
+            runOnUiThread {
+                sendingReply = false
+                binding.buttonSendReply.isEnabled = true
+                when (r) {
+                    is RedactedResult.Failure -> Toast.makeText(
+                        this,
+                        RedactedHtmlSafe.safePlainTextForUi(r.message),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    is RedactedResult.Success -> {
+                        binding.editReplyBody.text?.clear()
+                        loadConversation(isPullRefresh = true)
+                    }
+                    else -> {}
+                }
+            }
+        }.start()
+    }
+
+    private fun scrollMessagesToBottom() {
+        val n = messageAdapter.itemCount
+        if (n <= 0) return
+        binding.recyclerMessages.post {
+            binding.recyclerMessages.scrollToPosition(n - 1)
+        }
     }
 
     private fun loadConversation(isPullRefresh: Boolean) {
@@ -261,24 +380,37 @@ class RedactedConversationActivity : AppCompatActivity() {
         binding.textError.visibility = View.GONE
         Thread {
             val r = api.inboxConversation(convId)
+            val myId = when (val idx = api.index()) {
+                is RedactedResult.Success -> idx.response?.optInt("id") ?: 0
+                else -> 0
+            }
             runOnUiThread {
                 binding.progress.visibility = View.GONE
                 binding.swipeRefreshConversation.isRefreshing = false
                 when (r) {
                     is RedactedResult.Failure -> {
+                        lastConvResponse = null
+                        binding.cardReply.visibility = View.GONE
                         binding.textError.visibility = View.VISIBLE
                         binding.textError.text = r.message
                         messageAdapter.rows = emptyList()
                     }
                     is RedactedResult.Success -> {
+                        lastConvResponse = r.response
                         binding.textError.visibility = View.GONE
+                        replyToUserId = resolveConversationReplyRecipientId(r.response, myId)
+                        updateReplyRecipientUi()
+                        binding.cardReply.visibility = View.VISIBLE
                         val (subject, rows) = parseConversationMessageRows(r.response)
                         if (subject.isNotBlank()) {
                             supportActionBar?.title = subject
                         }
                         messageAdapter.rows = rows
+                        scrollMessagesToBottom()
                     }
                     else -> {
+                        lastConvResponse = null
+                        binding.cardReply.visibility = View.GONE
                         binding.textError.visibility = View.VISIBLE
                         binding.textError.text = getString(R.string.redacted_unexpected)
                         messageAdapter.rows = emptyList()
@@ -453,15 +585,20 @@ class RedactedForumThreadsActivity : AppCompatActivity() {
 }
 
 class RedactedForumThreadActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityRedactedDetailBinding
+    private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
+    private var threadResponse: JSONObject? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val api = RedactedUiHelper.requireApi(this) ?: return
+        api = RedactedUiHelper.requireApi(this) ?: return
         val threadId = intent.getIntExtra(RedactedExtras.THREAD_ID, 0)
         if (threadId <= 0) {
             finish()
             return
         }
-        val binding = ActivityRedactedDetailBinding.inflate(layoutInflater)
+        binding = ActivityRedactedDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -474,14 +611,78 @@ class RedactedForumThreadActivity : AppCompatActivity() {
             val r = api.forumThread(threadId)
             runOnUiThread {
                 binding.progress.visibility = View.GONE
-                binding.textBody.text = when (r) {
-                    is RedactedResult.Failure -> r.message
-                    is RedactedResult.Success -> formatThread(r.response)
-                    else -> ""
+                when (r) {
+                    is RedactedResult.Failure -> {
+                        threadResponse = null
+                        binding.textBody.text = RedactedHtmlSafe.safePlainTextForUi(r.message)
+                    }
+                    is RedactedResult.Success -> {
+                        threadResponse = r.response
+                        binding.textBody.text = RedactedHtmlSafe.safePlainTextForUi(formatThread(r.response))
+                    }
+                    else -> {
+                        threadResponse = null
+                        binding.textBody.text = ""
+                    }
                 }
             }
         }.start()
     }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_redacted_copy_rtf, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.menu_copy_as_rtf) {
+            val resp = threadResponse
+            if (resp == null) {
+                Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
+            } else {
+                val rtf = buildForumThreadRtfDocument(resp)
+                val plain = buildForumThreadPlainFallback(resp)
+                RedactedRtfClipboard.copyRtf(this, getString(R.string.redacted_thread), rtf, plain)
+                Toast.makeText(this, R.string.redacted_rtf_copied, Toast.LENGTH_LONG).show()
+            }
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun buildForumThreadRtfDocument(resp: JSONObject): String {
+        val sb = StringBuilder()
+        val title = resp.optString("threadTitle")
+        if (title.isNotBlank()) {
+            sb.append("\\b ").append(RedactedBbCodeToRtf.escapeRtfPlain(title)).append("\\b0\\line\\line ")
+        }
+        val posts = resp.optJSONArray("posts")
+        if (posts != null) {
+            for (i in 0 until posts.length()) {
+                val p = posts.optJSONObject(i) ?: continue
+                val auth = p.optJSONObject("author")
+                val name = auth?.optString("authorName").orEmpty()
+                val head = "— $name @ ${p.optString("addedTime")} —"
+                sb.append(RedactedBbCodeToRtf.escapeRtfPlain(head)).append("\\line ")
+                sb.append(RedactedBbCodeToRtf.bbToRtf(p.optString("bbBody"), 0))
+                sb.append("\\par\\par ")
+            }
+        }
+        return RedactedBbCodeToRtf.wrapDocument(sb.toString())
+    }
+
+    private fun buildForumThreadPlainFallback(resp: JSONObject): String =
+        RedactedGazelleTorrentParse.stripBbCodeForPreview(
+            buildString {
+                append(resp.optString("threadTitle")).append("\n\n")
+                val posts = resp.optJSONArray("posts")
+                if (posts != null) {
+                    for (i in 0 until posts.length()) {
+                        append(posts.optJSONObject(i)?.optString("bbBody")).append("\n\n")
+                    }
+                }
+            },
+        )
 
     private fun formatThread(resp: JSONObject?): String {
         if (resp == null) return ""
@@ -657,8 +858,8 @@ class RedactedAnnouncementsActivity : AppCompatActivity() {
                                 val htmlBody = RedactedAnnouncementHtml.stripImgTags(rawHtml)
                                 rows.add(
                                     AnnouncementRow(
-                                        title = o.optString("title"),
-                                        time = o.optString("newsTime"),
+                                        title = RedactedHtmlSafe.safePlainTextForUi(o.optString("title")),
+                                        time = RedactedHtmlSafe.safePlainTextForUi(o.optString("newsTime")),
                                         htmlContent = htmlBody,
                                         imageUrls = imageUrls,
                                         useAltStripe = i % 2 == 1,
@@ -771,8 +972,11 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
             runOnUiThread {
                 binding.progress.visibility = View.GONE
                 binding.textBody.text = when (r) {
-                    is RedactedResult.Failure -> r.message
-                    is RedactedResult.Success -> r.response?.toString(2) ?: r.root.toString(2)
+                    is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(r.message)
+                    is RedactedResult.Success ->
+                        RedactedHtmlSafe.safePlainTextForUi(
+                            r.response?.toString(2) ?: r.root.toString(2),
+                        )
                     else -> ""
                 }
             }

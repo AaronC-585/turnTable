@@ -63,7 +63,10 @@ class AnnouncementsAdapter(
                 if (row.htmlContent.isBlank()) {
                     ""
                 } else {
-                    HtmlCompat.fromHtml(row.htmlContent, HtmlCompat.FROM_HTML_MODE_LEGACY)
+                    HtmlCompat.fromHtml(
+                        RedactedHtmlSafe.sanitizeHtmlForTextView(row.htmlContent),
+                        HtmlCompat.FROM_HTML_MODE_LEGACY,
+                    )
                 }
             body.movementMethod = LinkMovementMethod.getInstance()
             val bg = if (row.useAltStripe) R.color.conv_message_stripe_b else R.color.conv_message_stripe_a

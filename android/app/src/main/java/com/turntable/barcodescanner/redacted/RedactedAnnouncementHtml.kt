@@ -27,11 +27,11 @@ object RedactedAnnouncementHtml {
     fun stripImgTags(html: String): String =
         if (html.isBlank()) html else imgTagRegex.replace(html, "")
 
-    /** Prefer API `body` (HTML); otherwise convert `bbBody`. */
+    /** Prefer API `body` (HTML); otherwise convert `bbBody`. Sanitized for [androidx.core.text.HtmlCompat.fromHtml]. */
     fun contentHtml(o: JSONObject): String {
         val body = o.optString("body").trim()
-        if (body.isNotEmpty()) return body
-        return bbToHtml(o.optString("bbBody"), depth = 0)
+        val raw = if (body.isNotEmpty()) body else bbToHtml(o.optString("bbBody"), depth = 0)
+        return RedactedHtmlSafe.sanitizeHtmlForTextView(raw)
     }
 
     private fun escapeXml(text: String): String = buildString(text.length + 8) {
