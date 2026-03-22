@@ -9,19 +9,13 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
- * Reads an update **manifest** from **`raw.githubusercontent.com`**: **`CurrentVersion.json`** at repo root
- * (Gradle `writeCurrentVersion` on each `:app` build) with **`version`**, **`releasePageUrl`**, and
- * **`assets.apk`** (full GitHub download URLs). Falls back to legacy plain-text files if the manifest is missing.
+ * Update check: fetches **`CurrentVersion.json`** from **`github_update_current_version_json_url`** (full raw URL),
+ * or if that is empty, from **`raw.githubusercontent.com/{owner}/{repo}/{ref}/CurrentVersion.json`**. Decodes
+ * **`version`**, **`releasePageUrl`**, and APK URL from **`assets`** / **`apkUrl`**. No GitHub API for discovery.
  */
 object GithubAppUpdateChecker {
 
-    /** Repo root; written by Gradle `writeCurrentVersion` on each :app build. */
     private const val CURRENT_MANIFEST_REPO_PATH = "CurrentVersion.json"
-
-    /** Older one-line format; still tried if [CURRENT_MANIFEST_REPO_PATH] fails. */
-    private const val LEGACY_PLAIN_VERSION_REPO_PATH = "CurrentVersion.txt"
-
-    private const val LEGACY_VERSION_FILE_REPO_PATH = "android/app/update-check-latest-version.txt"
 
     private val http = OkHttpClient.Builder()
         .addInterceptor(OutgoingUrlInterceptor)
@@ -34,14 +28,15 @@ object GithubAppUpdateChecker {
         val title: String?,
         val body: String?,
         val htmlUrl: String,
-        /** Direct .apk asset URL when known; else null (use [htmlUrl]). */
         val apkBrowserDownloadUrl: String?,
     )
 
     fun normalizedTag(tagName: String): String = DottedVersionCompare.normalizedForCompare(tagName)
 
-    /** True when owner/repo are set so raw URLs / defaults can be built. */
     fun isGithubUpdateConfigured(context: Context): Boolean {
+        if (context.getString(R.string.github_update_current_version_json_url).trim().isNotEmpty()) {
+            return true
+        }
         val owner = context.getString(R.string.github_update_owner).trim()
         val repo = context.getString(R.string.github_update_repo).trim()
         return owner.isNotEmpty() && repo.isNotEmpty()
@@ -55,9 +50,15 @@ object GithubAppUpdateChecker {
         return "https://api.github.com/repos/$owner/$repo/releases/latest"
     }
 
-    /** Raw URL to [LEGACY_VERSION_FILE_REPO_PATH] on GitHub (CDN); null if owner/repo not set. */
-    fun rawLatestVersionFileUrl(context: Context): String? =
-        rawRepoFileUrl(context, LEGACY_VERSION_FILE_REPO_PATH)
+    /** Resolved URL used to fetch CurrentVersion.json (explicit string or owner/repo/ref). */
+    fun rawCurrentVersionJsonUrl(context: Context): String? = manifestJsonUrl(context)
+
+    /** Full raw URL if set in resources, else `raw.githubusercontent.com/{owner}/{repo}/{ref}/CurrentVersion.json`. */
+    private fun manifestJsonUrl(context: Context): String? {
+        val direct = context.getString(R.string.github_update_current_version_json_url).trim()
+        if (direct.isNotEmpty()) return direct
+        return rawRepoFileUrl(context, CURRENT_MANIFEST_REPO_PATH)
+    }
 
     private fun rawRepoFileUrl(context: Context, repoRelativePath: String): String? {
         val owner = context.getString(R.string.github_update_owner).trim()
@@ -68,16 +69,35 @@ object GithubAppUpdateChecker {
     }
 
     /**
-     * **CurrentVersion.json** first, then **CurrentVersion.txt**, then legacy **update-check-latest-version.txt**.
+     * Fetches and decodes **only** [CURRENT_MANIFEST_REPO_PATH].
      */
-    fun fetchLatestReleaseWithFallback(context: Context): Result<ReleaseInfo> {
-        fetchLatestReleaseFromRawJsonManifest(context, CURRENT_MANIFEST_REPO_PATH).let {
-            if (it.isSuccess) return it
+    fun fetchLatestReleaseWithFallback(context: Context): Result<ReleaseInfo> =
+        fetchCurrentVersionJson(context)
+
+    private fun fetchCurrentVersionJson(context: Context): Result<ReleaseInfo> {
+        val url = manifestJsonUrl(context)
+            ?: return Result.failure(
+                IllegalStateException("Set github_update_current_version_json_url or github_update_owner/repo"),
+            )
+        val req = Request.Builder()
+            .url(url)
+            .header("User-Agent", "turnTable/1.0 (Android)")
+            .build()
+        return try {
+            http.newCall(req).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    return Result.failure(
+                        IllegalStateException(
+                            "$CURRENT_MANIFEST_REPO_PATH HTTP ${response.code}: ${body.take(120)}",
+                        ),
+                    )
+                }
+                parseReleaseManifestJson(body, context, CURRENT_MANIFEST_REPO_PATH)
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
-        fetchLatestReleaseFromRawPlainVersionFile(context, LEGACY_PLAIN_VERSION_REPO_PATH).let {
-            if (it.isSuccess) return it
-        }
-        return fetchLatestReleaseFromRawPlainVersionFile(context, LEGACY_VERSION_FILE_REPO_PATH)
     }
 
     /**
@@ -118,37 +138,6 @@ object GithubAppUpdateChecker {
                         apkBrowserDownloadUrl = apkUrl,
                     ),
                 )
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    /** Legacy entry: plain-text file under android/app/. */
-    fun fetchLatestReleaseFromVersionFile(context: Context): Result<ReleaseInfo> =
-        fetchLatestReleaseFromRawPlainVersionFile(context, LEGACY_VERSION_FILE_REPO_PATH)
-
-    private fun fetchLatestReleaseFromRawJsonManifest(
-        context: Context,
-        repoRelativePath: String,
-    ): Result<ReleaseInfo> {
-        val url = rawRepoFileUrl(context, repoRelativePath)
-            ?: return Result.failure(IllegalStateException("Missing GitHub owner/repo"))
-        val req = Request.Builder()
-            .url(url)
-            .header("User-Agent", "turnTable/1.0 (Android)")
-            .build()
-        return try {
-            http.newCall(req).execute().use { response ->
-                val body = response.body?.string().orEmpty()
-                if (!response.isSuccessful) {
-                    return Result.failure(
-                        IllegalStateException(
-                            "$repoRelativePath HTTP ${response.code}: ${body.take(120)}",
-                        ),
-                    )
-                }
-                parseReleaseManifestJson(body, context, repoRelativePath)
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -210,10 +199,6 @@ object GithubAppUpdateChecker {
         }
     }
 
-    /**
-     * APK URL from manifest: root `apkUrl`, or `assets` object (`apk` / `android`), or `assets` array
-     * (`name` ending in .apk + `url` or `browser_download_url`).
-     */
     private fun extractApkUrlFromManifest(root: JSONObject): String? {
         root.optString("apkUrl").trim().takeIf { it.isNotEmpty() }?.let { return it }
         val obj = root.optJSONObject("assets")
@@ -245,61 +230,6 @@ object GithubAppUpdateChecker {
         }
         return candidates.maxByOrNull { it.first }?.second
     }
-
-    private fun fetchLatestReleaseFromRawPlainVersionFile(
-        context: Context,
-        repoRelativePath: String,
-    ): Result<ReleaseInfo> {
-        val owner = context.getString(R.string.github_update_owner).trim()
-        val repo = context.getString(R.string.github_update_repo).trim()
-        val url = rawRepoFileUrl(context, repoRelativePath)
-            ?: return Result.failure(IllegalStateException("Missing GitHub owner/repo"))
-        val req = Request.Builder()
-            .url(url)
-            .header("User-Agent", "turnTable/1.0 (Android)")
-            .build()
-        return try {
-            http.newCall(req).execute().use { response ->
-                val body = response.body?.string().orEmpty()
-                if (!response.isSuccessful) {
-                    return Result.failure(
-                        IllegalStateException(
-                            "$repoRelativePath HTTP ${response.code}: ${body.take(120)}",
-                        ),
-                    )
-                }
-                val line = firstVersionLineFromFile(body)
-                    ?: return Result.failure(IllegalStateException("Empty file: $repoRelativePath"))
-                val norm = DottedVersionCompare.normalizedForCompare(line)
-                if (norm.isEmpty() || !norm.any { it.isDigit() }) {
-                    return Result.failure(
-                        IllegalStateException("Invalid version in $repoRelativePath: ${line.take(40)}"),
-                    )
-                }
-                val tagRaw = line.trim().removePrefix("V").let { t ->
-                    if (t.startsWith("v")) t else "v$t"
-                }
-                val htmlUrl = "https://github.com/$owner/$repo/releases/latest"
-                val apkUrl = syntheticReleaseApkUrl(owner, repo, norm)
-                Result.success(
-                    ReleaseInfo(
-                        tagNameRaw = tagRaw,
-                        title = null,
-                        body = null,
-                        htmlUrl = htmlUrl,
-                        apkBrowserDownloadUrl = apkUrl,
-                    ),
-                )
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    private fun firstVersionLineFromFile(body: String): String? =
-        body.lineSequence()
-            .map { it.substringBefore("#").trim() }
-            .firstOrNull { it.isNotEmpty() }
 
     private fun syntheticReleaseApkUrl(owner: String, repo: String, versionPlain: String): String =
         "https://github.com/$owner/$repo/releases/download/v$versionPlain/turnTable.release-$versionPlain.apk"

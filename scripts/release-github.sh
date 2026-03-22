@@ -81,10 +81,3 @@ fi
   echo "}"
 } > "$MANIFEST"
 echo "Wrote $MANIFEST — commit and push so the update check sees the new version on your default branch."
-
-VERSION_FILE="$ROOT/android/app/update-check-latest-version.txt"
-{
-  echo "# Latest Android release version (no leading v). Legacy plain-text fallback for the in-app updater."
-  echo "${VERSION_PLAIN}"
-} > "$VERSION_FILE"
-echo "Wrote $VERSION_FILE (legacy fallback)."

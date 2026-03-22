@@ -21,7 +21,7 @@ The **iOS app binary** is built in **Xcode** (`open ios/turnTable.xcodeproj`); `
 
 Publish **Android APK** and **iOS IPA** on each release (attach both to the same tag). See **`RELEASE.md`** and **`scripts/release-github.sh`**.
 
-**In-app update check (Android):** Set `github_update_owner` / `github_update_repo` (and optionally `github_update_version_ref`, usually `main`) in **`android/app/src/main/res/values/github_update.xml`**. The app reads **`CurrentVersion.json`** at the repo root from `raw.githubusercontent.com`: **`version`** (dotted, same as `versionName`), **`releasePageUrl`**, and **`assets.apk`** (full GitHub release download URL). Gradle **`writeCurrentVersion`** (runs on each `:app` preBuild) generates this file; **`scripts/release-github.sh`** rewrites it after a release with the exact APK URL. No GitHub releases API. Legacy fallbacks: **`CurrentVersion.txt`** (one line) and **`android/app/update-check-latest-version.txt`**.
+**In-app update check (Android):** In **`android/app/src/main/res/values/github_update.xml`**, set **`github_update_current_version_json_url`** to the full raw URL of **`CurrentVersion.json`** (e.g. `…/refs/heads/main/CurrentVersion.json`). If that string is empty, the app builds the URL from **`github_update_owner`**, **`github_update_repo`**, and **`github_update_version_ref`**. The JSON is decoded for **`version`**, **`releasePageUrl`**, and **`assets.apk`**. Gradle **`writeCurrentVersion`** (each `:app` preBuild) writes the file at repo root; **`scripts/release-github.sh`** refreshes it after a release.
 
 ## Android
 

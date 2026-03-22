@@ -52,7 +52,7 @@ gh release create v<version> \
 
 **Option C:** Create the release in the GitHub UI and **Attach binaries** for both files.
 
-After **Option A**, the script updates **`CurrentVersion.json`** (primary) and **`android/app/update-check-latest-version.txt`** (legacy plain-text fallback). **Commit and push** `CurrentVersion.json` on your default branch so raw GitHub matches the shipped release.
+After **Option A**, the script updates **`CurrentVersion.json`**. **Commit and push** it on your default branch so raw GitHub matches the shipped release.
 
 ---
 

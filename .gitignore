@@ -43,6 +43,16 @@ ios/**/DerivedData/
 *.ipa
 *.dSYM/
 
+# Xojo (IDE state, local builds — keep *.xojo_xml_project / *.xojo_project under VCS)
+Builds*/
+*.debug
+*.debug.app
+Debug*/Debug*.exe
+Debug*/Debug*\ Libs
+*.rbuistate
+*.xojo_uistate
+*.obsolete
+
 # C++ / CMake
 cpp/build/
 **/CMakeFiles/
