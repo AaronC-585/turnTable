@@ -179,6 +179,11 @@
     <string name="redacted_browse_torrent_description">Torrent description</string>
     <string name="redacted_browse_rip_specifics">Rip specifics</string>
     <string name="redacted_browse_misc">Misc</string>
+    <string name="redacted_browse_col_hascue">Has cue</string>
+    <string name="redacted_browse_col_scene">Scene</string>
+    <string name="redacted_browse_col_vanity">Vanity house</string>
+    <string name="redacted_browse_yes">Yes</string>
+    <string name="redacted_browse_no">No</string>
     <string name="redacted_browse_tags_hint">Tags (comma-separated)</string>
     <string name="redacted_browse_tags_any">Any</string>
     <string name="redacted_browse_tags_all">All</string>
@@ -191,6 +196,7 @@
     <string name="redacted_browse_cat_elearning">E-Learning Videos</string>
     <string name="redacted_browse_cat_comedy">Comedy</string>
     <string name="redacted_browse_cat_comics">Comics</string>
+    <string name="redacted_browse_expand_toggle">Show or hide options</string>
     <string name="redacted_browse_reset">Reset</string>
     <string name="redacted_browse_filter_torrents">Filter torrents</string>
     <string name="redacted_search_hint">Search (artist, album, catalog #, …)</string>
@@ -328,7 +334,10 @@
     <string name="redacted_request_detail">Request</string>
     <string name="redacted_account">Account</string>
     <string name="redacted_top10">Top 10</string>
+    <string name="redacted_top10_type_header">Category</string>
+    <string name="redacted_top10_limit_header">Result limit</string>
     <string name="redacted_bookmarks">Bookmarks</string>
+    <string name="redacted_bookmarks_type_header">Bookmark type</string>
     <string name="redacted_requests">Requests</string>
     <string name="redacted_requests_search_hint">Search requests (optional)</string>
     <string name="redacted_inbox">Inbox</string>
@@ -413,6 +422,7 @@
     <string name="redacted_fill_request">Fill request</string>
     <string name="redacted_link_optional">Permalink (optional)</string>
     <string name="redacted_my_torrents">My torrents</string>
+    <string name="redacted_user_torrents_type_header">List type</string>
     <string name="redacted_load_by_name">Load by name</string>
     <string name="redacted_load_by_id">Load by article ID</string>
     <string name="redacted_wiki_id_hint">Article numeric ID</string>

@@ -3,8 +3,8 @@ package com.turntable.barcodescanner
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.turntable.barcodescanner.databinding.ActivityRedactedBrowseBinding
 import com.turntable.barcodescanner.redacted.RedactedBrowseParamsCodec
@@ -26,7 +26,6 @@ class RedactedBrowseActivity : AppCompatActivity() {
     private lateinit var mediaValues: Array<String>
     private lateinit var releaseTypeValues: Array<String>
     private lateinit var hasLogValues: Array<String>
-    private lateinit var yesNoValues: Array<String>
     private lateinit var freeTorrentValues: Array<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,20 +45,13 @@ class RedactedBrowseActivity : AppCompatActivity() {
         mediaValues = resources.getStringArray(R.array.redacted_browse_media_values)
         releaseTypeValues = resources.getStringArray(R.array.redacted_browse_release_type_values)
         hasLogValues = resources.getStringArray(R.array.redacted_browse_haslog_values)
-        yesNoValues = resources.getStringArray(R.array.redacted_browse_yesno_values)
         freeTorrentValues = resources.getStringArray(R.array.redacted_browse_freetorrent_values)
 
-        bindBrowseList(binding.listOrderBy, R.array.redacted_browse_order_by, 1.coerceAtMost(orderByValues.size - 1))
-        bindBrowseList(binding.listOrderWay, R.array.redacted_browse_order_way, 1.coerceAtMost(orderWayValues.size - 1))
-        bindBrowseList(binding.listEncoding, R.array.redacted_browse_encoding, 0)
-        bindBrowseList(binding.listFormat, R.array.redacted_browse_format, 0)
-        bindBrowseList(binding.listMedia, R.array.redacted_browse_media, 0)
-        bindBrowseList(binding.listReleaseType, R.array.redacted_browse_release_type, 0)
-        bindBrowseList(binding.listHasLog, R.array.redacted_browse_haslog, 0)
-        bindBrowseList(binding.listHasCue, R.array.redacted_browse_yesno, 0)
-        bindBrowseList(binding.listScene, R.array.redacted_browse_yesno, 0)
-        bindBrowseList(binding.listVanityHouse, R.array.redacted_browse_yesno, 0)
-        bindBrowseList(binding.listFreeTorrent, R.array.redacted_browse_freetorrent, 0)
+        bindExpandableBrowseFilters()
+
+        wireMutuallyExclusiveYesNo(binding.switchHasCueYes, binding.switchHasCueNo)
+        wireMutuallyExclusiveYesNo(binding.switchSceneYes, binding.switchSceneNo)
+        wireMutuallyExclusiveYesNo(binding.switchVanityHouseYes, binding.switchVanityHouseNo)
 
         binding.toggleSearchMode.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
@@ -99,6 +91,27 @@ class RedactedBrowseActivity : AppCompatActivity() {
         }
     }
 
+    private fun bindExpandableBrowseFilters() {
+        ExpandableBulletChoice.bindFromArray(binding.expandEncoding, null, R.array.redacted_browse_encoding, 0)
+        ExpandableBulletChoice.bindFromArray(binding.expandFormat, null, R.array.redacted_browse_format, 0)
+        ExpandableBulletChoice.bindFromArray(binding.expandMedia, null, R.array.redacted_browse_media, 0)
+        ExpandableBulletChoice.bindFromArray(binding.expandReleaseType, null, R.array.redacted_browse_release_type, 0)
+        ExpandableBulletChoice.bindFromArray(binding.expandHasLog, null, R.array.redacted_browse_haslog, 0)
+        ExpandableBulletChoice.bindFromArray(binding.expandFreeTorrent, null, R.array.redacted_browse_freetorrent, 0)
+        ExpandableBulletChoice.bindFromArray(
+            binding.expandOrderBy,
+            null,
+            R.array.redacted_browse_order_by,
+            1.coerceAtMost(orderByValues.size - 1),
+        )
+        ExpandableBulletChoice.bindFromArray(
+            binding.expandOrderWay,
+            null,
+            R.array.redacted_browse_order_way,
+            1.coerceAtMost(orderWayValues.size - 1),
+        )
+    }
+
     private fun openResults() {
         val json = RedactedBrowseParamsCodec.encode(buildBrowseParams(page = 1))
         AppEventLog.log(AppEventLog.Category.REDACTED, "browse search (params length=${json.length})")
@@ -125,8 +138,20 @@ class RedactedBrowseActivity : AppCompatActivity() {
         }
     }
 
-    private fun bindBrowseList(listView: ListView, arrayRes: Int, initialIndex: Int) {
-        ListViewSingleChoice.bindFromResource(listView, arrayRes, initialIndex)
+    /** Yes / No are mutually exclusive; both off = no API filter. */
+    private fun wireMutuallyExclusiveYesNo(yesSw: SwitchMaterial, noSw: SwitchMaterial) {
+        yesSw.setOnCheckedChangeListener { _, checked ->
+            if (checked) noSw.isChecked = false
+        }
+        noSw.setOnCheckedChangeListener { _, checked ->
+            if (checked) yesSw.isChecked = false
+        }
+    }
+
+    private fun triStateYesNoApiValue(yesSw: SwitchMaterial, noSw: SwitchMaterial): String? = when {
+        yesSw.isChecked -> "1"
+        noSw.isChecked -> "0"
+        else -> null
     }
 
     private fun resetForm() {
@@ -151,17 +176,13 @@ class RedactedBrowseActivity : AppCompatActivity() {
         binding.checkCat6.isChecked = false
         binding.checkCat7.isChecked = false
         binding.toggleSearchMode.check(R.id.btnModeAdvanced)
-        bindBrowseList(binding.listOrderBy, R.array.redacted_browse_order_by, 1.coerceAtMost(orderByValues.size - 1))
-        bindBrowseList(binding.listOrderWay, R.array.redacted_browse_order_way, 1.coerceAtMost(orderWayValues.size - 1))
-        bindBrowseList(binding.listEncoding, R.array.redacted_browse_encoding, 0)
-        bindBrowseList(binding.listFormat, R.array.redacted_browse_format, 0)
-        bindBrowseList(binding.listMedia, R.array.redacted_browse_media, 0)
-        bindBrowseList(binding.listReleaseType, R.array.redacted_browse_release_type, 0)
-        bindBrowseList(binding.listHasLog, R.array.redacted_browse_haslog, 0)
-        bindBrowseList(binding.listHasCue, R.array.redacted_browse_yesno, 0)
-        bindBrowseList(binding.listScene, R.array.redacted_browse_yesno, 0)
-        bindBrowseList(binding.listVanityHouse, R.array.redacted_browse_yesno, 0)
-        bindBrowseList(binding.listFreeTorrent, R.array.redacted_browse_freetorrent, 0)
+        binding.switchHasCueYes.isChecked = false
+        binding.switchHasCueNo.isChecked = false
+        binding.switchSceneYes.isChecked = false
+        binding.switchSceneNo.isChecked = false
+        binding.switchVanityHouseYes.isChecked = false
+        binding.switchVanityHouseNo.isChecked = false
+        bindExpandableBrowseFilters()
     }
 
     private fun MutableList<Pair<String, String?>>.putNonBlank(key: String, edit: TextInputEditText) {
@@ -187,15 +208,16 @@ class RedactedBrowseActivity : AppCompatActivity() {
                 putNonBlank("remasteryear", binding.editRemasterYear)
                 putNonBlank("filelist", binding.editFileList)
                 putNonBlank("description", binding.editTorrentDescription)
-                binding.listEncoding.apiValue(encodingValues)?.let { add("encoding" to it) }
-                binding.listFormat.apiValue(formatValues)?.let { add("format" to it) }
-                binding.listMedia.apiValue(mediaValues)?.let { add("media" to it) }
-                binding.listReleaseType.apiValue(releaseTypeValues)?.let { add("releasetype" to it) }
-                binding.listHasLog.apiValue(hasLogValues)?.let { add("haslog" to it) }
-                binding.listHasCue.apiValue(yesNoValues)?.let { add("hascue" to it) }
-                binding.listScene.apiValue(yesNoValues)?.let { add("scene" to it) }
-                binding.listVanityHouse.apiValue(yesNoValues)?.let { add("vanityhouse" to it) }
-                binding.listFreeTorrent.apiValue(freeTorrentValues)?.let { add("freetorrent" to it) }
+                binding.expandEncoding.listExpandChoices.apiValue(encodingValues)?.let { add("encoding" to it) }
+                binding.expandFormat.listExpandChoices.apiValue(formatValues)?.let { add("format" to it) }
+                binding.expandMedia.listExpandChoices.apiValue(mediaValues)?.let { add("media" to it) }
+                binding.expandReleaseType.listExpandChoices.apiValue(releaseTypeValues)?.let { add("releasetype" to it) }
+                binding.expandHasLog.listExpandChoices.apiValue(hasLogValues)?.let { add("haslog" to it) }
+                triStateYesNoApiValue(binding.switchHasCueYes, binding.switchHasCueNo)?.let { add("hascue" to it) }
+                triStateYesNoApiValue(binding.switchSceneYes, binding.switchSceneNo)?.let { add("scene" to it) }
+                triStateYesNoApiValue(binding.switchVanityHouseYes, binding.switchVanityHouseNo)
+                    ?.let { add("vanityhouse" to it) }
+                binding.expandFreeTorrent.listExpandChoices.apiValue(freeTorrentValues)?.let { add("freetorrent" to it) }
             }
         }
 
@@ -205,8 +227,8 @@ class RedactedBrowseActivity : AppCompatActivity() {
             add("tags_type" to if (binding.radioTagsAll.isChecked) "1" else "0")
         }
 
-        binding.listOrderBy.apiValue(orderByValues)?.let { add("order_by" to it) }
-        binding.listOrderWay.apiValue(orderWayValues)?.let { add("order_way" to it) }
+        binding.expandOrderBy.listExpandChoices.apiValue(orderByValues)?.let { add("order_by" to it) }
+        binding.expandOrderWay.listExpandChoices.apiValue(orderWayValues)?.let { add("order_way" to it) }
 
         if (binding.switchGroupResults.isChecked) add("group_results" to "1")
 

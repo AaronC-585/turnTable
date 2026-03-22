@@ -37,8 +37,18 @@ class RedactedTop10Activity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
 
-        ListViewSingleChoice.bindStrings(binding.listType, top10Types, 0)
-        ListViewSingleChoice.bindStrings(binding.listLimit, top10Limits, 0)
+        ExpandableBulletChoice.bindLabelList(
+            binding.expandTop10Type,
+            getString(R.string.redacted_top10_type_header),
+            top10Types,
+            0,
+        )
+        ExpandableBulletChoice.bindLabelList(
+            binding.expandTop10Limit,
+            getString(R.string.redacted_top10_limit_header),
+            top10Limits,
+            0,
+        )
 
         val adapter = TwoLineRowsAdapter { /* read-only list */ }
         binding.recycler.layoutManager = LinearLayoutManager(this)
@@ -48,8 +58,12 @@ class RedactedTop10Activity : AppCompatActivity() {
     }
 
     private fun loadTop10(adapter: TwoLineRowsAdapter) {
-        val type = top10Types[ListViewSingleChoice.selectedIndex(binding.listType).coerceIn(top10Types.indices)]
-        val limit = top10Limits[ListViewSingleChoice.selectedIndex(binding.listLimit).coerceIn(top10Limits.indices)].toIntOrNull() ?: 10
+        val type = top10Types[
+            ListViewSingleChoice.selectedIndex(binding.expandTop10Type.listExpandChoices).coerceIn(top10Types.indices),
+        ]
+        val limit = top10Limits[
+            ListViewSingleChoice.selectedIndex(binding.expandTop10Limit.listExpandChoices).coerceIn(top10Limits.indices),
+        ].toIntOrNull() ?: 10
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.top10(type, limit)
@@ -133,10 +147,15 @@ class RedactedBookmarksActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
 
-        ListViewSingleChoice.bindStrings(binding.listType, bookmarkTypes, 0)
+        ExpandableBulletChoice.bindLabelList(
+            binding.expandBookmarkType,
+            getString(R.string.redacted_bookmarks_type_header),
+            bookmarkTypes,
+            0,
+        )
 
         val adapter = TwoLineRowsAdapter { pos ->
-            when (ListViewSingleChoice.selectedIndex(binding.listType)) {
+            when (ListViewSingleChoice.selectedIndex(binding.expandBookmarkType.listExpandChoices)) {
                 0 -> {
                     val gid = groupIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
                     startActivity(
@@ -160,7 +179,9 @@ class RedactedBookmarksActivity : AppCompatActivity() {
     }
 
     private fun loadBookmarks(adapter: TwoLineRowsAdapter) {
-        val type = bookmarkTypes[ListViewSingleChoice.selectedIndex(binding.listType).coerceIn(bookmarkTypes.indices)]
+        val type = bookmarkTypes[
+            ListViewSingleChoice.selectedIndex(binding.expandBookmarkType.listExpandChoices).coerceIn(bookmarkTypes.indices),
+        ]
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.bookmarks(type)
@@ -310,7 +331,12 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
 
-        ListViewSingleChoice.bindStrings(binding.listType, userTorrentTypes, 0)
+        ExpandableBulletChoice.bindLabelList(
+            binding.expandUserTorrentType,
+            getString(R.string.redacted_user_torrents_type_header),
+            userTorrentTypes,
+            0,
+        )
 
         val adapter = TwoLineRowsAdapter { pos ->
             val gid = groupIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
@@ -339,7 +365,9 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.redacted_invalid_id, Toast.LENGTH_SHORT).show()
             return
         }
-        val type = userTorrentTypes[ListViewSingleChoice.selectedIndex(binding.listType).coerceIn(userTorrentTypes.indices)]
+        val type = userTorrentTypes[
+            ListViewSingleChoice.selectedIndex(binding.expandUserTorrentType.listExpandChoices).coerceIn(userTorrentTypes.indices),
+        ]
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.userTorrents(uid, type, limit = 100)

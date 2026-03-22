@@ -15,29 +15,21 @@
         app:titleTextColor="@color/app_text_primary"
         app:navigationIconTint="@color/app_icon_emphasis" />
 
-    <ListView
-        android:id="@+id/listType"
+    <include
+        android:id="@+id/expandTop10Type"
+        layout="@layout/expandable_bullet_choice"
         android:layout_width="match_parent"
-        android:layout_height="132dp"
-        android:layout_margin="8dp"
-        android:background="@drawable/redacted_listbox_background"
-        android:choiceMode="singleChoice"
-        android:divider="@color/app_stroke_browse_card"
-        android:dividerHeight="1dp"
-        android:paddingVertical="4dp"
-        android:scrollbars="vertical" />
-
-    <ListView
-        android:id="@+id/listLimit"
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
-        android:background="@drawable/redacted_listbox_background"
-        android:choiceMode="singleChoice"
-        android:divider="@color/app_stroke_browse_card"
-        android:dividerHeight="1dp"
-        android:paddingVertical="4dp"
-        android:scrollbars="vertical" />
+        android:layout_marginTop="8dp" />
+
+    <include
+        android:id="@+id/expandTop10Limit"
+        layout="@layout/expandable_bullet_choice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="8dp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonLoad"

@@ -43,6 +43,18 @@ object ListViewSingleChoice {
         bindStrings(listView, items, initialIndex, onItemClick)
     }
 
+    /** Same indexing as [bindFromResource]; each row is shown with a leading bullet (expandable lists). */
+    fun bindBulletFromResource(
+        listView: ListView,
+        displayArrayRes: Int,
+        initialIndex: Int,
+        onItemClick: (position: Int) -> Unit = {},
+    ) {
+        val raw = listView.context.resources.getStringArray(displayArrayRes).toList()
+        val bulleted = raw.map { label -> "•\u00A0${label.trim()}" }
+        bindStrings(listView, bulleted, initialIndex, onItemClick)
+    }
+
     fun selectedIndex(listView: ListView): Int {
         val p = listView.checkedItemPosition
         return if (p >= 0) p else 0

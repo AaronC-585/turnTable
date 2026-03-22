@@ -276,65 +276,28 @@
                             android:textSize="12sp"
                             android:paddingBottom="4dp" />
 
-                        <HorizontalScrollView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:scrollbars="none"
-                            android:layout_marginBottom="8dp">
+                            android:layout_marginBottom="8dp"
+                            android:orientation="vertical">
 
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
+                            <include
+                                android:id="@+id/expandEncoding"
+                                layout="@layout/expandable_bullet_choice" />
 
-                                <ListView
-                                    android:id="@+id/listEncoding"
-                                    android:layout_width="140dp"
-                                    android:layout_height="120dp"
-                                    android:layout_marginEnd="6dp"
-                                    android:background="@drawable/redacted_listbox_background"
-                                    android:choiceMode="singleChoice"
-                                    android:divider="@color/app_stroke_browse_card"
-                                    android:dividerHeight="1dp"
-                                    android:paddingVertical="2dp"
-                                    android:scrollbars="vertical" />
+                            <include
+                                android:id="@+id/expandFormat"
+                                layout="@layout/expandable_bullet_choice" />
 
-                                <ListView
-                                    android:id="@+id/listFormat"
-                                    android:layout_width="120dp"
-                                    android:layout_height="120dp"
-                                    android:layout_marginEnd="6dp"
-                                    android:background="@drawable/redacted_listbox_background"
-                                    android:choiceMode="singleChoice"
-                                    android:divider="@color/app_stroke_browse_card"
-                                    android:dividerHeight="1dp"
-                                    android:paddingVertical="2dp"
-                                    android:scrollbars="vertical" />
+                            <include
+                                android:id="@+id/expandMedia"
+                                layout="@layout/expandable_bullet_choice" />
 
-                                <ListView
-                                    android:id="@+id/listMedia"
-                                    android:layout_width="120dp"
-                                    android:layout_height="120dp"
-                                    android:layout_marginEnd="6dp"
-                                    android:background="@drawable/redacted_listbox_background"
-                                    android:choiceMode="singleChoice"
-                                    android:divider="@color/app_stroke_browse_card"
-                                    android:dividerHeight="1dp"
-                                    android:paddingVertical="2dp"
-                                    android:scrollbars="vertical" />
-
-                                <ListView
-                                    android:id="@+id/listReleaseType"
-                                    android:layout_width="160dp"
-                                    android:layout_height="120dp"
-                                    android:background="@drawable/redacted_listbox_background"
-                                    android:choiceMode="singleChoice"
-                                    android:divider="@color/app_stroke_browse_card"
-                                    android:dividerHeight="1dp"
-                                    android:paddingVertical="2dp"
-                                    android:scrollbars="vertical" />
-                            </LinearLayout>
-                        </HorizontalScrollView>
+                            <include
+                                android:id="@+id/expandReleaseType"
+                                layout="@layout/expandable_bullet_choice" />
+                        </LinearLayout>
 
                         <TextView
                             android:layout_width="match_parent"
@@ -344,77 +307,138 @@
                             android:textSize="12sp"
                             android:paddingBottom="4dp" />
 
-                        <HorizontalScrollView
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:scrollbars="none"
-                            android:layout_marginBottom="8dp">
+                            android:layout_marginBottom="8dp"
+                            android:orientation="vertical">
 
-                            <LinearLayout
-                                android:layout_width="wrap_content"
+                            <include
+                                android:id="@+id/expandHasLog"
+                                layout="@layout/expandable_bullet_choice" />
+
+                            <HorizontalScrollView
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:orientation="horizontal">
+                                android:scrollbars="none"
+                                android:layout_marginBottom="8dp">
 
-                                <ListView
-                                    android:id="@+id/listHasLog"
-                                    android:layout_width="130dp"
-                                    android:layout_height="120dp"
-                                    android:layout_marginEnd="6dp"
-                                    android:background="@drawable/redacted_listbox_background"
-                                    android:choiceMode="singleChoice"
-                                    android:divider="@color/app_stroke_browse_card"
-                                    android:dividerHeight="1dp"
-                                    android:paddingVertical="2dp"
-                                    android:scrollbars="vertical" />
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
 
-                                <ListView
-                                    android:id="@+id/listHasCue"
-                                    android:layout_width="110dp"
-                                    android:layout_height="120dp"
-                                    android:layout_marginEnd="6dp"
-                                    android:background="@drawable/redacted_listbox_background"
-                                    android:choiceMode="singleChoice"
-                                    android:divider="@color/app_stroke_browse_card"
-                                    android:dividerHeight="1dp"
-                                    android:paddingVertical="2dp"
-                                    android:scrollbars="vertical" />
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="6dp"
+                                        android:background="@drawable/redacted_listbox_background"
+                                        android:orientation="vertical"
+                                        android:paddingHorizontal="6dp"
+                                        android:paddingVertical="4dp">
 
-                                <ListView
-                                    android:id="@+id/listScene"
-                                    android:layout_width="100dp"
-                                    android:layout_height="120dp"
-                                    android:layout_marginEnd="6dp"
-                                    android:background="@drawable/redacted_listbox_background"
-                                    android:choiceMode="singleChoice"
-                                    android:divider="@color/app_stroke_browse_card"
-                                    android:dividerHeight="1dp"
-                                    android:paddingVertical="2dp"
-                                    android:scrollbars="vertical" />
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:ellipsize="end"
+                                            android:maxLines="2"
+                                            android:text="@string/redacted_browse_col_hascue"
+                                            android:textColor="@color/app_text_muted"
+                                            android:textSize="11sp" />
 
-                                <ListView
-                                    android:id="@+id/listVanityHouse"
-                                    android:layout_width="130dp"
-                                    android:layout_height="120dp"
-                                    android:layout_marginEnd="6dp"
-                                    android:background="@drawable/redacted_listbox_background"
-                                    android:choiceMode="singleChoice"
-                                    android:divider="@color/app_stroke_browse_card"
-                                    android:dividerHeight="1dp"
-                                    android:paddingVertical="2dp"
-                                    android:scrollbars="vertical" />
+                                        <com.google.android.material.switchmaterial.SwitchMaterial
+                                            android:id="@+id/switchHasCueYes"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/redacted_browse_yes"
+                                            android:textColor="@color/app_text_secondary"
+                                            android:textSize="12sp" />
 
-                                <ListView
-                                    android:id="@+id/listFreeTorrent"
-                                    android:layout_width="140dp"
-                                    android:layout_height="120dp"
-                                    android:background="@drawable/redacted_listbox_background"
-                                    android:choiceMode="singleChoice"
-                                    android:divider="@color/app_stroke_browse_card"
-                                    android:dividerHeight="1dp"
-                                    android:paddingVertical="2dp"
-                                    android:scrollbars="vertical" />
-                            </LinearLayout>
-                        </HorizontalScrollView>
+                                        <com.google.android.material.switchmaterial.SwitchMaterial
+                                            android:id="@+id/switchHasCueNo"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/redacted_browse_no"
+                                            android:textColor="@color/app_text_secondary"
+                                            android:textSize="12sp" />
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="6dp"
+                                        android:background="@drawable/redacted_listbox_background"
+                                        android:orientation="vertical"
+                                        android:paddingHorizontal="6dp"
+                                        android:paddingVertical="4dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:ellipsize="end"
+                                            android:maxLines="2"
+                                            android:text="@string/redacted_browse_col_scene"
+                                            android:textColor="@color/app_text_muted"
+                                            android:textSize="11sp" />
+
+                                        <com.google.android.material.switchmaterial.SwitchMaterial
+                                            android:id="@+id/switchSceneYes"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/redacted_browse_yes"
+                                            android:textColor="@color/app_text_secondary"
+                                            android:textSize="12sp" />
+
+                                        <com.google.android.material.switchmaterial.SwitchMaterial
+                                            android:id="@+id/switchSceneNo"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/redacted_browse_no"
+                                            android:textColor="@color/app_text_secondary"
+                                            android:textSize="12sp" />
+                                    </LinearLayout>
+
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginEnd="6dp"
+                                        android:background="@drawable/redacted_listbox_background"
+                                        android:orientation="vertical"
+                                        android:paddingHorizontal="6dp"
+                                        android:paddingVertical="4dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:ellipsize="end"
+                                            android:maxLines="2"
+                                            android:text="@string/redacted_browse_col_vanity"
+                                            android:textColor="@color/app_text_muted"
+                                            android:textSize="11sp" />
+
+                                        <com.google.android.material.switchmaterial.SwitchMaterial
+                                            android:id="@+id/switchVanityHouseYes"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/redacted_browse_yes"
+                                            android:textColor="@color/app_text_secondary"
+                                            android:textSize="12sp" />
+
+                                        <com.google.android.material.switchmaterial.SwitchMaterial
+                                            android:id="@+id/switchVanityHouseNo"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/redacted_browse_no"
+                                            android:textColor="@color/app_text_secondary"
+                                            android:textSize="12sp" />
+                                    </LinearLayout>
+                                </LinearLayout>
+                            </HorizontalScrollView>
+
+                            <include
+                                android:id="@+id/expandFreeTorrent"
+                                layout="@layout/expandable_bullet_choice" />
+                        </LinearLayout>
                     </LinearLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -463,33 +487,23 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
+                        android:layout_marginBottom="8dp"
+                        android:orientation="horizontal">
 
-                        <ListView
-                            android:id="@+id/listOrderBy"
+                        <include
+                            android:id="@+id/expandOrderBy"
+                            layout="@layout/expandable_bullet_choice"
                             android:layout_width="0dp"
-                            android:layout_height="140dp"
-                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
                             android:layout_marginEnd="6dp"
-                            android:background="@drawable/redacted_listbox_background"
-                            android:choiceMode="singleChoice"
-                            android:divider="@color/app_stroke_browse_card"
-                            android:dividerHeight="1dp"
-                            android:paddingVertical="2dp"
-                            android:scrollbars="vertical" />
+                            android:layout_weight="1" />
 
-                        <ListView
-                            android:id="@+id/listOrderWay"
+                        <include
+                            android:id="@+id/expandOrderWay"
+                            layout="@layout/expandable_bullet_choice"
                             android:layout_width="0dp"
-                            android:layout_height="140dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/redacted_listbox_background"
-                            android:choiceMode="singleChoice"
-                            android:divider="@color/app_stroke_browse_card"
-                            android:dividerHeight="1dp"
-                            android:paddingVertical="2dp"
-                            android:scrollbars="vertical" />
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
                     </LinearLayout>
 
                     <com.google.android.material.switchmaterial.SwitchMaterial

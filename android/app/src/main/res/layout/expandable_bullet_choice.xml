@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="@color/app_card_browse"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="0dp"
+    app:strokeColor="@color/app_stroke_browse_card"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/expandHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="10dp">
+
+            <TextView
+                android:id="@+id/textExpandTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="Bitrate" />
+
+            <TextView
+                android:id="@+id/textExpandSummary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:textColor="@color/app_text_muted"
+                android:textSize="13sp"
+                tools:text="192" />
+
+            <ImageView
+                android:id="@+id/imageExpandChevron"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="4dp"
+                android:contentDescription="@string/redacted_browse_expand_toggle"
+                android:importantForAccessibility="no"
+                app:srcCompat="@drawable/ic_expand_more"
+                app:tint="@color/app_icon_emphasis" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/listExpandChoices"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:choiceMode="singleChoice"
+            android:divider="@color/app_stroke_browse_card"
+            android:dividerHeight="1dp"
+            android:nestedScrollingEnabled="true"
+            android:paddingBottom="4dp"
+            android:scrollbars="vertical"
+            android:visibility="gone" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

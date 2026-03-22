@@ -2,6 +2,12 @@
 
 All notable changes to the turnTable / 1D Barcode Scanner project are documented here.
 
+## [2026.3.22.111] — Android production release
+
+- **Redacted torrent browse (advanced):** Multi-value filters (bitrate, format, media, release type, has log, leech status, order by / direction) use **expandable sections** with **bullet-prefixed** single-choice lists (`ExpandableBulletChoice`, `bindBulletFromResource`). **Has cue / Scene / Vanity house** use **Yes/No switches** (mutually exclusive; both off = no filter).
+- **Redacted list screens:** **Top 10** (category + limit), **Bookmarks** (type), **My torrents** (list type) use the same **expandable bullet** pattern.
+- **Release:** APK only from Linux; upload iOS IPA when ready per **RELEASE.md**.
+
 ## [2026.3.22.54] — Android production release
 
 - **Tracker status strip (bottom dock):** Replaced PNG **up/down** pairs with **vector** icons (one shape per service). **Green** tint when service is up, **red** when down (`tracker_status_down`: `@color/app_error` in light; **#EF5350** in night for a clear red on dark bars).
