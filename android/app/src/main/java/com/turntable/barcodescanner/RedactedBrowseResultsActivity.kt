@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.turntable.barcodescanner.databinding.ActivityRedactedBrowseResultsBinding
 import com.turntable.barcodescanner.redacted.RedactedBrowseParamsCodec
 import com.turntable.barcodescanner.redacted.RedactedExtras
+import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentUser
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 import com.turntable.barcodescanner.redacted.TwoLineRow
@@ -119,7 +120,14 @@ class RedactedBrowseResultsActivity : AppCompatActivity() {
                                     if (year > 0) append(" · ").append(year)
                                 }
                                 val cover = o.optString("cover").trim().takeIf { it.isNotEmpty() }
-                                rows.add(TwoLineRow(name.ifBlank { "(no title)" }, sub, coverUrl = cover))
+                                rows.add(
+                                    TwoLineRow(
+                                        name.ifBlank { "(no title)" },
+                                        sub,
+                                        coverUrl = cover,
+                                        showSeedingUtorrentIcon = RedactedGazelleTorrentUser.jsonIndicatesUserSeeding(o),
+                                    ),
+                                )
                                 groupIds.add(gid)
                             }
                         }

@@ -20,6 +20,7 @@ import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
 import com.turntable.barcodescanner.redacted.RedactedBrowseParamsCodec
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedGazelleReleaseType
+import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentUser
 import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentParse
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
@@ -413,6 +414,8 @@ class RedactedArtistActivity : AppCompatActivity() {
         }
         val (snatches, seeders, leechers) = aggregateTorrentStats(g)
         vb.textGroupStats.text = getString(R.string.redacted_artist_group_stats, snatches, seeders, leechers)
+        val seeding = RedactedGazelleTorrentUser.jsonIndicatesUserSeeding(g)
+        vb.imageSeedingAcorn.visibility = if (seeding) View.VISIBLE else View.GONE
         bindGroupCoverThumbnail(vb.imageGroupCover, g, titleLine)
         vb.root.setOnClickListener {
             if (gid <= 0) return@setOnClickListener

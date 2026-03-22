@@ -12,6 +12,7 @@ import com.turntable.barcodescanner.databinding.ActivityRedactedSimpleListBindin
 import com.turntable.barcodescanner.databinding.ActivityRedactedTop10Binding
 import com.turntable.barcodescanner.databinding.ActivityRedactedUserTorrentsBinding
 import com.turntable.barcodescanner.redacted.RedactedExtras
+import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentUser
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 import com.turntable.barcodescanner.redacted.TwoLineRow
@@ -104,6 +105,7 @@ class RedactedTop10Activity : AppCompatActivity() {
                 TwoLineRow(
                     "${o.optString("artist")} — ${o.optString("groupName")}",
                     sub,
+                    showSeedingUtorrentIcon = RedactedGazelleTorrentUser.jsonIndicatesUserSeeding(o),
                 )
             }
             o.has("username") -> TwoLineRow(
@@ -190,6 +192,7 @@ class RedactedBookmarksActivity : AppCompatActivity() {
                                         TwoLineRow(
                                             o.optString("name"),
                                             "${o.optInt("year")} · $gid",
+                                            showSeedingUtorrentIcon = RedactedGazelleTorrentUser.jsonIndicatesUserSeeding(o),
                                         ),
                                     )
                                     groupIds.add(gid)
@@ -370,7 +373,7 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
                                 TwoLineRow(
                                     title = name,
                                     subtitle = artist,
-                                    showSeedingUtorrentIcon = type == "seeding",
+                                    showSeedingUtorrentIcon = RedactedGazelleTorrentUser.jsonIndicatesUserSeeding(o),
                                 ),
                             )
                             if (gid > 0) groupIds.add(gid)

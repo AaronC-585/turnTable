@@ -269,6 +269,14 @@
     <string name="redacted_summary_required">Edit summary</string>
     <string name="redacted_invalid_group">Invalid group id</string>
     <string name="redacted_group_info">Info</string>
+    <string name="redacted_section_album">Album</string>
+    <string name="redacted_section_release">Release</string>
+    <string name="redacted_section_this_torrent">This torrent</string>
+    <string name="redacted_torrent_open_album">View album in app</string>
+    <string name="redacted_section_torrents">Torrents</string>
+    <string name="redacted_section_site_tools">Site &amp; tools</string>
+    <string name="redacted_compilation_info">Compilation info</string>
+    <string name="redacted_section_chevron" translatable="false">▾</string>
     <string name="redacted_link_request_format">Request format</string>
     <string name="redacted_link_view_history">History</string>
     <string name="redacted_link_group_log">Group log</string>
@@ -307,6 +315,13 @@
     <string name="redacted_community_stats">Community stats</string>
     <string name="redacted_collage">Collage</string>
     <string name="redacted_torrent_detail">Torrent</string>
+    <string name="redacted_torrent_detail_size_fmt">Size: %1$s</string>
+    <string name="redacted_torrent_detail_peers_fmt">Snatched: %1$d · %2$d seeders · %3$d leechers</string>
+    <string name="redacted_torrent_detail_status_fmt">Status: %1$s</string>
+    <string name="redacted_torrent_detail_uploaded_fmt">Uploaded: %1$s</string>
+    <string name="redacted_torrent_uploader_fmt">Uploader: %1$s</string>
+    <string name="redacted_torrent_id_line">Torrent ID: %1$d</string>
+    <string name="redacted_torrent_hash_line">Info hash: %1$s</string>
     <string name="redacted_similar_artists">Similar artists</string>
     <string name="redacted_request_detail">Request</string>
     <string name="redacted_account">Account</string>

@@ -80,12 +80,6 @@ class RedactedCollageActivity : RedactedBaseIdActivity() {
     override fun loadForId(id: Int) = api.collage(id)
 }
 
-class RedactedTorrentDetailActivity : RedactedBaseIdActivity() {
-    override fun screenTitle() = getString(R.string.redacted_torrent_detail)
-    override fun idExtraKey() = RedactedExtras.TORRENT_ID
-    override fun loadForId(id: Int) = api.torrent(id)
-}
-
 class RedactedSimilarArtistsActivity : RedactedBaseIdActivity() {
     override fun screenTitle() = getString(R.string.redacted_similar_artists)
     override fun idExtraKey() = RedactedExtras.ARTIST_ID

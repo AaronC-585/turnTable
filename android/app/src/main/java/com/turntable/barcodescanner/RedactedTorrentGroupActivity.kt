@@ -74,6 +74,12 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
     /** From [index] `userstats` while loading this group; FL token UI only if &gt; 0. */
     private var freeleechTokenCount: Int = 0
 
+    /** Collapsible sections (Redacted-style boxes). */
+    private var sectionAlbumExpanded = true
+    private var sectionTorrentsExpanded = true
+    private var sectionWikiExpanded = true
+    private var sectionActionsExpanded = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val c = RedactedUiHelper.requireApi(this) ?: return
@@ -98,6 +104,9 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         binding.recyclerTorrents.layoutManager = LinearLayoutManager(this)
         binding.recyclerTorrents.adapter = adapter
         binding.textAlbumHeader.movementMethod = LinkMovementMethod.getInstance()
+
+        wireTorrentGroupCollapsibleSections()
+        applyTorrentGroupSectionUi()
 
         binding.buttonOpenSite.setOnClickListener {
             RedactedUiHelper.openSite(this, "torrents.php?id=$groupId")
@@ -132,6 +141,71 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         applyAlbumThumbSizePx()
         setupAlbumThumbDoubleTap()
         loadGroup(adapter)
+    }
+
+    private fun syncCollapsibleSection(content: View, chevron: TextView, expanded: Boolean) {
+        content.visibility = if (expanded) View.VISIBLE else View.GONE
+        chevron.rotation = if (expanded) 0f else -90f
+    }
+
+    private fun applyTorrentGroupSectionUi() {
+        syncCollapsibleSection(
+            binding.contentSectionAlbum,
+            binding.chevronAlbum,
+            sectionAlbumExpanded,
+        )
+        syncCollapsibleSection(
+            binding.contentSectionTorrents,
+            binding.chevronTorrents,
+            sectionTorrentsExpanded,
+        )
+        if (binding.sectionWiki.visibility == View.VISIBLE) {
+            syncCollapsibleSection(
+                binding.contentSectionWiki,
+                binding.chevronWiki,
+                sectionWikiExpanded,
+            )
+        }
+        syncCollapsibleSection(
+            binding.contentSectionActions,
+            binding.chevronActions,
+            sectionActionsExpanded,
+        )
+    }
+
+    private fun wireTorrentGroupCollapsibleSections() {
+        binding.headerSectionAlbum.setOnClickListener {
+            sectionAlbumExpanded = !sectionAlbumExpanded
+            syncCollapsibleSection(
+                binding.contentSectionAlbum,
+                binding.chevronAlbum,
+                sectionAlbumExpanded,
+            )
+        }
+        binding.headerSectionTorrents.setOnClickListener {
+            sectionTorrentsExpanded = !sectionTorrentsExpanded
+            syncCollapsibleSection(
+                binding.contentSectionTorrents,
+                binding.chevronTorrents,
+                sectionTorrentsExpanded,
+            )
+        }
+        binding.headerSectionWiki.setOnClickListener {
+            sectionWikiExpanded = !sectionWikiExpanded
+            syncCollapsibleSection(
+                binding.contentSectionWiki,
+                binding.chevronWiki,
+                sectionWikiExpanded,
+            )
+        }
+        binding.headerSectionActions.setOnClickListener {
+            sectionActionsExpanded = !sectionActionsExpanded
+            syncCollapsibleSection(
+                binding.contentSectionActions,
+                binding.chevronActions,
+                sectionActionsExpanded,
+            )
+        }
     }
 
     private fun setupAlbumThumbDoubleTap() {
@@ -182,13 +256,17 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         binding.textAlbumHeader.text = ""
         binding.textMeta.text = ""
         binding.textWikiBody.text = ""
-        binding.labelGroupInfo.visibility = View.GONE
-        binding.textWikiBody.visibility = View.GONE
+        binding.sectionWiki.visibility = View.GONE
+        sectionAlbumExpanded = true
+        sectionTorrentsExpanded = true
+        sectionWikiExpanded = true
+        sectionActionsExpanded = false
         torrentIds.clear()
         torrentObjects.clear()
         adapter.rows = emptyList()
         albumCoverEntries = emptyList()
         binding.recyclerTorrents.recycledViewPool.clear()
+        applyTorrentGroupSectionUi()
         Thread {
             Runtime.getRuntime().runFinalization()
             System.gc()
@@ -272,12 +350,11 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         val wikiBody = group.optString("wikiBody").trim()
         val wikiPlain = RedactedGazelleTorrentParse.stripBbCodeForPreview(wikiBody)
         if (wikiPlain.isNotBlank()) {
-            binding.labelGroupInfo.visibility = View.VISIBLE
-            binding.textWikiBody.visibility = View.VISIBLE
+            binding.sectionWiki.visibility = View.VISIBLE
             binding.textWikiBody.text = wikiPlain
+            sectionWikiExpanded = true
         } else {
-            binding.labelGroupInfo.visibility = View.GONE
-            binding.textWikiBody.visibility = View.GONE
+            binding.sectionWiki.visibility = View.GONE
             binding.textWikiBody.text = ""
         }
 
@@ -327,6 +404,7 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             }
         }
         adapter.rows = rows
+        applyTorrentGroupSectionUi()
     }
 
     private fun buildTorrentTitleLine(t: JSONObject, isUserSeeding: Boolean = false): String {

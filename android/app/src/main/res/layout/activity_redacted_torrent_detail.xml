@@ -16,7 +16,6 @@
             android:layout_height="?attr/actionBarSize"
             app:titleTextColor="@color/app_text_primary"
             app:navigationIconTint="@color/app_icon_emphasis" />
-
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -30,7 +29,6 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <!-- Album: cover + artists / title / cat (Redacted sidebar "Cover" + header) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -47,7 +45,7 @@
                     android:orientation="vertical">
 
                     <LinearLayout
-                        android:id="@+id/headerSectionAlbum"
+                        android:id="@+id/headerSectionRelease"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
@@ -62,13 +60,13 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/redacted_section_album"
+                            android:text="@string/redacted_section_release"
                             android:textColor="@color/app_text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/chevronAlbum"
+                            android:id="@+id/chevronRelease"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_section_chevron"
@@ -77,7 +75,91 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/contentSectionAlbum"
+                        android:id="@+id/contentSectionRelease"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="12dp">
+
+                        <TextView
+                            android:id="@+id/textReleaseTitle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/app_text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/textReleaseArtists"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="14sp"
+                            android:visibility="gone" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonOpenAlbumInApp"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/redacted_torrent_open_album"
+                            android:textColor="@color/app_accent"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                app:cardBackgroundColor="@color/app_card_browse"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/app_chip_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/headerSectionTorrent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="10dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/redacted_section_this_torrent"
+                            android:textColor="@color/app_text_primary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chevronTorrent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_section_chevron"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/contentSectionTorrent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -88,178 +170,59 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="top"
+                            android:gravity="center_vertical"
                             android:orientation="horizontal">
 
                             <ImageView
-                                android:id="@+id/imageAlbumThumb"
-                                android:layout_width="96dp"
-                                android:layout_height="96dp"
-                                android:contentDescription="@string/redacted_cover"
-                                android:scaleType="centerCrop"
-                                android:visibility="gone" />
+                                android:id="@+id/imageTorrentSeedingAcorn"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_marginEnd="8dp"
+                                android:contentDescription="@string/redacted_seeding_indicator_desc"
+                                android:visibility="gone"
+                                app:srcCompat="@drawable/ic_acorn_seeding" />
 
                             <TextView
-                                android:id="@+id/textAlbumHeader"
+                                android:id="@+id/textTorrentFormatLine"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
                                 android:layout_weight="1"
-                                android:gravity="end"
-                                android:textAlignment="viewEnd"
                                 android:textColor="@color/app_text_primary"
-                                android:textSize="15sp"
-                                android:lineSpacingExtra="2dp" />
+                                android:textSize="15sp" />
                         </LinearLayout>
 
                         <TextView
-                            android:id="@+id/textMeta"
+                            android:id="@+id/textTorrentStats"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:textColor="@color/app_text_secondary"
-                            android:textSize="12sp"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/textTorrentUploader"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="13sp"
+                            android:visibility="gone" />
+
+                        <TextView
+                            android:id="@+id/textTorrentTechnical"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="monospace"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="11sp"
                             android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Torrent table (Redacted main torrent_table) -->
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                app:cardBackgroundColor="@color/app_card_browse"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/app_chip_stroke"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <LinearLayout
-                        android:id="@+id/headerSectionTorrents"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="10dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/redacted_section_torrents"
-                            android:textColor="@color/app_text_primary"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/chevronTorrents"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/redacted_section_chevron"
-                            android:textColor="@color/app_text_secondary"
-                            android:textSize="14sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/contentSectionTorrents"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@color/app_card_browse"
-                            android:orientation="horizontal"
-                            android:paddingStart="8dp"
-                            android:paddingTop="6dp"
-                            android:paddingEnd="8dp"
-                            android:paddingBottom="6dp">
-
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="2.4"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal">
-
-                                <Space
-                                    android:layout_width="32dp"
-                                    android:layout_height="0dp" />
-
-                                <TextView
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:text="@string/redacted_table_col_torrents"
-                                    android:textColor="@color/app_text_primary"
-                                    android:textSize="12sp"
-                                    android:textStyle="bold" />
-                            </LinearLayout>
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1.1"
-                                android:gravity="end"
-                                android:text="@string/redacted_table_col_size"
-                                android:textColor="@color/app_text_primary"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="0.75"
-                                android:gravity="end"
-                                android:text="@string/redacted_table_col_sn"
-                                android:textColor="@color/app_text_primary"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="0.65"
-                                android:gravity="end"
-                                android:text="@string/redacted_table_col_seeders"
-                                android:textColor="@color/app_text_primary"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="0.65"
-                                android:gravity="end"
-                                android:text="@string/redacted_table_col_leechers"
-                                android:textColor="@color/app_text_primary"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/recyclerTorrents"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:nestedScrollingEnabled="false" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Wiki / compilation info (Redacted .torrent_description) -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/sectionWiki"
+                android:id="@+id/sectionTorrentDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
@@ -276,7 +239,7 @@
                     android:orientation="vertical">
 
                     <LinearLayout
-                        android:id="@+id/headerSectionWiki"
+                        android:id="@+id/headerSectionTorrentDescription"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
@@ -291,13 +254,13 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/redacted_compilation_info"
+                            android:text="@string/redacted_release_description"
                             android:textColor="@color/app_text_primary"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/chevronWiki"
+                            android:id="@+id/chevronTorrentDescription"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_section_chevron"
@@ -306,7 +269,7 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/contentSectionWiki"
+                        android:id="@+id/contentSectionTorrentDescription"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -315,7 +278,7 @@
                         android:paddingBottom="12dp">
 
                         <TextView
-                            android:id="@+id/textWikiBody"
+                            android:id="@+id/textTorrentDescription"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textColor="@color/app_text_secondary"
@@ -325,7 +288,74 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Site links & buttons (Redacted linkbox + actions) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/sectionTorrentFiles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/app_card_browse"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/app_chip_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/headerSectionTorrentFiles"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="10dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/redacted_file_list_title"
+                            android:textColor="@color/app_text_primary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chevronTorrentFiles"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_section_chevron"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/contentSectionTorrentFiles"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="12dp">
+
+                        <TextView
+                            android:id="@+id/textTorrentFileList"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:textColor="@color/app_text_secondary"
+                            android:textIsSelectable="true"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -342,7 +372,7 @@
                     android:orientation="vertical">
 
                     <LinearLayout
-                        android:id="@+id/headerSectionActions"
+                        android:id="@+id/headerSectionTorrentActions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
@@ -363,7 +393,7 @@
                             android:textStyle="bold" />
 
                         <TextView
-                            android:id="@+id/chevronActions"
+                            android:id="@+id/chevronTorrentActions"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_section_chevron"
@@ -372,101 +402,81 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/contentSectionActions"
+                        android:id="@+id/contentSectionTorrentActions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
                         android:paddingBottom="8dp">
 
-                        <HorizontalScrollView
+                        <Button
+                            android:id="@+id/buttonTorrentDownload"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fillViewport="true"
-                            android:scrollbars="none">
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal">
-
-                                <Button
-                                    android:id="@+id/buttonRequestFormat"
-                                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/redacted_link_request_format"
-                                    android:textColor="@color/app_accent" />
-
-                                <Button
-                                    android:id="@+id/buttonViewHistory"
-                                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/redacted_link_view_history"
-                                    android:textColor="@color/app_accent" />
-
-                                <Button
-                                    android:id="@+id/buttonGroupLog"
-                                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/redacted_link_group_log"
-                                    android:textColor="@color/app_accent" />
-
-                                <Button
-                                    android:id="@+id/buttonAddToCollageFromGroup"
-                                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/redacted_add_to_collage"
-                                    android:textColor="@color/app_accent" />
-
-                                <Button
-                                    android:id="@+id/buttonCommentsOnSite"
-                                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/redacted_link_comments"
-                                    android:textColor="@color/app_accent" />
-                            </LinearLayout>
-                        </HorizontalScrollView>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <Button
-                                android:id="@+id/buttonOpenSite"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/redacted_open_on_site"
-                                app:backgroundTint="@color/app_button_secondary" />
-
-                            <Button
-                                android:id="@+id/buttonAddTag"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/redacted_add_tag"
-                                app:backgroundTint="@color/app_accent" />
-                        </LinearLayout>
+                            android:text="@string/redacted_download"
+                            app:backgroundTint="@color/app_accent" />
 
                         <Button
-                            android:id="@+id/buttonEditGroup"
+                            android:id="@+id/buttonTorrentDownloadToken"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/redacted_edit_group"
+                            android:text="@string/redacted_use_token"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <Button
+                            android:id="@+id/buttonTorrentQbt"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_send_qbittorrent"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <Button
+                            android:id="@+id/buttonTorrentQbtToken"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_send_qbittorrent_with_token"
+                            android:visibility="gone"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <Button
+                            android:id="@+id/buttonTorrentEdit"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_edit_torrent_short"
                             app:backgroundTint="@color/app_chip_stroke" />
+
+                        <Button
+                            android:id="@+id/buttonTorrentOpenSite"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_open_on_site"
+                            app:backgroundTint="@color/app_button_secondary" />
+
+                        <Button
+                            android:id="@+id/buttonTorrentCopyPermalink"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_permalink"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:textColor="@color/app_accent" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <TextView
+                android:id="@+id/textTorrentError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
             <ProgressBar
-                android:id="@+id/progress"
+                android:id="@+id/progressTorrentDetail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"

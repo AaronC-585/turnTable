@@ -29,6 +29,7 @@ import com.turntable.barcodescanner.redacted.InboxRow
 import com.turntable.barcodescanner.redacted.InboxRowsAdapter
 import com.turntable.barcodescanner.redacted.parseConversationMessageRows
 import com.turntable.barcodescanner.redacted.RedactedExtras
+import com.turntable.barcodescanner.redacted.RedactedGazelleTorrentUser
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 import com.turntable.barcodescanner.redacted.TwoLineRow
@@ -570,6 +571,7 @@ class RedactedNotificationsActivity : AppCompatActivity() {
                                     TwoLineRow(
                                         o.optString("groupName"),
                                         "${o.optString("format")} / ${o.optString("encoding")}",
+                                        showSeedingUtorrentIcon = RedactedGazelleTorrentUser.jsonIndicatesUserSeeding(o),
                                     ),
                                 )
                                 groupIds.add(gid)

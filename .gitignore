@@ -1,3 +1,6 @@
+# Local GitHub Actions runner install (large; machine-specific)
+actions-runner/
+
 # OS
 .DS_Store
 .DS_Store?
