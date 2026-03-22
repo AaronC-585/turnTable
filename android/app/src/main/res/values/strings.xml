@@ -467,6 +467,7 @@
     <string name="redacted_upload_info">Upload (API)</string>
     <string name="redacted_forums">Forums</string>
     <string name="redacted_forum_open_in_browser">Open thread in browser</string>
+    <string name="redacted_forum_post_not_available">*** not avaialable yet ***</string>
     <string name="redacted_threads">Threads</string>
     <string name="redacted_thread">Thread</string>
     <string name="redacted_copy_as_rtf">Copy as RTF (links)</string>

@@ -592,7 +592,6 @@ class RedactedForumThreadActivity : AppCompatActivity() {
     private val messageAdapter = ConversationMessagesAdapter()
     private var threadResponse: JSONObject? = null
     private var threadId: Int = 0
-    private var sendingReply: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -611,7 +610,11 @@ class RedactedForumThreadActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.redacted_thread)
 
         binding.layoutReplyRecipientId.visibility = View.GONE
-        binding.layoutReplyBody.hint = getString(R.string.redacted_conversation_reply_hint)
+        binding.layoutReplyComposeRow.visibility = View.GONE
+        binding.textForumReplyDisabled.visibility = View.VISIBLE
+        binding.textForumReplyDisabled.text = getString(R.string.redacted_forum_post_not_available)
+        binding.buttonSendReply.isEnabled = false
+        binding.cardReply.alpha = 0.92f
 
         binding.recyclerMessages.layoutManager = LinearLayoutManager(this)
         binding.recyclerMessages.adapter = messageAdapter
@@ -623,8 +626,6 @@ class RedactedForumThreadActivity : AppCompatActivity() {
         binding.swipeRefreshConversation.setOnRefreshListener {
             loadThread(isPullRefresh = true)
         }
-
-        binding.buttonSendReply.setOnClickListener { sendForumReply() }
 
         binding.cardReply.visibility = View.GONE
         loadThread(isPullRefresh = false)
@@ -655,36 +656,6 @@ class RedactedForumThreadActivity : AppCompatActivity() {
             }
             else -> return super.onOptionsItemSelected(item)
         }
-    }
-
-    private fun sendForumReply() {
-        if (sendingReply) return
-        val body = binding.editReplyBody.text?.toString()?.trim().orEmpty()
-        if (body.isBlank()) {
-            Toast.makeText(this, R.string.redacted_pm_invalid, Toast.LENGTH_SHORT).show()
-            return
-        }
-        sendingReply = true
-        binding.buttonSendReply.isEnabled = false
-        Thread {
-            val r = api.forumTakePost(threadId, body)
-            runOnUiThread {
-                sendingReply = false
-                binding.buttonSendReply.isEnabled = true
-                when (r) {
-                    is RedactedResult.Failure -> Toast.makeText(
-                        this,
-                        RedactedHtmlSafe.safePlainTextForUi(r.message),
-                        Toast.LENGTH_LONG,
-                    ).show()
-                    is RedactedResult.Success -> {
-                        binding.editReplyBody.text?.clear()
-                        loadThread(isPullRefresh = true)
-                    }
-                    else -> {}
-                }
-            }
-        }.start()
     }
 
     private fun scrollMessagesToBottom() {

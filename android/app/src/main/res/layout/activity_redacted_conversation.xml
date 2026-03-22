@@ -68,6 +68,19 @@
             android:orientation="vertical"
             android:padding="8dp">
 
+            <TextView
+                android:id="@+id/textForumReplyDisabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingVertical="14dp"
+                android:paddingHorizontal="8dp"
+                android:text="@string/redacted_forum_post_not_available"
+                android:textColor="@color/app_text_tertiary"
+                android:textSize="14sp"
+                android:textStyle="italic"
+                android:visibility="gone" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layoutReplyRecipientId"
                 android:layout_width="match_parent"
@@ -85,6 +98,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
+                android:id="@+id/layoutReplyComposeRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="bottom"

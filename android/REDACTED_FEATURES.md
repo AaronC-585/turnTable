@@ -14,7 +14,7 @@ Sends `Authorization: <api key>` to `https://redacted.sh/ajax.php`. Notable acti
 | Artists | `artist`, `similar_artists` |
 | Requests | `requests`, `request`, `requestfill` |
 | Social | `inbox` (tabs: default inbox, `sentbox`, `staffpm`), `viewconv`, `send_pm`, `usersearch`, `bookmarks`, `subscriptions` |
-| Forums | `forum` (main / viewforum / viewthread); **POST** `forum&type=takepost&threadid=` + form `body` for replies (Redacted extension; falls back to **Open thread in browser** if unsupported) |
+| Forums | `forum` (main / viewforum / viewthread); in-app **post/reply** UI shows as disabled (“not available yet”); **Open thread in browser** for posting. Client still has `forumTakePost` for when the feature is re-enabled. |
 | Site | `notifications`, `announcements`, `wiki`, `logchecker`, `riplog`, `collage` |
 | Upload | `postUpload` (multipart; client only) |
 
