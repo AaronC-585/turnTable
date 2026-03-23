@@ -1,17 +1,22 @@
 name: iOS Build
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
       - "ios/**"
+      - "android/**"
       - "cpp/**"
       - "Makefile"
       - ".github/workflows/ios.yml"
   pull_request:
     paths:
       - "ios/**"
+      - "android/**"
       - "cpp/**"
       - "Makefile"
       - ".github/workflows/ios.yml"
@@ -33,6 +38,22 @@ jobs:
       - name: Build native iOS library
         run: make ios
 
+      - name: Resolve Android-synced version for iOS
+        run: |
+          RAW_VERSION="$(cd android && ./gradlew -q :app:printAppVersion | tail -n1)"
+          ANDROID_VERSION="$(echo "$RAW_VERSION" | awk '{print $1}')"
+          if [ -z "$ANDROID_VERSION" ]; then
+            echo "Failed to read Android version from printAppVersion"
+            exit 1
+          fi
+          IFS='.' read -r V1 V2 V3 V4 <<< "$ANDROID_VERSION"
+          IOS_MARKETING_VERSION="${V1:-0}.${V2:-0}.${V3:-0}"
+          IOS_BUILD_VERSION="${V4:-${GITHUB_RUN_NUMBER}}"
+          echo "ANDROID_VERSION=$ANDROID_VERSION" >> "$GITHUB_ENV"
+          echo "IOS_MARKETING_VERSION=$IOS_MARKETING_VERSION" >> "$GITHUB_ENV"
+          echo "IOS_BUILD_VERSION=$IOS_BUILD_VERSION" >> "$GITHUB_ENV"
+          echo "PKG_NAME=turnTable-ios-${ANDROID_VERSION}.zip" >> "$GITHUB_ENV"
+
       - name: Build iOS app (simulator)
         run: |
           xcodebuild \
@@ -41,22 +62,10 @@ jobs:
             -configuration Release \
             -destination 'platform=iOS Simulator,name=iPhone 15' \
             -derivedDataPath ios/build/DerivedData \
+            MARKETING_VERSION="${IOS_MARKETING_VERSION}" \
+            CURRENT_PROJECT_VERSION="${IOS_BUILD_VERSION}" \
             CODE_SIGNING_ALLOWED=NO \
             build
-
-      - name: Resolve iOS version
-        run: |
-          MARKETING_VERSION="$(xcodebuild -project ios/turnTable.xcodeproj -scheme turnTable -showBuildSettings | awk -F' = ' '/MARKETING_VERSION/ {print $2; exit}')"
-          BUILD_VERSION="$(xcodebuild -project ios/turnTable.xcodeproj -scheme turnTable -showBuildSettings | awk -F' = ' '/CURRENT_PROJECT_VERSION/ {print $2; exit}')"
-          RUN_BUILD_VERSION="${GITHUB_RUN_NUMBER}"
-          if [ -z "$MARKETING_VERSION" ]; then MARKETING_VERSION="0.0.0"; fi
-          if [ -n "$BUILD_VERSION" ]; then
-            IOS_VERSION="${MARKETING_VERSION}.${BUILD_VERSION}.${RUN_BUILD_VERSION}"
-          else
-            IOS_VERSION="${MARKETING_VERSION}.0.${RUN_BUILD_VERSION}"
-          fi
-          echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
-          echo "PKG_NAME=turnTable-ios-${IOS_VERSION}.zip" >> "$GITHUB_ENV"
 
       - name: Package simulator app
         run: |
@@ -66,7 +75,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: turnTable-ios-${{ env.IOS_VERSION }}
+          name: turnTable-ios-${{ env.ANDROID_VERSION }}
           path: |
             ios/build/${{ env.PKG_NAME }}
             ios/build/Release-iphoneos/libbarcode_scanner_core.a

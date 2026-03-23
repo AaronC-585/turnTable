@@ -17,6 +17,11 @@ def vMinutesFromMidnight = buildCal.get(Calendar.HOUR_OF_DAY) * 60 + buildCal.ge
 def versionNameAuto = "${vYear}.${vMonth}.${vDay}.${vMinutesFromMidnight}"
 def epochDay = buildCal.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toEpochDay()
 def versionCodeAuto = (epochDay * 10000L + vMinutesFromMidnight) as int
+def abiFiltersProp = (project.findProperty("ABI_FILTERS") ?: "").toString().trim()
+def defaultAbiFilters = ['arm64-v8a', 'x86_64']
+def resolvedAbiFilters = abiFiltersProp
+    ? abiFiltersProp.split(',').collect { it.trim() }.findAll { !it.isEmpty() }
+    : defaultAbiFilters
 
 def keystoreProps = new Properties()
 def keystorePropsFile = rootProject.file("keystore.properties")
@@ -44,7 +49,8 @@ android {
         versionName = versionNameAuto
         // 64-bit only (packaging smaller APK/AAB); required for Play 64-bit compatibility.
         ndk {
-            abiFilters += ['arm64-v8a', 'x86_64']
+            abiFilters.clear()
+            abiFilters += resolvedAbiFilters
         }
         externalNativeBuild {
             cmake {
