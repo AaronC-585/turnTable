@@ -42,12 +42,7 @@ jobs:
 
       - name: Resolve Android-synced version for iOS
         run: |
-          ANDROID_VERSION="$(python3 - <<'PY'
-import json
-with open("CurrentVersion.json","r",encoding="utf-8") as f:
-    print(json.load(f).get("version","").strip())
-PY
-)"
+          ANDROID_VERSION="$(python3 -c 'import json; print(json.load(open("CurrentVersion.json","r",encoding="utf-8")).get("version","").strip())')"
           if [ -z "$ANDROID_VERSION" ]; then
             echo "Failed to read Android version from CurrentVersion.json"
             exit 1
