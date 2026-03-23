@@ -1,0 +1,6 @@
+name: "node24-marker"
+description: "No-op local action to enforce Node 24 runtime for JS actions."
+runs:
+  using: "node24"
+  pre: "pre.js"
+  main: "main.js"

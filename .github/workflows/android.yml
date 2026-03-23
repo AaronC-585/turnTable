@@ -28,6 +28,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify local Node 24 action
+        uses: ./.github/actions/node24-marker
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:

@@ -29,6 +29,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify local Node 24 action
+        uses: ./.github/actions/node24-marker
+
       - name: Ensure CMake
         run: |
           cmake --version || brew install cmake
