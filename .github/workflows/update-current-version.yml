@@ -1,0 +1,84 @@
+name: Update CurrentVersion
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to sync (optional, defaults to latest release)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  sync-current-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Resolve release metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          TAG="${INPUT_TAG:-${EVENT_TAG:-}}"
+          if [ -n "$TAG" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" > /tmp/release.json
+          else
+            gh api "repos/${GITHUB_REPOSITORY}/releases/latest" > /tmp/release.json
+          fi
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          release = json.loads(Path("/tmp/release.json").read_text(encoding="utf-8"))
+          tag_name = release.get("tag_name", "").strip()
+          if not tag_name:
+              raise SystemExit("Missing release tag_name")
+          version = tag_name[1:] if tag_name.startswith("v") else tag_name
+
+          assets = {}
+          for a in sorted(release.get("assets", []), key=lambda x: x.get("name", "")):
+              name = (a.get("name") or "").strip()
+              url = (a.get("browser_download_url") or "").strip()
+              if name and url:
+                  assets[name] = url
+
+          # Backward-compatible shortcut used by existing app code.
+          first_apk_url = next((u for n, u in assets.items() if n.endswith(".apk")), "")
+          if first_apk_url:
+              assets["apk"] = first_apk_url
+
+          payload = {
+              "version": version,
+              "currentTag": tag_name,
+              "releasePageUrl": "https://github.com/AaronC-585/turnTable/releases/latest",
+              "assets": assets,
+          }
+          Path("CurrentVersion.json").write_text(
+              json.dumps(payload, indent=4) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Commit and push when changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- CurrentVersion.json; then
+            echo "CurrentVersion.json already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CurrentVersion.json
+          git commit -m "chore: sync CurrentVersion.json from release assets"
+          git push
