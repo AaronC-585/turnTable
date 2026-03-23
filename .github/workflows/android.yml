@@ -38,6 +38,14 @@ jobs:
           java-version: "17"
           cache: gradle
 
+      - name: Set up Android SDK / NDK license
+        uses: android-actions/setup-android@v3
+
+      - name: Accept SDK licenses and install required NDK
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "ndk;28.0.12433566"
+
       - name: Build release APK for ABI
         run: |
           cd android

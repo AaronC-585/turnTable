@@ -42,10 +42,14 @@ jobs:
 
       - name: Resolve Android-synced version for iOS
         run: |
-          RAW_VERSION="$(cd android && ./gradlew -q :app:printAppVersion -Dorg.gradle.java.home="${JAVA_HOME}" | tail -n1)"
-          ANDROID_VERSION="$(echo "$RAW_VERSION" | awk '{print $1}')"
+          ANDROID_VERSION="$(python3 - <<'PY'
+import json
+with open("CurrentVersion.json","r",encoding="utf-8") as f:
+    print(json.load(f).get("version","").strip())
+PY
+)"
           if [ -z "$ANDROID_VERSION" ]; then
-            echo "Failed to read Android version from printAppVersion"
+            echo "Failed to read Android version from CurrentVersion.json"
             exit 1
           fi
           IFS='.' read -r V1 V2 V3 V4 <<< "$ANDROID_VERSION"
