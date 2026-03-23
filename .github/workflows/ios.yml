@@ -20,7 +20,6 @@ on:
       - "cpp/**"
       - "Makefile"
       - ".github/workflows/ios.yml"
-
 jobs:
   build-ios:
     runs-on: macos-14
