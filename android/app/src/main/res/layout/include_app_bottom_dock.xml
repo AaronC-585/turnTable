@@ -184,6 +184,21 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/homeActionSubscriptions"
+            style="@style/HomeActionColumn"
+            android:contentDescription="@string/home_content_cd_subscriptions">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonHomeSubscriptions"
+                style="@style/HomeIconActionButton"
+                app:icon="@android:drawable/ic_menu_agenda" />
+
+            <TextView
+                style="@style/HomeActionLabel"
+                android:text="@string/nav_subscriptions" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/homeActionMail"
             style="@style/HomeActionColumn"
             android:contentDescription="@string/home_content_cd_mail">

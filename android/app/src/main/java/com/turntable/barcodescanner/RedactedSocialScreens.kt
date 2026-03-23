@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.turntable.barcodescanner.databinding.ActivityRedactedSimpleListBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedConversationBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedDetailBinding
+import com.turntable.barcodescanner.databinding.ActivityRedactedForumMainBinding
+import com.turntable.barcodescanner.databinding.ActivityRedactedSubscriptionsBinding
 import com.google.android.material.tabs.TabLayout
 import com.turntable.barcodescanner.databinding.ActivityRedactedGenericListBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedMailboxBinding
@@ -44,6 +46,7 @@ import com.turntable.barcodescanner.redacted.TwoLineRow
 import com.turntable.barcodescanner.redacted.TwoLineRowsAdapter
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.Locale
 
 class RedactedInboxActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRedactedMailboxBinding
@@ -428,16 +431,25 @@ class RedactedConversationActivity : AppCompatActivity() {
 }
 
 class RedactedForumMainActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityRedactedGenericListBinding
+    private data class ForumCategoryTab(
+        val name: String,
+        val forumIds: List<Int>,
+        val forumNames: List<String>,
+        val rows: List<TwoLineRow>,
+    )
+
+    private lateinit var binding: ActivityRedactedForumMainBinding
     private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
-    private val forumIds = mutableListOf<Int>()
-    private val forumNames = mutableListOf<String>()
+    private lateinit var adapter: TwoLineRowsAdapter
+    private var tabs: List<ForumCategoryTab> = emptyList()
+    private var activeForumIds: List<Int> = emptyList()
+    private var activeForumNames: List<String> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val c = RedactedUiHelper.requireApi(this) ?: return
         api = c
-        binding = ActivityRedactedGenericListBinding.inflate(layoutInflater)
+        binding = ActivityRedactedForumMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -445,9 +457,9 @@ class RedactedForumMainActivity : AppCompatActivity() {
         setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_forums)
 
-        val adapter = TwoLineRowsAdapter { pos ->
-            val fid = forumIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
-            val name = forumNames.getOrNull(pos).orEmpty()
+        adapter = TwoLineRowsAdapter { pos ->
+            val fid = activeForumIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
+            val name = activeForumNames.getOrNull(pos).orEmpty()
             startActivity(
                 Intent(this, RedactedForumThreadsActivity::class.java)
                     .putExtra(RedactedExtras.FORUM_ID, fid)
@@ -456,6 +468,17 @@ class RedactedForumMainActivity : AppCompatActivity() {
         }
         binding.recycler.layoutManager = LinearLayoutManager(this)
         binding.recycler.adapter = adapter
+        binding.tabForums.addOnTabSelectedListener(
+            object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab?) {
+                    showCategory(tab?.position ?: 0)
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+                override fun onTabReselected(tab: TabLayout.Tab?) {}
+            },
+        )
 
         binding.progress.visibility = View.VISIBLE
         Thread {
@@ -467,32 +490,73 @@ class RedactedForumMainActivity : AppCompatActivity() {
                     is RedactedResult.Success -> {
                         val resp = r.response ?: return@runOnUiThread
                         val cats = resp.optJSONArray("categories")
-                        val rows = mutableListOf<TwoLineRow>()
-                        forumIds.clear()
-                        forumNames.clear()
+                        val builtTabs = mutableListOf<ForumCategoryTab>()
                         if (cats != null) {
                             for (i in 0 until cats.length()) {
                                 val cat = cats.optJSONObject(i) ?: continue
-                                val catName = cat.optString("categoryName")
+                                val catName = cat.optString("categoryName").ifBlank {
+                                    "Category ${i + 1}"
+                                }
                                 val forums = cat.optJSONArray("forums")
+                                val rows = mutableListOf<TwoLineRow>()
+                                val ids = mutableListOf<Int>()
+                                val names = mutableListOf<String>()
                                 if (forums != null) {
                                     for (j in 0 until forums.length()) {
                                         val f = forums.optJSONObject(j) ?: continue
                                         val fid = f.optInt("forumId")
                                         val fn = f.optString("forumName")
                                         rows.add(TwoLineRow(fn, catName))
-                                        forumIds.add(fid)
-                                        forumNames.add(fn)
+                                        ids.add(fid)
+                                        names.add(fn)
                                     }
                                 }
+                                builtTabs += ForumCategoryTab(
+                                    name = catName,
+                                    forumIds = ids,
+                                    forumNames = names,
+                                    rows = rows.sortedBy { it.title.lowercase(Locale.US) },
+                                )
                             }
                         }
-                        adapter.rows = rows
+                        tabs = builtTabs
+                        bindTabs()
                     }
                     else -> {}
                 }
             }
         }.start()
+    }
+
+    private fun bindTabs() {
+        binding.tabForums.removeAllTabs()
+        if (tabs.isEmpty()) {
+            activeForumIds = emptyList()
+            activeForumNames = emptyList()
+            adapter.rows = emptyList()
+            binding.textEmpty.visibility = View.VISIBLE
+            binding.textEmpty.text = getString(R.string.redacted_no_results)
+            return
+        }
+        binding.textEmpty.visibility = View.GONE
+        tabs.forEach { t ->
+            binding.tabForums.addTab(binding.tabForums.newTab().setText(t.name))
+        }
+        binding.tabForums.getTabAt(0)?.select()
+        showCategory(0)
+    }
+
+    private fun showCategory(index: Int) {
+        val tab = tabs.getOrNull(index) ?: return
+        activeForumIds = tab.forumIds
+        activeForumNames = tab.forumNames
+        adapter.rows = tab.rows
+        if (tab.rows.isEmpty()) {
+            binding.textEmpty.visibility = View.VISIBLE
+            binding.textEmpty.text = getString(R.string.redacted_no_results)
+        } else {
+            binding.textEmpty.visibility = View.GONE
+        }
     }
 }
 
@@ -998,10 +1062,19 @@ class RedactedUserSearchActivity : AppCompatActivity() {
 }
 
 class RedactedSubscriptionsActivity : AppCompatActivity() {
+    private data class SubscriptionTab(
+        val key: String,
+        val rows: List<TwoLineRow>,
+    )
+
+    private lateinit var binding: ActivityRedactedSubscriptionsBinding
+    private lateinit var adapter: TwoLineRowsAdapter
+    private var tabs: List<SubscriptionTab> = emptyList()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val api = RedactedUiHelper.requireApi(this) ?: return
-        val binding = ActivityRedactedDetailBinding.inflate(layoutInflater)
+        binding = ActivityRedactedSubscriptionsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -1009,20 +1082,135 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
         setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_subscriptions)
 
+        adapter = TwoLineRowsAdapter { }
+        binding.recycler.layoutManager = LinearLayoutManager(this)
+        binding.recycler.adapter = adapter
+        binding.tabSubscriptions.addOnTabSelectedListener(
+            object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab?) {
+                    showTab(tab?.position ?: 0)
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+                override fun onTabReselected(tab: TabLayout.Tab?) {}
+            },
+        )
+
         binding.progress.visibility = View.VISIBLE
         Thread {
             val r = api.subscriptions(showUnreadOnly = false)
             runOnUiThread {
                 binding.progress.visibility = View.GONE
-                binding.textBody.text = when (r) {
-                    is RedactedResult.Failure -> RedactedHtmlSafe.safePlainTextForUi(r.message)
-                    is RedactedResult.Success ->
-                        RedactedHtmlSafe.safePlainTextForUi(
-                            r.response?.toString(2) ?: r.root.toString(2),
-                        )
-                    else -> ""
+                when (r) {
+                    is RedactedResult.Failure -> {
+                        binding.textEmpty.visibility = View.VISIBLE
+                        binding.textEmpty.text = RedactedHtmlSafe.safePlainTextForUi(r.message)
+                    }
+                    is RedactedResult.Success -> {
+                        val response = r.response ?: r.root
+                        tabs = buildSubscriptionTabs(response)
+                        bindTabs()
+                    }
+                    else -> {
+                        binding.textEmpty.visibility = View.VISIBLE
+                        binding.textEmpty.text = getString(R.string.redacted_unexpected)
+                    }
                 }
             }
         }.start()
     }
+
+    private fun bindTabs() {
+        binding.tabSubscriptions.removeAllTabs()
+        if (tabs.isEmpty()) {
+            adapter.rows = emptyList()
+            binding.textEmpty.visibility = View.VISIBLE
+            binding.textEmpty.text = getString(R.string.redacted_no_results)
+            return
+        }
+        tabs.forEach { t ->
+            binding.tabSubscriptions.addTab(
+                binding.tabSubscriptions.newTab().setText(prettyKeyLabel(t.key)),
+            )
+        }
+        val initial = 0
+        binding.tabSubscriptions.getTabAt(initial)?.select()
+        showTab(initial)
+    }
+
+    private fun showTab(index: Int) {
+        val tab = tabs.getOrNull(index) ?: return
+        adapter.rows = tab.rows
+        if (tab.rows.isEmpty()) {
+            binding.textEmpty.visibility = View.VISIBLE
+            binding.textEmpty.text = getString(R.string.redacted_no_results)
+        } else {
+            binding.textEmpty.visibility = View.GONE
+        }
+    }
+
+    private fun buildSubscriptionTabs(response: JSONObject): List<SubscriptionTab> {
+        val root = response.optJSONObject("subscriptions") ?: response
+        val out = mutableListOf<SubscriptionTab>()
+        val keys = root.keys().asSequence().toList().sorted()
+        for (key in keys) {
+            val arr = root.optJSONArray(key) ?: continue
+            val rows = mutableListOf<TwoLineRow>()
+            for (i in 0 until arr.length()) {
+                val o = arr.optJSONObject(i) ?: continue
+                val title = firstNonBlank(
+                    o.optString("threadTitle"),
+                    o.optString("subject"),
+                    o.optString("title"),
+                    o.optString("name"),
+                    o.optString("artistName"),
+                    o.optString("groupName"),
+                    o.optString("torrentName"),
+                    "Item ${i + 1}",
+                )
+                val unread = isUnread(o)
+                val subtitleParts = mutableListOf<String>()
+                if (unread) subtitleParts += "Unread"
+                firstNonBlank(
+                    o.optString("categoryName"),
+                    o.optString("type"),
+                    o.optString("lastPostTime"),
+                    o.optString("time"),
+                    o.optString("created"),
+                )?.let { if (it.isNotBlank()) subtitleParts += it }
+                val subtitle = subtitleParts.joinToString(" · ")
+                rows += TwoLineRow(title = title, subtitle = subtitle)
+            }
+            val sortedRows = rows.sortedWith(
+                compareByDescending<TwoLineRow> { it.subtitle.contains("Unread") }
+                    .thenBy { it.title.lowercase(Locale.US) },
+            )
+            out += SubscriptionTab(key = key, rows = sortedRows)
+        }
+        return out
+    }
+
+    private fun isUnread(o: JSONObject): Boolean {
+        if (o.optBoolean("isUnread", false)) return true
+        if (o.optBoolean("unread", false)) return true
+        if (o.optInt("numUnread", 0) > 0) return true
+        if (o.optInt("unreadCount", 0) > 0) return true
+        return false
+    }
+
+    private fun prettyKeyLabel(key: String): String {
+        val clean = key.replace('_', ' ').replace('-', ' ').trim()
+        if (clean.isEmpty()) return key
+        return clean.split(' ')
+            .filter { it.isNotBlank() }
+            .joinToString(" ") { token ->
+                token.replaceFirstChar { ch ->
+                    if (ch.isLowerCase()) ch.titlecase(Locale.US) else ch.toString()
+                }
+            }
+    }
+
+    private fun firstNonBlank(vararg values: String): String? =
+        values.firstOrNull { it.isNotBlank() }
 }

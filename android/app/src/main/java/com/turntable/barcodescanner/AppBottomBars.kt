@@ -136,6 +136,13 @@ object AppBottomBars {
                 activity.startActivity(Intent(activity, RedactedForumMainActivity::class.java))
             }
         }
+        dock.findViewById<View>(R.id.buttonHomeSubscriptions).setOnClickListener {
+            if (SearchPrefs(activity).redactedApiKey.isNullOrBlank()) {
+                Toast.makeText(activity, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
+            } else {
+                activity.startActivity(Intent(activity, RedactedSubscriptionsActivity::class.java))
+            }
+        }
         dock.findViewById<View>(R.id.buttonHomeMail).setOnClickListener {
             if (SearchPrefs(activity).redactedApiKey.isNullOrBlank()) {
                 Toast.makeText(activity, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()

@@ -18,6 +18,7 @@
     <string name="nav_profile">Profile</string>
     <string name="nav_news">News</string>
     <string name="nav_forums">Forums</string>
+    <string name="nav_subscriptions">Subscriptions</string>
     <string name="nav_mail">Mail</string>
     <string name="nav_friends">Friends</string>
     <string name="settings">Settings</string>
@@ -514,6 +515,7 @@
     <string name="home_content_cd_profile">Profile</string>
     <string name="home_content_cd_news">Site news and announcements</string>
     <string name="home_content_cd_forums">Community forums</string>
+    <string name="home_content_cd_subscriptions">Unread subscriptions</string>
     <string name="home_content_cd_mail">Messages inbox</string>
     <string name="home_content_cd_friends">Friends list and user search</string>
     <string name="home_content_cd_mail_unread">Messages inbox, %1$d unread</string>
