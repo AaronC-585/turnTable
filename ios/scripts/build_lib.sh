@@ -17,18 +17,31 @@ CPP_DIR="$REPO_ROOT/cpp"
 TOOLCHAIN="$IOS_DIR/ios.toolchain.cmake"
 BUILD_DIR="$IOS_DIR/build"
 
+copy_release_lib() {
+	local src_dir="$1"
+	local dest_dir="$2"
+	local primary="$src_dir/libbarcode_scanner_core.a"
+	local nested="$src_dir/barcode_scanner_core/libbarcode_scanner_core.a"
+
+	mkdir -p "$dest_dir"
+	if [[ -f "$primary" ]]; then
+		cp "$primary" "$dest_dir/"
+	elif [[ -f "$nested" ]]; then
+		cp "$nested" "$dest_dir/"
+	else
+		echo "Missing built library in $src_dir" >&2
+		exit 1
+	fi
+}
+
 # Device (arm64)
 mkdir -p "$BUILD_DIR/device"
 (cd "$BUILD_DIR/device" && cmake "$CPP_DIR" -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" -DPLATFORM=OS64 -DCMAKE_BUILD_TYPE=Release && cmake --build .)
-mkdir -p "$BUILD_DIR/Release-iphoneos"
-cp "$BUILD_DIR/device/libbarcode_scanner_core.a" "$BUILD_DIR/Release-iphoneos/" 2>/dev/null || \
-  cp "$BUILD_DIR/device/barcode_scanner_core/libbarcode_scanner_core.a" "$BUILD_DIR/Release-iphoneos/" 2>/dev/null || true
+copy_release_lib "$BUILD_DIR/device" "$BUILD_DIR/Release-iphoneos"
 
 # Simulator
 mkdir -p "$BUILD_DIR/simulator"
 (cd "$BUILD_DIR/simulator" && cmake "$CPP_DIR" -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" -DPLATFORM=SIMULATOR64 -DCMAKE_BUILD_TYPE=Release && cmake --build .)
-mkdir -p "$BUILD_DIR/Release-iphonesimulator"
-cp "$BUILD_DIR/simulator/libbarcode_scanner_core.a" "$BUILD_DIR/Release-iphonesimulator/" 2>/dev/null || \
-  cp "$BUILD_DIR/simulator/barcode_scanner_core/libbarcode_scanner_core.a" "$BUILD_DIR/Release-iphonesimulator/" 2>/dev/null || true
+copy_release_lib "$BUILD_DIR/simulator" "$BUILD_DIR/Release-iphonesimulator"
 
 echo "Built. Device lib: $BUILD_DIR/Release-iphoneos/ Simulator lib: $BUILD_DIR/Release-iphonesimulator/"
