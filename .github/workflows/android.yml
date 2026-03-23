@@ -41,7 +41,7 @@ jobs:
       - name: Build release APK for ABI
         run: |
           cd android
-          ./gradlew :app:assembleRelease :app:printAppVersion -PABI_FILTERS=${{ matrix.abi }}
+          ./gradlew :app:assembleRelease :app:printAppVersion -PABI_FILTERS=${{ matrix.abi }} -Dorg.gradle.java.home="${JAVA_HOME}"
 
       - name: Prepare ABI artifact names
         run: |
