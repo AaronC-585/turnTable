@@ -1,0 +1,73 @@
+name: iOS Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "ios/**"
+      - "cpp/**"
+      - "Makefile"
+      - ".github/workflows/ios.yml"
+  pull_request:
+    paths:
+      - "ios/**"
+      - "cpp/**"
+      - "Makefile"
+      - ".github/workflows/ios.yml"
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure CMake
+        run: |
+          cmake --version || brew install cmake
+          cmake --version
+
+      - name: Build native iOS library
+        run: make ios
+
+      - name: Build iOS app (simulator)
+        run: |
+          xcodebuild \
+            -project ios/turnTable.xcodeproj \
+            -scheme turnTable \
+            -configuration Release \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -derivedDataPath ios/build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Resolve iOS version
+        run: |
+          MARKETING_VERSION="$(xcodebuild -project ios/turnTable.xcodeproj -scheme turnTable -showBuildSettings | awk -F' = ' '/MARKETING_VERSION/ {print $2; exit}')"
+          BUILD_VERSION="$(xcodebuild -project ios/turnTable.xcodeproj -scheme turnTable -showBuildSettings | awk -F' = ' '/CURRENT_PROJECT_VERSION/ {print $2; exit}')"
+          RUN_BUILD_VERSION="${GITHUB_RUN_NUMBER}"
+          if [ -z "$MARKETING_VERSION" ]; then MARKETING_VERSION="0.0.0"; fi
+          if [ -n "$BUILD_VERSION" ]; then
+            IOS_VERSION="${MARKETING_VERSION}.${BUILD_VERSION}.${RUN_BUILD_VERSION}"
+          else
+            IOS_VERSION="${MARKETING_VERSION}.0.${RUN_BUILD_VERSION}"
+          fi
+          echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
+          echo "PKG_NAME=turnTable-ios-${IOS_VERSION}.zip" >> "$GITHUB_ENV"
+
+      - name: Package simulator app
+        run: |
+          APP_PATH="$(ls -d ios/build/DerivedData/Build/Products/Release-iphonesimulator/*.app | head -n1)"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "ios/build/${PKG_NAME}"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: turnTable-ios-${{ env.IOS_VERSION }}
+          path: |
+            ios/build/${{ env.PKG_NAME }}
+            ios/build/Release-iphoneos/libbarcode_scanner_core.a
+            ios/build/Release-iphonesimulator/libbarcode_scanner_core.a

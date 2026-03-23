@@ -28,4 +28,12 @@
         android:textIsSelectable="true"
         android:textSize="14sp"
         tools:text="Message body…" />
+
+    <LinearLayout
+        android:id="@+id/layoutImages"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
+        android:visibility="gone" />
 </LinearLayout>

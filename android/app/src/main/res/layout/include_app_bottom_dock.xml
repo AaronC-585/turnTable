@@ -176,7 +176,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonHomeForums"
                 style="@style/HomeIconActionButton"
-                app:icon="@drawable/ic_cheerleader_horn" />
+                app:icon="@drawable/ic_bullhorn" />
 
             <TextView
                 style="@style/HomeActionLabel"

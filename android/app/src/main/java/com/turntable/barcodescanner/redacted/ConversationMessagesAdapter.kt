@@ -3,16 +3,21 @@ package com.turntable.barcodescanner.redacted
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.turntable.barcodescanner.AppRichText
 import com.turntable.barcodescanner.R
+import com.turntable.barcodescanner.SearchPrefs
 import org.json.JSONObject
 
 data class ConversationMessageRow(
     val senderName: String,
     val sentDate: String,
     val body: String,
+    val imageUrls: List<String> = emptyList(),
     /** Alternates when [senderKey] changes from the previous message. */
     val useAltStripe: Boolean,
 )
@@ -40,6 +45,7 @@ class ConversationMessagesAdapter : RecyclerView.Adapter<ConversationMessagesAda
     class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val meta: TextView = itemView.findViewById(R.id.textMeta)
         private val body: TextView = itemView.findViewById(R.id.textBody)
+        private val images: LinearLayout = itemView.findViewById(R.id.layoutImages)
 
         fun bind(row: ConversationMessageRow) {
             meta.text = itemView.context.getString(
@@ -47,13 +53,55 @@ class ConversationMessagesAdapter : RecyclerView.Adapter<ConversationMessagesAda
                 row.senderName,
                 row.sentDate,
             )
-            body.text = row.body
+            AppRichText.applyTo(body, row.body)
+            bindImages(row.imageUrls)
             val bg = if (row.useAltStripe) {
                 R.color.conv_message_stripe_b
             } else {
                 R.color.conv_message_stripe_a
             }
             itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, bg))
+        }
+
+        private fun bindImages(urls: List<String>) {
+            images.removeAllViews()
+            if (urls.isEmpty()) {
+                images.visibility = View.GONE
+                return
+            }
+            images.visibility = View.VISIBLE
+            val context = itemView.context
+            val apiKey = SearchPrefs(context).redactedApiKey?.trim().orEmpty()
+            urls.take(4).forEach { url ->
+                val iv = ImageView(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                    ).also { lp -> lp.topMargin = 6 }
+                    adjustViewBounds = true
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    contentDescription = "Forum image"
+                    tag = url
+                }
+                images.addView(iv)
+                Thread {
+                    val bmp = RedactedAvatarLoader.loadBitmapCached(
+                        context = context,
+                        rawUrl = url,
+                        apiKey = apiKey,
+                        maxSidePx = 1400,
+                    )
+                    iv.post {
+                        if (iv.tag != url) return@post
+                        if (bmp != null) {
+                            iv.setImageBitmap(bmp)
+                            iv.visibility = View.VISIBLE
+                        } else {
+                            iv.visibility = View.GONE
+                        }
+                    }
+                }.start()
+            }
         }
     }
 }
@@ -86,6 +134,7 @@ fun parseConversationMessageRows(response: JSONObject?): Pair<String, List<Conve
                 senderName = senderName,
                 sentDate = m.optString("sentDate"),
                 body = m.optString("bbBody"),
+                imageUrls = emptyList(),
                 useAltStripe = useAlt,
             ),
         )
@@ -120,13 +169,36 @@ fun parseForumThreadRows(response: JSONObject?): Pair<String, List<ConversationM
             ConversationMessageRow(
                 senderName = authorName,
                 sentDate = p.optString("addedTime"),
-                body = p.optString("bbBody"),
+                body = stripBbImgTags(p.optString("bbBody")),
+                imageUrls = extractBbImageUrls(p.optString("bbBody")),
                 useAltStripe = useAlt,
             ),
         )
     }
     return title to out
 }
+
+private fun stripBbImgTags(text: String): String =
+    Regex("""\[img].*?\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+        .replace(text, "")
+        .trim()
+
+private fun extractBbImageUrls(text: String): List<String> =
+    Regex("""\[img](.*?)\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+        .findAll(text)
+        .mapNotNull { it.groupValues.getOrNull(1)?.trim() }
+        .map { raw ->
+            if (raw.startsWith("http://", ignoreCase = true) ||
+                raw.startsWith("https://", ignoreCase = true)
+            ) {
+                raw
+            } else {
+                "https://redacted.sh/${raw.trimStart('/')}"
+            }
+        }
+        .filter { it.isNotBlank() }
+        .distinct()
+        .toList()
 
 /**
  * Resolves the other participant’s user id for [RedactedApiClient.sendPm] when replying in-thread (`convid`).

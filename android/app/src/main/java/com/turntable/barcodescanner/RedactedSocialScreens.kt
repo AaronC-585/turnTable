@@ -610,7 +610,10 @@ class RedactedForumThreadActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.redacted_thread)
 
         binding.layoutReplyRecipientId.visibility = View.GONE
-        binding.layoutReplyComposeRow.visibility = View.GONE
+        binding.layoutReplyComposeRow.visibility = View.VISIBLE
+        binding.editReplyBody.isEnabled = false
+        binding.editReplyBody.isFocusable = false
+        binding.editReplyBody.isFocusableInTouchMode = false
         binding.textForumReplyDisabled.visibility = View.VISIBLE
         binding.textForumReplyDisabled.text = getString(R.string.redacted_forum_post_not_available)
         binding.buttonSendReply.isEnabled = false
@@ -627,7 +630,7 @@ class RedactedForumThreadActivity : AppCompatActivity() {
             loadThread(isPullRefresh = true)
         }
 
-        binding.cardReply.visibility = View.GONE
+        binding.cardReply.visibility = View.VISIBLE
         loadThread(isPullRefresh = false)
     }
 
