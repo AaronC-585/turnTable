@@ -261,8 +261,13 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../cpp/include";
-				LIBRARY_SEARCH_PATHS = (
+				LIBRARY_SEARCH_PATHS = ("$(inherited)");
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = (
+					"$(inherited)",
 					"$(PROJECT_DIR)/build/Release-iphoneos",
+				);
+				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
 					"$(PROJECT_DIR)/build/Release-iphonesimulator",
 				);
 			};
@@ -292,8 +297,13 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				USER_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../cpp/include";
-				LIBRARY_SEARCH_PATHS = (
+				LIBRARY_SEARCH_PATHS = ("$(inherited)");
+				"LIBRARY_SEARCH_PATHS[sdk=iphoneos*]" = (
+					"$(inherited)",
 					"$(PROJECT_DIR)/build/Release-iphoneos",
+				);
+				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
 					"$(PROJECT_DIR)/build/Release-iphonesimulator",
 				);
 			};
