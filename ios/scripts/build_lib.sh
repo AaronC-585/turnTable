@@ -24,7 +24,7 @@ copy_release_lib() {
 	local primary="$src_dir/$lib_name"
 	local nested="$src_dir/barcode_scanner_core/$lib_name"
 	local dep_nested="$src_dir/_deps/zxing_cpp-build/core/$lib_name"
-	local glob_match
+	local discovered_path
 
 	mkdir -p "$dest_dir"
 	if [[ -f "$primary" ]]; then
@@ -34,13 +34,11 @@ copy_release_lib() {
 	elif [[ -f "$dep_nested" ]]; then
 		cp "$dep_nested" "$dest_dir/"
 	else
-		shopt -s nullglob globstar
-		for glob_match in "$src_dir"/**/"$lib_name"; do
-			cp "$glob_match" "$dest_dir/"
-			shopt -u nullglob globstar
+		discovered_path="$(rg --files "$src_dir" | rg "/$lib_name$" -m1 || true)"
+		if [[ -n "$discovered_path" && -f "$discovered_path" ]]; then
+			cp "$discovered_path" "$dest_dir/"
 			return 0
-		done
-		shopt -u nullglob globstar
+		fi
 		echo "Missing built library $lib_name in $src_dir" >&2
 		exit 1
 	fi
