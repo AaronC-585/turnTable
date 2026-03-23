@@ -1,6 +1,7 @@
 package com.turntable.barcodescanner
 
 import android.content.Context
+import android.os.Build
 import com.turntable.barcodescanner.debug.OutgoingUrlInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -203,6 +204,7 @@ object GithubAppUpdateChecker {
         root.optString("apkUrl").trim().takeIf { it.isNotEmpty() }?.let { return it }
         val obj = root.optJSONObject("assets")
         if (obj != null) {
+            pickApkUrlByArchFromAssetsObject(obj)?.let { return it }
             obj.optString("apk").trim().takeIf { it.isNotEmpty() }?.let { return it }
             obj.optString("android").trim().takeIf { it.isNotEmpty() }?.let { return it }
         }
@@ -212,6 +214,56 @@ object GithubAppUpdateChecker {
             if (fromArray != null) return fromArray
         }
         return null
+    }
+
+    private fun pickApkUrlByArchFromAssetsObject(assets: JSONObject): String? {
+        val preferredAbis = preferredAndroidAbis()
+        val explicitByAbi = assets.optJSONObject("androidByAbi")
+        if (explicitByAbi != null) {
+            for (abi in preferredAbis) {
+                explicitByAbi.optString(abi).trim().takeIf { it.isNotEmpty() }?.let { return it }
+            }
+        }
+
+        val candidates = mutableListOf<Pair<Int, String>>()
+        val keys = assets.keys()
+        while (keys.hasNext()) {
+            val key = keys.next()
+            if (!key.endsWith(".apk", ignoreCase = true)) continue
+            val url = assets.optString(key).trim()
+            if (url.isEmpty()) continue
+            val keyLower = key.lowercase()
+            val score = abiScore(keyLower, preferredAbis)
+            candidates.add(score to url)
+        }
+        return candidates.maxByOrNull { it.first }?.second
+    }
+
+    private fun preferredAndroidAbis(): List<String> {
+        val raw = Build.SUPPORTED_ABIS?.toList().orEmpty()
+        if (raw.isEmpty()) {
+            return listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
+        }
+        return raw.map { normalizeAbi(it) }
+    }
+
+    private fun normalizeAbi(abi: String): String = when (abi.lowercase()) {
+        "arm64", "aarch64" -> "arm64-v8a"
+        "armv7", "armeabi", "armeabi-v7a" -> "armeabi-v7a"
+        "x64", "x86-64", "x86_64" -> "x86_64"
+        "x86", "i686" -> "x86"
+        else -> abi.lowercase()
+    }
+
+    private fun abiScore(name: String, preferredAbis: List<String>): Int {
+        var score = 1
+        preferredAbis.forEachIndexed { idx, abi ->
+            if (name.contains(abi)) {
+                score = maxOf(score, 100 - idx)
+            }
+        }
+        if (name.contains("release")) score += 10
+        return score
     }
 
     private fun pickApkUrlFromManifestAssetsArray(arr: JSONArray): String? {

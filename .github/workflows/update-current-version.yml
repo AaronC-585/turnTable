@@ -39,6 +39,7 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
+          import re
 
           release = json.loads(Path("/tmp/release.json").read_text(encoding="utf-8"))
           tag_name = release.get("tag_name", "").strip()
@@ -47,16 +48,29 @@ jobs:
           version = tag_name[1:] if tag_name.startswith("v") else tag_name
 
           assets = {}
+          android_by_abi = {}
+          abi_pattern = re.compile(r"(arm64-v8a|armeabi-v7a|x86_64|x86)", re.IGNORECASE)
           for a in sorted(release.get("assets", []), key=lambda x: x.get("name", "")):
               name = (a.get("name") or "").strip()
               url = (a.get("browser_download_url") or "").strip()
               if name and url:
                   assets[name] = url
+                  m = abi_pattern.search(name)
+                  if name.lower().endswith(".apk") and m:
+                      android_by_abi[m.group(1).lower()] = url
 
           # Backward-compatible shortcut used by existing app code.
-          first_apk_url = next((u for n, u in assets.items() if n.endswith(".apk")), "")
-          if first_apk_url:
-              assets["apk"] = first_apk_url
+          fallback_apk = (
+              android_by_abi.get("arm64-v8a")
+              or android_by_abi.get("armeabi-v7a")
+              or android_by_abi.get("x86_64")
+              or android_by_abi.get("x86")
+              or next((u for n, u in assets.items() if n.lower().endswith(".apk")), "")
+          )
+          if fallback_apk:
+              assets["apk"] = fallback_apk
+          if android_by_abi:
+              assets["androidByAbi"] = android_by_abi
 
           payload = {
               "version": version,

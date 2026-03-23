@@ -184,7 +184,7 @@ object UpdateCheckCoordinator {
                                         R.string.github_update_auto_downloading,
                                         Toast.LENGTH_SHORT,
                                     ).show()
-                                    startVisibleApkDownload(activity, apkUrl)
+                                    startVisibleApkDownload(activity, info, apkUrl)
                                 }
                             } else {
                                 showUpdateDialog(activity, info, localVer) {
@@ -242,7 +242,7 @@ object UpdateCheckCoordinator {
         info.apkBrowserDownloadUrl?.let { apkUrl ->
             rows.add(
                 Row(activity.getString(R.string.github_update_download_apk)) {
-                    startVisibleApkDownload(activity, apkUrl)
+                    startVisibleApkDownload(activity, info, apkUrl)
                 },
             )
         }
@@ -270,7 +270,11 @@ object UpdateCheckCoordinator {
     }
 
     /** In-app download with progress, then system package installer (FileProvider). */
-    private fun startVisibleApkDownload(activity: AppCompatActivity, apkUrl: String) {
+    private fun startVisibleApkDownload(
+        activity: AppCompatActivity,
+        info: GithubAppUpdateChecker.ReleaseInfo,
+        apkUrl: String,
+    ) {
         if (SearchPrefs(activity).downloadOverWifiOnly &&
             !DownloadNetworkPolicy.allowsLargeDownload(activity, true)
         ) {
@@ -301,7 +305,21 @@ object UpdateCheckCoordinator {
             .create()
 
         dialog.show()
-        textStatus.setText(R.string.github_update_download_starting)
+        val artifactName = apkUrl.substringAfterLast('/')
+        val abiHint = inferAbiFromArtifactName(artifactName)
+        val releaseDetails = buildString {
+            append("Release ")
+            append(info.tagNameRaw)
+            append('\n')
+            append("Artifact ")
+            append(artifactName)
+            if (abiHint.isNotEmpty()) {
+                append(" (")
+                append(abiHint)
+                append(')')
+            }
+        }
+        textStatus.text = releaseDetails + "\n" + activity.getString(R.string.github_update_download_starting)
         progress.progress = 0
         progress.isIndeterminate = true
 
@@ -322,13 +340,13 @@ object UpdateCheckCoordinator {
                             pct ?: 0,
                             formatBytes(done),
                             formatBytes(total),
-                        )
+                        ) + "\n" + releaseDetails
                     } else {
                         progress.isIndeterminate = true
                         textStatus.text = activity.getString(
                             R.string.github_update_download_progress_indeterminate_fmt,
                             formatBytes(done),
-                        )
+                        ) + "\n" + releaseDetails
                     }
                 }
             }
@@ -423,6 +441,14 @@ object UpdateCheckCoordinator {
         val mb = kb / 1024.0
         if (mb < 1024.0) return String.format(Locale.US, "%.1f MB", mb)
         return String.format(Locale.US, "%.2f GB", mb / 1024.0)
+    }
+
+    private fun inferAbiFromArtifactName(name: String): String = when {
+        name.contains("arm64-v8a", ignoreCase = true) -> "arm64-v8a"
+        name.contains("armeabi-v7a", ignoreCase = true) -> "armeabi-v7a"
+        name.contains("x86_64", ignoreCase = true) -> "x86_64"
+        name.contains("x86", ignoreCase = true) -> "x86"
+        else -> ""
     }
 
     private fun currentVersionName(context: Context): String? = try {
