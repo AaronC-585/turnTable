@@ -15,6 +15,7 @@ FetchContent_Declare(
 # Avoid relying on host pkg-config modules like `stb`; force zxing-cpp
 # to fetch its dependencies itself.
 set(BUILD_DEPENDENCIES "GITHUB" CACHE STRING "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(ZXING_READERS ON CACHE BOOL "" FORCE)
 set(ZXING_WRITERS OFF CACHE STRING "" FORCE)
 set(ZXING_EXAMPLES OFF CACHE BOOL "" FORCE)

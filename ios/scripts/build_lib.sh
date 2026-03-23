@@ -34,7 +34,18 @@ copy_release_lib() {
 	elif [[ -f "$dep_nested" ]]; then
 		cp "$dep_nested" "$dest_dir/"
 	else
-		discovered_path="$(rg --files "$src_dir" | rg "/$lib_name$" -m1 || true)"
+		discovered_path="$(python3 - "$src_dir" "$lib_name" <<'PY'
+import os
+import sys
+
+root = sys.argv[1]
+needle = sys.argv[2]
+for dirpath, _, filenames in os.walk(root):
+    if needle in filenames:
+        print(os.path.join(dirpath, needle))
+        break
+PY
+)"
 		if [[ -n "$discovered_path" && -f "$discovered_path" ]]; then
 			cp "$discovered_path" "$dest_dir/"
 			return 0
