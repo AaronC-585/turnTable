@@ -117,7 +117,7 @@ final class RedactedBrowseResultsViewController: UITableViewController {
             title: "Edit search",
             style: .plain,
             target: self,
-            action: #selector(popForm),
+            action: #selector(popForm)
         )
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Home", style: .plain, target: self, action: #selector(goHome))
 
@@ -220,7 +220,7 @@ final class RedactedBrowseResultsViewController: UITableViewController {
                             gid: gid,
                             title: name.isEmpty ? "(no title)" : name,
                             subtitle: sub,
-                            coverRaw: cover,
+                            coverRaw: cover
                         )
                     }
                 case .failure(let msg, _, _):

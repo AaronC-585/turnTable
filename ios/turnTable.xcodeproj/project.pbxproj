@@ -255,7 +255,7 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.2ndlifetech.turntable;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_BRIDGING_HEADER = "turnTable/turnTable-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "turnTable/turnTable-Bridging-Header.h";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -287,7 +287,7 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.2ndlifetech.turntable;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_BRIDGING_HEADER = "turnTable/turnTable-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "turnTable/turnTable-Bridging-Header.h";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
