@@ -102,8 +102,9 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         setupToolbarHome(binding.toolbar)
 
         val adapter = RedactedTorrentGroupRowsAdapter(
-            onTorrentClick = { showTorrentActions(it) },
+            onTorrentClick = { openTorrentDetailForListIndex(it) },
             onEditionDoubleTap = { showEditionDownloadMenu(it) },
+            onTorrentLongClick = { showTorrentActions(it) },
         )
         binding.recyclerTorrents.layoutManager = LinearLayoutManager(this)
         binding.recyclerTorrents.adapter = adapter
@@ -217,10 +218,42 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
                 sectionWikiExpanded,
             )
         }
+        binding.headerSectionAlbum.setOnClickListener {
+            sectionAlbumExpanded = !sectionAlbumExpanded
+            syncCollapsibleSection(
+                binding.contentSectionAlbum,
+                binding.chevronAlbum,
+                sectionAlbumExpanded,
+            )
+        }
+        binding.headerSectionTorrents.setOnClickListener {
+            sectionTorrentsExpanded = !sectionTorrentsExpanded
+            syncCollapsibleSection(
+                binding.contentSectionTorrents,
+                binding.chevronTorrents,
+                sectionTorrentsExpanded,
+            )
+        }
+        binding.headerSectionWiki.setOnClickListener {
+            sectionWikiExpanded = !sectionWikiExpanded
+            syncCollapsibleSection(
+                binding.contentSectionWiki,
+                binding.chevronWiki,
+                sectionWikiExpanded,
+            )
+        }
         binding.headerSectionWiki.isLongClickable = true
         binding.headerSectionWiki.setOnLongClickListener {
             copyWikiCompilationRtfToClipboard()
             true
+        }
+        binding.headerSectionActions.setOnClickListener {
+            sectionActionsExpanded = !sectionActionsExpanded
+            syncCollapsibleSection(
+                binding.contentSectionActions,
+                binding.chevronActions,
+                sectionActionsExpanded,
+            )
         }
         binding.headerSectionActions.setOnClickListener {
             sectionActionsExpanded = !sectionActionsExpanded
@@ -281,6 +314,10 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         binding.textMeta.text = ""
         binding.textWikiBody.text = ""
         binding.sectionWiki.visibility = View.GONE
+        sectionAlbumExpanded = false
+        sectionTorrentsExpanded = false
+        sectionWikiExpanded = false
+        sectionActionsExpanded = false
         sectionAlbumExpanded = false
         sectionTorrentsExpanded = false
         sectionWikiExpanded = false
@@ -534,6 +571,15 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    private fun openTorrentDetailForListIndex(listIndex: Int) {
+        val torrentId = torrentIds.getOrNull(listIndex) ?: return
+        if (torrentId <= 0) return
+        startActivity(
+            Intent(this, RedactedTorrentDetailActivity::class.java)
+                .putExtra(RedactedExtras.TORRENT_ID, torrentId),
+        )
     }
 
     private fun showTorrentActions(position: Int) {

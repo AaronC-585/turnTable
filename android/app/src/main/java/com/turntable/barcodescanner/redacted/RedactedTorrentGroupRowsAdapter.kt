@@ -15,8 +15,11 @@ import com.turntable.barcodescanner.R
  * plus **table** rows like the site torrent table.
  */
 class RedactedTorrentGroupRowsAdapter(
+    /** Single tap: e.g. open torrent detail. */
     private val onTorrentClick: (torrentListIndex: Int) -> Unit,
     private val onEditionDoubleTap: (bucketTorrentIndices: List<Int>) -> Unit,
+    /** Long-press: e.g. download / client actions menu (optional). */
+    private val onTorrentLongClick: ((torrentListIndex: Int) -> Unit)? = null,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     sealed class Row {
@@ -155,6 +158,14 @@ class RedactedTorrentGroupRowsAdapter(
                     h.seedingMark.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO)
                 }
                 h.itemView.setOnClickListener { onTorrentClick(r.listIndex) }
+                if (onTorrentLongClick != null) {
+                    h.itemView.setOnLongClickListener {
+                        onTorrentLongClick.invoke(r.listIndex)
+                        true
+                    }
+                } else {
+                    h.itemView.setOnLongClickListener(null)
+                }
             }
         }
     }

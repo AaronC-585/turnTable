@@ -23,12 +23,52 @@ object RedactedProfileUiBuilder {
         val footerBold: Boolean = false,
     )
 
+    data class ProfileUploadRow(
+        val torrentId: Int,
+        val title: String,
+        val subtitle: String,
+    )
+
     data class ProfileSection(
         val titleRes: Int,
         val rows: List<ProfileRow>,
         /** Optional format arg for [R.string.home_section_dynamic_title]. */
         val titleArg: String? = null,
+        /** Collapsible list: double-tap opens [com.turntable.barcodescanner.RedactedTorrentDetailActivity]. */
+        val uploadRows: List<ProfileUploadRow>? = null,
     )
+
+    /**
+     * Parses `user_torrents` JSON ([RedactedApiClient.userTorrents]) for `type=uploaded` — array key `uploaded`.
+     */
+    fun parseUploadedTorrents(response: JSONObject?): List<ProfileUploadRow> {
+        if (response == null) return emptyList()
+        val arr = response.optJSONArray("uploaded") ?: JSONArray()
+        val out = mutableListOf<ProfileUploadRow>()
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i) ?: continue
+            val tid = o.optInt("id", o.optInt("torrentId", 0))
+            if (tid <= 0) continue
+            val name = o.optString("name").ifBlank { o.optString("groupName") }
+            val artist = o.optString("artistName").ifBlank { o.optString("artist") }
+            val fmt = o.optString("format").ifBlank { o.optString("media") }
+            val subtitle = buildString {
+                if (artist.isNotBlank()) append(artist)
+                if (fmt.isNotBlank()) {
+                    if (isNotEmpty()) append(" · ")
+                    append(fmt)
+                }
+            }
+            out.add(
+                ProfileUploadRow(
+                    torrentId = tid,
+                    title = name.ifBlank { "Torrent $tid" },
+                    subtitle = subtitle,
+                ),
+            )
+        }
+        return out
+    }
 
     fun build(
         index: JSONObject?,

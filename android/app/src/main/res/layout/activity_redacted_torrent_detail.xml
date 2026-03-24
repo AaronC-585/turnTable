@@ -418,26 +418,10 @@
                             app:backgroundTint="@color/app_accent" />
 
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/buttonTorrentDownloadToken"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/redacted_use_token"
-                            android:visibility="gone"
-                            app:backgroundTint="@color/app_button_secondary" />
-
-                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentQbt"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_send_qbittorrent"
-                            android:visibility="gone"
-                            app:backgroundTint="@color/app_button_secondary" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/buttonTorrentQbtToken"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/redacted_send_qbittorrent_with_token"
                             android:visibility="gone"
                             app:backgroundTint="@color/app_button_secondary" />
 
@@ -450,14 +434,6 @@
                             app:backgroundTint="@color/app_button_secondary" />
 
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/buttonTorrentTransmissionToken"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/redacted_send_transmission_with_token"
-                            android:visibility="gone"
-                            app:backgroundTint="@color/app_button_secondary" />
-
-                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentRtorrent"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -466,26 +442,10 @@
                             app:backgroundTint="@color/app_button_secondary" />
 
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/buttonTorrentRtorrentToken"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/redacted_send_rtorrent_with_token"
-                            android:visibility="gone"
-                            app:backgroundTint="@color/app_button_secondary" />
-
-                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonTorrentDeluge"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/redacted_send_deluge"
-                            android:visibility="gone"
-                            app:backgroundTint="@color/app_button_secondary" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/buttonTorrentDelugeToken"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/redacted_send_deluge_with_token"
                             android:visibility="gone"
                             app:backgroundTint="@color/app_button_secondary" />
 
@@ -511,6 +471,85 @@
                             style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:textColor="@color/app_accent" />
                     </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/sectionFreeleechTokens"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/app_card_browse"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/app_chip_stroke"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="12dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/redacted_section_freeleech_tokens"
+                        android:textColor="@color/app_text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/textFreeleechTokenSummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonTorrentDownloadToken"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/redacted_use_token"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/app_button_secondary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonTorrentQbtToken"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/redacted_send_qbittorrent_with_token"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/app_button_secondary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonTorrentTransmissionToken"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/redacted_send_transmission_with_token"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/app_button_secondary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonTorrentRtorrentToken"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/redacted_send_rtorrent_with_token"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/app_button_secondary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonTorrentDelugeToken"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/redacted_send_deluge_with_token"
+                        android:visibility="gone"
+                        app:backgroundTint="@color/app_button_secondary" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

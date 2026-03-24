@@ -101,6 +101,7 @@ class RedactedUserProfileActivity : AppCompatActivity() {
         Thread {
             val userRes = api.user(userId)
             val commRes = api.communityStats(userId)
+            val uploadsRes = api.userTorrents(userId, "uploaded", limit = 100)
 
             val userObj = when (userRes) {
                 is RedactedResult.Success -> userRes.responseOrNull()
@@ -109,6 +110,11 @@ class RedactedUserProfileActivity : AppCompatActivity() {
             val commObj = when (commRes) {
                 is RedactedResult.Success -> commRes.responseOrNull()
                 else -> null
+            }
+            val uploadRows = when (uploadsRes) {
+                is RedactedResult.Success ->
+                    RedactedProfileUiBuilder.parseUploadedTorrents(uploadsRes.response)
+                else -> emptyList()
             }
 
             when (userRes) {
@@ -128,7 +134,16 @@ class RedactedUserProfileActivity : AppCompatActivity() {
                         index = null,
                         user = userObj,
                         communityStats = commObj,
-                    )
+                    ).toMutableList()
+                    if (uploadRows.isNotEmpty()) {
+                        sections.add(
+                            RedactedProfileUiBuilder.ProfileSection(
+                                titleRes = R.string.home_section_uploads,
+                                rows = emptyList(),
+                                uploadRows = uploadRows,
+                            ),
+                        )
+                    }
                     val username = userObj?.optString("username").orEmpty()
 
                     runOnUiThread {

@@ -1,12 +1,17 @@
 package com.turntable.barcodescanner
 
+import android.content.Intent
 import android.graphics.Typeface
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.GestureDetectorCompat
 import com.turntable.barcodescanner.databinding.ActivityHomeBinding
+import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedProfileUiBuilder
 
 /**
@@ -82,6 +87,9 @@ class HomeProfileLayoutController(
         chevron.text = activity.getString(R.string.home_section_collapsed_icon)
 
         addProfileRows(rowsLayout, section.rows, compactRows = false)
+        section.uploadRows?.takeIf { it.isNotEmpty() }?.let { uploads ->
+            addProfileUploadRows(rowsLayout, uploads)
+        }
 
         headerRow.setOnClickListener {
             val open = rowsLayout.visibility != View.VISIBLE
@@ -156,6 +164,48 @@ class HomeProfileLayoutController(
                     fullTv.visibility = View.GONE
                 }
             }
+            rowsLayout.addView(rv)
+        }
+    }
+
+    private fun addProfileUploadRows(
+        rowsLayout: LinearLayout,
+        uploads: List<RedactedProfileUiBuilder.ProfileUploadRow>,
+    ) {
+        val colorMuted = ContextCompat.getColor(activity, R.color.home_text_muted)
+        val hint = TextView(activity).apply {
+            text = activity.getString(R.string.home_profile_uploads_double_tap_hint)
+            setTextColor(colorMuted)
+            textSize = 12f
+            setPadding(0, 0, 0, 8)
+        }
+        rowsLayout.addView(hint)
+
+        for (upload in uploads) {
+            val rv = activity.layoutInflater.inflate(R.layout.home_profile_upload_row, rowsLayout, false)
+            rv.findViewById<TextView>(R.id.textUploadTitle).text = upload.title
+            val sub = rv.findViewById<TextView>(R.id.textUploadSubtitle)
+            if (upload.subtitle.isNotBlank()) {
+                sub.visibility = View.VISIBLE
+                sub.text = upload.subtitle
+            } else {
+                sub.visibility = View.GONE
+            }
+            val detector = GestureDetectorCompat(
+                activity,
+                object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onDown(e: MotionEvent): Boolean = true
+
+                    override fun onDoubleTap(e: MotionEvent): Boolean {
+                        activity.startActivity(
+                            Intent(activity, RedactedTorrentDetailActivity::class.java)
+                                .putExtra(RedactedExtras.TORRENT_ID, upload.torrentId),
+                        )
+                        return true
+                    }
+                },
+            )
+            rv.setOnTouchListener { _, event -> detector.onTouchEvent(event) }
             rowsLayout.addView(rv)
         }
     }

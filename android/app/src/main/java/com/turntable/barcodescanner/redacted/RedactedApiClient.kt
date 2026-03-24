@@ -9,7 +9,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.Response
-import com.turntable.barcodescanner.debug.OutgoingUrlInterceptor
+import com.turntable.barcodescanner.BuildConfig
+import com.turntable.barcodescanner.debug.DebugJsonResponseInterceptor
 import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -27,8 +28,11 @@ class RedactedApiClient(private val apiKey: String) {
     private fun apiFailure(message: String, code: Int, retryAfter: Int? = null) =
         RedactedResult.Failure(RedactedHtmlSafe.safePlainTextForUi(message), code, retryAfter)
 
-    private val http = OkHttpClient.Builder()
-        .addInterceptor(OutgoingUrlInterceptor)
+    private val http = OkHttpClient.Builder().apply {
+        if (BuildConfig.DEBUG) {
+            addInterceptor(DebugJsonResponseInterceptor)
+        }
+    }
         .connectTimeout(45, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)
         .writeTimeout(120, TimeUnit.SECONDS)

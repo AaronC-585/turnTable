@@ -8,6 +8,10 @@ import org.json.JSONObject
  */
 object RedactedHtmlSafe {
 
+    private val imgTagRegex = Regex("""<img\b[^>]*>""", RegexOption.IGNORE_CASE)
+    private val imgSrcAttrRegex =
+        Regex("""src\s*=\s*["']?([^"'>\s]+)["']?""", RegexOption.IGNORE_CASE)
+
     private val scriptBlock =
         Regex("""<script\b[^>]*>[\s\S]*?</script>""", RegexOption.IGNORE_CASE)
     private val styleBlock =
@@ -36,7 +40,36 @@ object RedactedHtmlSafe {
         s = onEventAttr.replace(s, "")
         s = javascriptHrefOrSrc.replace(s, "")
         s = vbscriptHrefOrSrc.replace(s, "")
+        s = stripUnsafeImgTags(s)
         return s
+    }
+
+    /**
+     * Removes `<img>` tags whose [src] is not safe for in-app loading (e.g. `javascript:`, `data:`).
+     * Keeps http(s) and site-relative paths.
+     */
+    fun stripUnsafeImgTags(html: String): String {
+        if (html.isBlank()) return html
+        return imgTagRegex.replace(html) { m ->
+            val tag = m.value
+            val src = imgSrcAttrRegex.find(tag)?.groupValues?.getOrNull(1)?.trim().orEmpty()
+            if (src.isNotEmpty() && isSafeImageSrcAttribute(src)) tag else ""
+        }
+    }
+
+    /** True if [src] may be passed to [android.text.Html.ImageGetter] / OkHttp after redacted base resolution. */
+    fun isSafeImageSrcAttribute(src: String): Boolean {
+        val t = src.trim()
+        if (t.isEmpty()) return false
+        val lower = t.lowercase()
+        if (lower.startsWith("javascript:") || lower.startsWith("data:") || lower.startsWith("vbscript:")) {
+            return false
+        }
+        if (lower.startsWith("http://") || lower.startsWith("https://")) return true
+        if (lower.startsWith("//")) return true
+        // Block other schemes (e.g. file:, content:)
+        if (Regex("""^[a-z][a-z0-9+.-]*:""").containsMatchIn(lower)) return false
+        return true
     }
 
     /**

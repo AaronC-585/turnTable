@@ -1062,14 +1062,23 @@ class RedactedUserSearchActivity : AppCompatActivity() {
 }
 
 class RedactedSubscriptionsActivity : AppCompatActivity() {
+    private data class SubscriptionEntry(
+        val row: TwoLineRow,
+        val payload: JSONObject,
+    )
+
     private data class SubscriptionTab(
-        val key: String,
-        val rows: List<TwoLineRow>,
+        /** [JSONObject] field `forumName` (or `forum_name`); used as tab label and sort key. */
+        val forumName: String,
+        /** From JSON `forumId` / `forum_id` when present; used when opening the forum from the tab. */
+        val forumId: Int,
+        val entries: List<SubscriptionEntry>,
     )
 
     private lateinit var binding: ActivityRedactedSubscriptionsBinding
     private lateinit var adapter: TwoLineRowsAdapter
     private var tabs: List<SubscriptionTab> = emptyList()
+    private var activeEntries: List<SubscriptionEntry> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -1082,7 +1091,9 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
         setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_subscriptions)
 
-        adapter = TwoLineRowsAdapter { }
+        adapter = TwoLineRowsAdapter { pos ->
+            openSubscriptionEntry(activeEntries.getOrNull(pos))
+        }
         binding.recycler.layoutManager = LinearLayoutManager(this)
         binding.recycler.adapter = adapter
         binding.tabSubscriptions.addOnTabSelectedListener(
@@ -1131,7 +1142,7 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
         }
         tabs.forEach { t ->
             binding.tabSubscriptions.addTab(
-                binding.tabSubscriptions.newTab().setText(prettyKeyLabel(t.key)),
+                binding.tabSubscriptions.newTab().setText(prettyKeyLabel(t.forumName)),
             )
         }
         val initial = 0
@@ -1141,8 +1152,9 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
 
     private fun showTab(index: Int) {
         val tab = tabs.getOrNull(index) ?: return
-        adapter.rows = tab.rows
-        if (tab.rows.isEmpty()) {
+        activeEntries = tab.entries
+        adapter.rows = tab.entries.map { it.row }
+        if (tab.entries.isEmpty()) {
             binding.textEmpty.visibility = View.VISIBLE
             binding.textEmpty.text = getString(R.string.redacted_no_results)
         } else {
@@ -1152,13 +1164,23 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
 
     private fun buildSubscriptionTabs(response: JSONObject): List<SubscriptionTab> {
         val root = response.optJSONObject("subscriptions") ?: response
-        val out = mutableListOf<SubscriptionTab>()
+        val otherLabel = getString(R.string.redacted_subscriptions_forum_other)
+        val grouped = linkedMapOf<String, MutableList<SubscriptionEntry>>()
+        val forumIdByTab = mutableMapOf<String, Int>()
         val keys = root.keys().asSequence().toList().sorted()
         for (key in keys) {
             val arr = root.optJSONArray(key) ?: continue
-            val rows = mutableListOf<TwoLineRow>()
             for (i in 0 until arr.length()) {
                 val o = arr.optJSONObject(i) ?: continue
+                val rawForum = firstNonBlank(
+                    o.optString("forumName"),
+                    o.optString("forum_name"),
+                )?.trim().orEmpty()
+                val tabName = rawForum.ifBlank { otherLabel }
+                val fid = o.optInt("forumId", o.optInt("forum_id"))
+                if (fid > 0 && forumIdByTab[tabName] == null) {
+                    forumIdByTab[tabName] = fid
+                }
                 val title = firstNonBlank(
                     o.optString("threadTitle"),
                     o.optString("subject"),
@@ -1168,27 +1190,120 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
                     o.optString("groupName"),
                     o.optString("torrentName"),
                     "Item ${i + 1}",
-                )
+                ) ?: "Item ${i + 1}"
                 val unread = isUnread(o)
                 val subtitleParts = mutableListOf<String>()
                 if (unread) subtitleParts += "Unread"
                 firstNonBlank(
                     o.optString("categoryName"),
                     o.optString("type"),
+                    o.optString("name"),
                     o.optString("lastPostTime"),
                     o.optString("time"),
                     o.optString("created"),
-                )?.let { if (it.isNotBlank()) subtitleParts += it }
+                )?.let { part ->
+                    if (part.isNotBlank() &&
+                        !part.equals(tabName, ignoreCase = true) &&
+                        !part.equals(rawForum, ignoreCase = true)
+                    ) {
+                        subtitleParts += part
+                    }
+                }
                 val subtitle = subtitleParts.joinToString(" · ")
-                rows += TwoLineRow(title = title, subtitle = subtitle)
+                grouped.getOrPut(tabName) { mutableListOf() }
+                    .add(SubscriptionEntry(TwoLineRow(title = title, subtitle = subtitle), o))
             }
-            val sortedRows = rows.sortedWith(
-                compareByDescending<TwoLineRow> { it.subtitle.contains("Unread") }
-                    .thenBy { it.title.lowercase(Locale.US) },
-            )
-            out += SubscriptionTab(key = key, rows = sortedRows)
         }
-        return out
+        return grouped.entries
+            .map { (forumName, entries) ->
+                val sortedEntries = entries.sortedWith(
+                    compareByDescending<SubscriptionEntry> { it.row.subtitle.contains("Unread") }
+                        .thenBy { it.row.title.lowercase(Locale.US) },
+                )
+                SubscriptionTab(
+                    forumName = forumName,
+                    forumId = forumIdByTab[forumName] ?: 0,
+                    entries = sortedEntries,
+                )
+            }
+            .sortedWith(
+                compareBy<SubscriptionTab> { tab ->
+                    if (tab.forumName == otherLabel) 1 else 0
+                }.thenBy { it.forumName.lowercase(Locale.US) },
+            )
+    }
+
+    private fun openForumForTab(tab: SubscriptionTab?) {
+        val t = tab ?: return
+        if (t.forumId <= 0) {
+            Toast.makeText(this, R.string.redacted_subscriptions_forum_nav_unavailable, Toast.LENGTH_SHORT).show()
+            return
+        }
+        startActivity(
+            Intent(this, RedactedForumThreadsActivity::class.java)
+                .putExtra(RedactedExtras.FORUM_ID, t.forumId)
+                .putExtra(RedactedExtras.FORUM_NAME, t.forumName),
+        )
+    }
+
+    private fun openSubscriptionEntry(entry: SubscriptionEntry?) {
+        val o = entry?.payload ?: return
+        val directUrl = firstNonBlank(
+            o.optString("url"),
+            o.optString("link"),
+            o.optString("href"),
+            o.optString("permalink"),
+        )?.trim()
+        if (!directUrl.isNullOrBlank()) {
+            RedactedUiHelper.openSite(this, directUrl)
+            return
+        }
+        val threadId = o.optInt("threadId", o.optInt("topicId"))
+        if (threadId > 0) {
+            startActivity(
+                Intent(this, RedactedForumThreadActivity::class.java)
+                    .putExtra(RedactedExtras.THREAD_ID, threadId),
+            )
+            return
+        }
+        val groupId = o.optInt("groupId", o.optInt("torrentGroupId"))
+        if (groupId > 0) {
+            startActivity(
+                Intent(this, RedactedTorrentGroupActivity::class.java)
+                    .putExtra(RedactedExtras.GROUP_ID, groupId),
+            )
+            return
+        }
+        val artistId = o.optInt("artistId")
+        if (artistId > 0) {
+            startActivity(
+                Intent(this, RedactedArtistActivity::class.java)
+                    .putExtra(RedactedExtras.ARTIST_ID, artistId),
+            )
+            return
+        }
+        val userId = o.optInt("userId", o.optInt("id"))
+        if (userId > 0) {
+            startActivity(
+                Intent(this, RedactedUserProfileActivity::class.java)
+                    .putExtra(RedactedExtras.USER_ID, userId),
+            )
+            return
+        }
+        val requestId = o.optInt("requestId")
+        if (requestId > 0) {
+            startActivity(
+                Intent(this, RedactedRequestDetailActivity::class.java)
+                    .putExtra(RedactedExtras.REQUEST_ID, requestId),
+            )
+            return
+        }
+        val collageId = o.optInt("collageId")
+        if (collageId > 0) {
+            RedactedUiHelper.openSite(this, "collages.php?id=$collageId")
+            return
+        }
+        Toast.makeText(this, getString(R.string.redacted_unexpected), Toast.LENGTH_SHORT).show()
     }
 
     private fun isUnread(o: JSONObject): Boolean {

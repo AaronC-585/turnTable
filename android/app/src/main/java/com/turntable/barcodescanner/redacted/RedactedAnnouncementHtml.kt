@@ -23,6 +23,20 @@ object RedactedAnnouncementHtml {
             .toList()
     }
 
+    /**
+     * Turns an `<img src>` value into a full URL for HTTP fetch, or null if [src] is not allowed
+     * ([RedactedHtmlSafe.isSafeImageSrcAttribute]).
+     */
+    fun absolutizeImgSrcForFetch(src: String): String? {
+        val s = src.trim()
+        if (s.isEmpty() || !RedactedHtmlSafe.isSafeImageSrcAttribute(s)) return null
+        return when {
+            s.startsWith("http://", ignoreCase = true) || s.startsWith("https://", ignoreCase = true) -> s
+            s.startsWith("//") -> "https:$s"
+            else -> "https://redacted.sh/${s.trimStart('/')}"
+        }
+    }
+
     /** Removes `<img …>` so [HtmlCompat.fromHtml] in a [android.widget.TextView] does not show broken placeholders. */
     fun stripImgTags(html: String): String =
         if (html.isBlank()) html else imgTagRegex.replace(html, "")
@@ -59,7 +73,7 @@ object RedactedAnnouncementHtml {
     fun bbToHtml(bb: String, depth: Int): String {
         if (bb.isBlank()) return ""
         if (depth > 4) return escapeXml(bb)
-        var t = bb.replace("\r\n", "\n")
+        var t = RedactedHtmlEntities.decodeCharacterReferences(bb.replace("\r\n", "\n"))
 
         // [code]…[/code] — literal, escaped
         t = Regex("""\[code](.*?)\[/code]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))

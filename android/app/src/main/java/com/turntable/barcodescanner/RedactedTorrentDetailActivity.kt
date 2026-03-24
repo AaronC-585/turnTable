@@ -164,6 +164,7 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
     private fun loadTorrent() {
         binding.progressTorrentDetail.visibility = View.VISIBLE
         binding.textTorrentError.visibility = View.GONE
+        binding.sectionFreeleechTokens.visibility = View.GONE
         Thread {
             val result = api.torrent(torrentId)
             val tokens = when (val idx = api.index()) {
@@ -185,6 +186,7 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
     private fun showError(message: String) {
         binding.textTorrentError.visibility = View.VISIBLE
         binding.textTorrentError.text = message
+        binding.sectionFreeleechTokens.visibility = View.GONE
     }
 
     private fun bindTorrent(success: RedactedResult.Success) {
@@ -313,6 +315,17 @@ class RedactedTorrentDetailActivity : AppCompatActivity() {
         binding.buttonTorrentDeluge.visibility = if (dg) View.VISIBLE else View.GONE
         binding.buttonTorrentDelugeToken.visibility =
             if (dg && freeleechTokenCount > 0) View.VISIBLE else View.GONE
+
+        binding.textFreeleechTokenSummary.text = if (freeleechTokenCount <= 0) {
+            getString(R.string.redacted_fl_tokens_summary_none)
+        } else {
+            resources.getQuantityString(
+                R.plurals.redacted_fl_tokens_count,
+                freeleechTokenCount,
+                freeleechTokenCount,
+            )
+        }
+        binding.sectionFreeleechTokens.visibility = View.VISIBLE
 
         applySectionUi()
     }

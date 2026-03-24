@@ -3,20 +3,18 @@ package com.turntable.barcodescanner.debug
 import okhttp3.Interceptor
 
 /**
- * Records outgoing request URLs to [AppEventLog] (SYSTEM). Does **not** log response bodies or headers.
+ * URL logging is intentionally disabled. **Debug** builds log Redacted JSON responses to Logcat
+ * (`TurnTableJson`) via [DebugJsonResponseInterceptor] on [com.turntable.barcodescanner.redacted.RedactedApiClient].
  */
 object OutgoingUrlLog {
 
+    @Suppress("UNUSED_PARAMETER")
     fun log(method: String, url: String) {
-        val u = url.trim()
-        if (u.isEmpty()) return
-        AppEventLog.log(AppEventLog.Category.SYSTEM, "$method $u")
+        // No-op: do not record request URLs (release privacy; debug uses JSON body logging only).
     }
 }
 
-/** OkHttp application interceptor: log method + full URL before the call. */
+/** OkHttp application interceptor: no-op (see [OutgoingUrlLog]). */
 val OutgoingUrlInterceptor = Interceptor { chain ->
-    val req = chain.request()
-    OutgoingUrlLog.log(req.method, req.url.toString())
-    chain.proceed(req)
+    chain.proceed(chain.request())
 }

@@ -30,26 +30,7 @@ object RedactedGazelleTorrentParse {
      */
     fun htmlToPlainTextEquivalents(html: String): String {
         if (html.isBlank()) return ""
-        var t = html
-        // Numeric / hex character references
-        t = Regex("""&#(\d{1,7});""").replace(t) { m ->
-            val cp = m.groupValues[1].toIntOrNull() ?: return@replace m.value
-            if (cp in 0..0x10FFFF) String(Character.toChars(cp)) else m.value
-        }
-        t = Regex("""&#x([0-9a-fA-F]{1,6});""").replace(t) { m ->
-            val cp = m.groupValues[1].toIntOrNull(16) ?: return@replace m.value
-            if (cp in 0..0x10FFFF) String(Character.toChars(cp)) else m.value
-        }
-        // Common named entities
-        t = t.replace("&nbsp;", " ")
-            .replace("&amp;", "&")
-            .replace("&lt;", "<")
-            .replace("&gt;", ">")
-            .replace("&quot;", "\"")
-            .replace("&apos;", "'")
-            .replace("&ndash;", "–")
-            .replace("&mdash;", "—")
-            .replace("&hellip;", "…")
+        var t = RedactedHtmlEntities.decodeCharacterReferences(html)
         // Line / block breaks
         t = Regex("""<br\s*/?>""", RegexOption.IGNORE_CASE).replace(t, "\n")
         t = Regex("""<hr\s*/?>""", RegexOption.IGNORE_CASE).replace(t, "\n────────\n")

@@ -1,13 +1,7 @@
 {
-    "version": "2026.3.23.925",
-    "currentTag": "v2026.3.23.925",
+    "version": "2026.3.23.1206",
     "releasePageUrl": "https://github.com/AaronC-585/turnTable/releases/latest",
     "assets": {
-        "turnTable-ios-2026.3.23.563.zip": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.23.925/turnTable-ios-2026.3.23.563.zip",
-        "turnTable.release-2026.3.23.925-arm64-v8a.apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.23.925/turnTable.release-2026.3.23.925-arm64-v8a.apk",
-        "turnTable.release-2026.3.23.925-armeabi-v7a.apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.23.925/turnTable.release-2026.3.23.925-armeabi-v7a.apk",
-        "turnTable.release-2026.3.23.925-x86.apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.23.925/turnTable.release-2026.3.23.925-x86.apk",
-        "turnTable.release-2026.3.23.925-x86_64.apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.23.925/turnTable.release-2026.3.23.925-x86_64.apk",
-        "apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.23.925/turnTable.release-2026.3.23.925-arm64-v8a.apk"
+        "apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.23.1206/turnTable.release-2026.3.23.1206.apk"
     }
 }

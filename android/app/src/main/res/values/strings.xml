@@ -339,6 +339,12 @@
     <string name="redacted_torrent_open_album">View album in app</string>
     <string name="redacted_section_torrents">Torrents</string>
     <string name="redacted_section_site_tools">Site &amp; tools</string>
+    <string name="redacted_section_freeleech_tokens">Freeleech tokens</string>
+    <string name="redacted_fl_tokens_summary_none">You have no freeleech tokens.</string>
+    <plurals name="redacted_fl_tokens_count">
+        <item quantity="one">You have %d freeleech token.</item>
+        <item quantity="other">You have %d freeleech tokens.</item>
+    </plurals>
     <string name="redacted_compilation_info">Compilation info</string>
     <string name="redacted_copied_wiki_rtf">Compilation info copied (RTF)</string>
     <string name="redacted_section_chevron" translatable="false">▾</string>
@@ -460,6 +466,8 @@
         <item quantity="other">Last online %d years ago</item>
     </plurals>
     <string name="redacted_subscriptions">Subscriptions</string>
+    <string name="redacted_subscriptions_forum_other">Other</string>
+    <string name="redacted_subscriptions_forum_nav_unavailable">No forum ID for this tab</string>
     <string name="redacted_wiki">Wiki</string>
     <string name="redacted_logchecker">Logchecker</string>
     <string name="redacted_rip_log">Rip log</string>
@@ -511,6 +519,8 @@
     <string name="home_section_next_class">Next userclass</string>
     <string name="home_section_percentile_rankings">Percentile rankings</string>
     <string name="home_section_donor">Donor statistics</string>
+    <string name="home_section_uploads">Uploads</string>
+    <string name="home_profile_uploads_double_tap_hint">Double-tap a row for torrent details</string>
     <string name="home_section_dynamic_title">%1$s</string>
     <string name="home_content_cd_profile">Profile</string>
     <string name="home_content_cd_news">Site news and announcements</string>

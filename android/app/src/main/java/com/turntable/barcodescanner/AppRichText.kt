@@ -1,12 +1,29 @@
 package com.turntable.barcodescanner
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.ColorFilter
+import android.graphics.Paint
+import android.graphics.PixelFormat
+import android.graphics.drawable.Drawable
+import android.text.Html
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.style.ClickableSpan
+import android.text.style.URLSpan
 import android.text.method.LinkMovementMethod
+import android.view.View
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.text.HtmlCompat
 import com.turntable.barcodescanner.redacted.RedactedAnnouncementHtml
+import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
+import com.turntable.barcodescanner.redacted.RedactedHtmlEntities
 import com.turntable.barcodescanner.redacted.RedactedHtmlSafe
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Renders help / long strings as [android.text.Spanned] with clickable links.
@@ -19,6 +36,35 @@ import com.turntable.barcodescanner.redacted.RedactedHtmlSafe
  * Note: Android [TextView] does not render RTF; use this + [LinkMovementMethod] for in-app links.
  */
 object AppRichText {
+    private fun withPreferredBrowserSpans(textView: TextView, source: CharSequence): CharSequence {
+        val spanned = source as? Spanned ?: return source
+        val out = SpannableStringBuilder(spanned)
+        val spans = out.getSpans(0, out.length, URLSpan::class.java)
+        for (span in spans) {
+            val start = out.getSpanStart(span)
+            val end = out.getSpanEnd(span)
+            val flags = out.getSpanFlags(span)
+            out.removeSpan(span)
+            val url = span.url
+            out.setSpan(
+                object : ClickableSpan() {
+                    override fun onClick(widget: View) {
+                        BrowserLaunch.openHttpUrl(textView.context, url)
+                    }
+
+                    override fun updateDrawState(ds: TextPaint) {
+                        super.updateDrawState(ds)
+                        ds.isUnderlineText = true
+                    }
+                },
+                start,
+                end,
+                flags,
+            )
+        }
+        return out
+    }
+
 
     private val bareUrlRegex =
         Regex("""https?://[^\s<>"{}|\\^`\[\]()]+""", RegexOption.IGNORE_CASE)
@@ -90,25 +136,113 @@ object AppRichText {
 
     private fun rawToSanitizedHtml(raw: String): String {
         if (raw.isBlank()) return ""
+        val isHtml = looksLikeHtmlFragment(raw)
+        // Do not decode entities on raw HTML before sanitize — could turn &lt; into markup.
+        val plainOrBb = if (isHtml) raw else RedactedHtmlEntities.decodeCharacterReferences(raw)
         val intermediate =
             when {
-                looksLikeHtmlFragment(raw) -> raw
-                raw.contains("[url", ignoreCase = true) || looksLikeBbCode(raw) ->
-                    RedactedAnnouncementHtml.bbToHtml(raw, depth = 0)
-                else -> plainTextWithUrlsToHtml(raw)
+                isHtml -> raw
+                plainOrBb.contains("[url", ignoreCase = true) || looksLikeBbCode(plainOrBb) ->
+                    RedactedAnnouncementHtml.bbToHtml(plainOrBb, depth = 0)
+                else -> plainTextWithUrlsToHtml(plainOrBb)
             }
-        val stripped = RedactedAnnouncementHtml.stripImgTags(intermediate)
-        return RedactedHtmlSafe.sanitizeHtmlForTextView(stripped)
+        return RedactedHtmlSafe.sanitizeHtmlForTextView(intermediate)
     }
 
-    fun toSpanned(raw: String): CharSequence {
+    /**
+     * [Html.ImageGetter] that loads Redacted / http(s) images with auth + disk cache (see [RedactedAvatarLoader]).
+     */
+    private class RichTextImageGetter(private val textView: TextView) : Html.ImageGetter {
+        override fun getDrawable(source: String?): Drawable {
+            val raw = source?.trim().orEmpty()
+            val loadUrl = RedactedAnnouncementHtml.absolutizeImgSrcForFetch(raw)
+            val density = textView.resources.displayMetrics.density
+            val screenW = textView.resources.displayMetrics.widthPixels
+            val maxW = (
+                textView.width.takeIf { it > 0 }
+                    ?: (screenW * 0.92f).toInt()
+                ).coerceIn(1, screenW)
+            val placeholderH = (72 * density).toInt().coerceAtLeast(1)
+            val d = AsyncInlineImageDrawable()
+            if (loadUrl == null) {
+                d.setBounds(0, 0, 0, 0)
+                return d
+            }
+            d.setBounds(0, 0, maxW, placeholderH)
+            val apiKey = SearchPrefs(textView.context).redactedApiKey?.trim().orEmpty()
+            Thread {
+                val bmp = RedactedAvatarLoader.loadBitmapCached(
+                    context = textView.context,
+                    rawUrl = loadUrl,
+                    apiKey = apiKey,
+                    maxSidePx = 1440,
+                )
+                textView.post {
+                    if (bmp == null) {
+                        d.setBounds(0, 0, 0, 0)
+                    } else {
+                        val scale = min(1f, maxW.toFloat() / bmp.width.toFloat())
+                        val tw = max(1, (bmp.width * scale).toInt())
+                        val th = max(1, (bmp.height * scale).toInt())
+                        d.setBounds(0, 0, tw, th)
+                        d.setLoadedBitmap(bmp)
+                    }
+                    refreshTextViewForInlineDrawables(textView)
+                }
+            }.start()
+            return d
+        }
+    }
+
+    private fun refreshTextViewForInlineDrawables(tv: TextView) {
+        val t = tv.text
+        tv.text = null
+        tv.text = t
+    }
+
+    private class AsyncInlineImageDrawable : Drawable() {
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFE8E8E8.toInt() }
+        private var bitmap: Bitmap? = null
+
+        fun setLoadedBitmap(b: Bitmap) {
+            bitmap = b
+            invalidateSelf()
+        }
+
+        override fun draw(canvas: Canvas) {
+            val b = bitmap
+            if (b != null && !b.isRecycled) {
+                canvas.drawBitmap(b, null, bounds, paint)
+            } else {
+                canvas.drawRect(bounds, paint)
+            }
+        }
+
+        override fun setAlpha(alpha: Int) {
+            paint.alpha = alpha
+        }
+
+        override fun setColorFilter(colorFilter: ColorFilter?) {
+            paint.colorFilter = colorFilter
+        }
+
+        @Deprecated("Deprecated in Java")
+        override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
+    }
+
+    private fun toSpanned(textView: TextView, raw: String): CharSequence {
         val html = rawToSanitizedHtml(raw)
         if (html.isBlank()) return ""
-        return HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT)
+        return HtmlCompat.fromHtml(
+            html,
+            HtmlCompat.FROM_HTML_MODE_COMPACT,
+            RichTextImageGetter(textView),
+            null,
+        )
     }
 
     fun applyTo(textView: TextView, raw: String) {
-        textView.text = toSpanned(raw)
+        textView.text = withPreferredBrowserSpans(textView, toSpanned(textView, raw))
         textView.movementMethod = LinkMovementMethod.getInstance()
         textView.linksClickable = true
     }
