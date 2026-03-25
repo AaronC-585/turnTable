@@ -57,29 +57,26 @@ jobs:
       - name: Build release APK (${{ matrix.abi }})
         run: npx --yes npm run build:android -- -PABI_FILTERS=${{ matrix.abi }}
 
-      # Name pattern: turnTable.<abi>.release-<version>.apk so arch is obvious on disk and on GitHub Releases.
+      # turnTable.<abi>.release-<abi>.apk (e.g. turnTable.arm64-v8a.apk)
       - name: Rename APK with architecture label
         run: |
           set -euo pipefail
-          VER="$(cd android && ./gradlew :app:printAppVersion --console=plain --no-daemon 2>&1 | sed -n 's/^\([0-9][0-9.]*\) (.*/\1/p' | head -n1)"
-          if [ -z "$VER" ]; then
-            echo "Could not resolve versionName from Gradle"
-            exit 1
-          fi
-          APK="$(ls android/app/build/outputs/apk/release/turnTable.release-*.apk | head -n1)"
+          ABI="${{ matrix.abi }}"
+          APK="$(ls android/app/build/outputs/apk/release/turnTable.*.apk | head -n1)"
           if [ -z "$APK" ]; then
             echo "No APK produced"
             exit 1
           fi
-          DEST="android/app/build/outputs/apk/release/turnTable.${{ matrix.abi }}.release-${VER}.apk"
+          DEST="android/app/build/outputs/apk/release/turnTable.${ABI}.apk"
           mv "$APK" "$DEST"
           echo "Renamed to $DEST"
 
       - name: Stage manifest for artifact (manual-release / tooling)
         run: |
-          APK_PATH="$(ls android/app/build/outputs/apk/release/turnTable.${{ matrix.abi }}.release-*.apk | head -n1)"
-          if [ -z "$APK_PATH" ]; then
-            echo "No APK produced after rename"
+          ABI="${{ matrix.abi }}"
+          APK_PATH="android/app/build/outputs/apk/release/turnTable.${ABI}.apk"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "No APK produced after rename: $APK_PATH"
             exit 1
           fi
           cp CurrentVersion.json "android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json"
@@ -89,7 +86,7 @@ jobs:
         with:
           name: android-release-${{ matrix.abi }}
           path: |
-            android/app/build/outputs/apk/release/turnTable.${{ matrix.abi }}.release-*.apk
+            android/app/build/outputs/apk/release/turnTable.${{ matrix.abi }}.apk
             android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json
 
   build-ios:
