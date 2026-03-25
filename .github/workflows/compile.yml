@@ -47,8 +47,9 @@ jobs:
           yes | sdkmanager --licenses >/dev/null
           sdkmanager "ndk;28.0.12433566"
 
-      # One APK with all JNI ABIs (matches former matrix coverage).
-      - name: Build universal release APK
+      # Release APK: 64-bit ABIs only (Google Play native requirement — arm64 phones + x86_64 emulators/ChromeOS).
+      # See https://developer.android.com/google/play/requirements/64-bit
+      - name: Build release APK (arm64-v8a, x86_64)
         run: npx --yes npm run build:android
 
       - name: Stage manifest for artifact (manual-release / tooling)
@@ -60,7 +61,7 @@ jobs:
           fi
           cp CurrentVersion.json android/app/build/outputs/apk/release/CurrentVersion-universal.json
 
-      - name: Upload universal APK + CurrentVersion manifest
+      - name: Upload release APK + CurrentVersion manifest
         uses: actions/upload-artifact@v4
         with:
           name: android-universal
