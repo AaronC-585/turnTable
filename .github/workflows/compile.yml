@@ -57,7 +57,8 @@ jobs:
       - name: Build release APK (${{ matrix.abi }})
         run: npx --yes npm run build:android -- -PABI_FILTERS=${{ matrix.abi }}
 
-      - name: Rename APK for per-ABI release assets
+      # Name pattern: turnTable.<abi>.release-<version>.apk so arch is obvious on disk and on GitHub Releases.
+      - name: Rename APK with architecture label
         run: |
           set -euo pipefail
           VER="$(cd android && ./gradlew :app:printAppVersion --console=plain --no-daemon 2>&1 | sed -n 's/^\([0-9][0-9.]*\) (.*/\1/p' | head -n1)"
@@ -65,18 +66,18 @@ jobs:
             echo "Could not resolve versionName from Gradle"
             exit 1
           fi
-          APK="$(ls android/app/build/outputs/apk/release/turnTable.release.x86-*.apk | head -n1)"
+          APK="$(ls android/app/build/outputs/apk/release/turnTable.release-*.apk | head -n1)"
           if [ -z "$APK" ]; then
             echo "No APK produced"
             exit 1
           fi
-          DEST="android/app/build/outputs/apk/release/turnTable.release-${VER}-${{ matrix.abi }}.apk"
+          DEST="android/app/build/outputs/apk/release/turnTable.${{ matrix.abi }}.release-${VER}.apk"
           mv "$APK" "$DEST"
           echo "Renamed to $DEST"
 
       - name: Stage manifest for artifact (manual-release / tooling)
         run: |
-          APK_PATH="$(ls android/app/build/outputs/apk/release/turnTable.release.arm64-v8a-*-${{ matrix.abi }}.apk | head -n1)"
+          APK_PATH="$(ls android/app/build/outputs/apk/release/turnTable.${{ matrix.abi }}.release-*.apk | head -n1)"
           if [ -z "$APK_PATH" ]; then
             echo "No APK produced after rename"
             exit 1
@@ -88,7 +89,7 @@ jobs:
         with:
           name: android-release-${{ matrix.abi }}
           path: |
-            android/app/build/outputs/apk/release/turnTable.release-*-${{ matrix.abi }}.apk
+            android/app/build/outputs/apk/release/turnTable.${{ matrix.abi }}.release-*.apk
             android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json
 
   build-ios:
