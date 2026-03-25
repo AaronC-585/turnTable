@@ -78,11 +78,9 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
     /** Raw [wikiBody] from API for RTF clipboard (long-press compilation header). */
     private var currentWikiBody: String = ""
 
-    /** Collapsible sections (Redacted-style boxes). */
-    private var sectionAlbumExpanded = false
+    /** Collapsible sections (torrents + wiki only; album and actions are always visible). */
     private var sectionTorrentsExpanded = false
     private var sectionWikiExpanded = false
-    private var sectionActionsExpanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -155,11 +153,6 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
 
     private fun applyTorrentGroupSectionUi() {
         syncCollapsibleSection(
-            binding.contentSectionAlbum,
-            binding.chevronAlbum,
-            sectionAlbumExpanded,
-        )
-        syncCollapsibleSection(
             binding.contentSectionTorrents,
             binding.chevronTorrents,
             sectionTorrentsExpanded,
@@ -171,11 +164,6 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
                 sectionWikiExpanded,
             )
         }
-        syncCollapsibleSection(
-            binding.contentSectionActions,
-            binding.chevronActions,
-            sectionActionsExpanded,
-        )
     }
 
     /** Long-press the compilation header to copy RTF (hyperlinks preserved for Word/LibreOffice). */
@@ -194,38 +182,6 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
     }
 
     private fun wireTorrentGroupCollapsibleSections() {
-        binding.headerSectionAlbum.setOnClickListener {
-            sectionAlbumExpanded = !sectionAlbumExpanded
-            syncCollapsibleSection(
-                binding.contentSectionAlbum,
-                binding.chevronAlbum,
-                sectionAlbumExpanded,
-            )
-        }
-        binding.headerSectionTorrents.setOnClickListener {
-            sectionTorrentsExpanded = !sectionTorrentsExpanded
-            syncCollapsibleSection(
-                binding.contentSectionTorrents,
-                binding.chevronTorrents,
-                sectionTorrentsExpanded,
-            )
-        }
-        binding.headerSectionWiki.setOnClickListener {
-            sectionWikiExpanded = !sectionWikiExpanded
-            syncCollapsibleSection(
-                binding.contentSectionWiki,
-                binding.chevronWiki,
-                sectionWikiExpanded,
-            )
-        }
-        binding.headerSectionAlbum.setOnClickListener {
-            sectionAlbumExpanded = !sectionAlbumExpanded
-            syncCollapsibleSection(
-                binding.contentSectionAlbum,
-                binding.chevronAlbum,
-                sectionAlbumExpanded,
-            )
-        }
         binding.headerSectionTorrents.setOnClickListener {
             sectionTorrentsExpanded = !sectionTorrentsExpanded
             syncCollapsibleSection(
@@ -246,22 +202,6 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         binding.headerSectionWiki.setOnLongClickListener {
             copyWikiCompilationRtfToClipboard()
             true
-        }
-        binding.headerSectionActions.setOnClickListener {
-            sectionActionsExpanded = !sectionActionsExpanded
-            syncCollapsibleSection(
-                binding.contentSectionActions,
-                binding.chevronActions,
-                sectionActionsExpanded,
-            )
-        }
-        binding.headerSectionActions.setOnClickListener {
-            sectionActionsExpanded = !sectionActionsExpanded
-            syncCollapsibleSection(
-                binding.contentSectionActions,
-                binding.chevronActions,
-                sectionActionsExpanded,
-            )
         }
     }
 
@@ -314,14 +254,8 @@ class RedactedTorrentGroupActivity : AppCompatActivity() {
         binding.textMeta.text = ""
         binding.textWikiBody.text = ""
         binding.sectionWiki.visibility = View.GONE
-        sectionAlbumExpanded = false
         sectionTorrentsExpanded = false
         sectionWikiExpanded = false
-        sectionActionsExpanded = false
-        sectionAlbumExpanded = false
-        sectionTorrentsExpanded = false
-        sectionWikiExpanded = false
-        sectionActionsExpanded = false
         torrentIds.clear()
         torrentObjects.clear()
         adapter.rows = emptyList()

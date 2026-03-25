@@ -179,26 +179,56 @@ fun parseForumThreadRows(response: JSONObject?): Pair<String, List<ConversationM
 }
 
 private fun stripBbImgTags(text: String): String =
-    Regex("""\[img].*?\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-        .replace(text, "")
+    text
+        .replace(
+            Regex("""\[img=([^\]]+)]\s*(.+?)\s*\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)),
+            "",
+        )
+        .replace(Regex("""\[img=([^\]]+)]""", RegexOption.IGNORE_CASE), "")
+        .replace(Regex("""\[img].*?\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)), "")
         .trim()
 
-private fun extractBbImageUrls(text: String): List<String> =
+private fun absolutizeBbImgSrcForExtract(raw: String): String {
+    val t = raw.trim()
+    return when {
+        t.startsWith("http://", ignoreCase = true) || t.startsWith("https://", ignoreCase = true) -> t
+        t.startsWith("//") -> "https:$t"
+        else -> "https://redacted.sh/${t.trimStart('/')}"
+    }
+}
+
+private fun extractBbImageUrls(text: String): List<String> {
+    val out = LinkedHashSet<String>()
+    Regex("""\[img=([^\]]+)]\s*(.+?)\s*\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+        .findAll(text)
+        .forEach { m ->
+            val arg = m.groupValues[1].trim()
+            val body = m.groupValues[2].trim()
+            val isDim = Regex("""^\d+\s*x\s*\d+$""", RegexOption.IGNORE_CASE).matches(arg)
+            val argIsUrl = arg.startsWith("http://", ignoreCase = true) ||
+                arg.startsWith("https://", ignoreCase = true) ||
+                arg.startsWith("//", ignoreCase = true)
+            val srcRaw = when {
+                isDim -> body
+                argIsUrl -> arg
+                else -> body.ifBlank { arg }
+            }
+            if (srcRaw.isNotBlank()) out.add(absolutizeBbImgSrcForExtract(srcRaw))
+        }
     Regex("""\[img](.*?)\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
         .findAll(text)
-        .mapNotNull { it.groupValues.getOrNull(1)?.trim() }
-        .map { raw ->
-            if (raw.startsWith("http://", ignoreCase = true) ||
-                raw.startsWith("https://", ignoreCase = true)
-            ) {
-                raw
-            } else {
-                "https://redacted.sh/${raw.trimStart('/')}"
+        .mapNotNull { it.groupValues.getOrNull(1)?.trim()?.takeIf { s -> s.isNotBlank() } }
+        .forEach { out.add(absolutizeBbImgSrcForExtract(it)) }
+    Regex("""\[img=([^\]]+)]""", RegexOption.IGNORE_CASE)
+        .findAll(text)
+        .forEach { m ->
+            val raw = m.groupValues[1].trim()
+            if (!Regex("""^\d+\s*x\s*\d+$""", RegexOption.IGNORE_CASE).matches(raw)) {
+                out.add(absolutizeBbImgSrcForExtract(raw))
             }
         }
-        .filter { it.isNotBlank() }
-        .distinct()
-        .toList()
+    return out.toList()
+}
 
 /**
  * Resolves the other participant’s user id for [RedactedApiClient.sendPm] when replying in-thread (`convid`).

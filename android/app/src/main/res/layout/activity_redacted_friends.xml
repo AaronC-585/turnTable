@@ -14,6 +14,23 @@
         app:titleTextColor="@color/app_toolbar_title"
         app:navigationIconTint="@color/app_icon_emphasis" />
 
+    <LinearLayout
+        android:id="@+id/rowFriendsHomeAction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingTop="4dp"
+        android:background="@color/app_bg_main">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonFriendsNavigateHome"
+            style="@style/HomeIconActionButton"
+            android:contentDescription="@string/nav_home"
+            app:icon="@drawable/ic_home" />
+    </LinearLayout>
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshFriends"
         android:layout_width="match_parent"

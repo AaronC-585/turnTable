@@ -69,7 +69,35 @@
                 android:text="@string/about_body"
                 android:textColor="@color/app_text_secondary"
                 android:textSize="15sp"
-                android:lineSpacingMultiplier="1.15" />
+                android:lineSpacingMultiplier="1.15"
+                android:layout_marginBottom="20dp" />
+
+            <TextView
+                android:id="@+id/textDonationBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/donation_body"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="15sp"
+                android:lineSpacingMultiplier="1.15"
+                android:layout_marginBottom="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonOpenPayPal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="@string/donation_open_paypal"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_paypal" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonOpenCashApp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/donation_open_cash_app"
+                android:textColor="@color/app_text_on_button"
+                app:backgroundTint="@color/app_cash_green" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

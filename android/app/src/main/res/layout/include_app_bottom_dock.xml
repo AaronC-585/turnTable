@@ -169,6 +169,21 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/homeActionRedacted"
+            style="@style/HomeActionColumn"
+            android:contentDescription="@string/home_content_cd_redacted">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonHomeRedacted"
+                style="@style/HomeIconActionButton"
+                app:icon="@android:drawable/ic_menu_compass" />
+
+            <TextView
+                style="@style/HomeActionLabel"
+                android:text="@string/redacted_torrent_search" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/homeActionForums"
             style="@style/HomeActionColumn"
             android:contentDescription="@string/home_content_cd_forums">
@@ -313,21 +328,6 @@
             <TextView
                 style="@style/HomeActionLabel"
                 android:text="@string/settings" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/homeActionRedacted"
-            style="@style/HomeActionColumn"
-            android:contentDescription="@string/home_content_cd_redacted">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonHomeRedacted"
-                style="@style/HomeIconActionButton"
-                app:icon="@android:drawable/ic_menu_compass" />
-
-            <TextView
-                style="@style/HomeActionLabel"
-                android:text="@string/redacted_torrent_search" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

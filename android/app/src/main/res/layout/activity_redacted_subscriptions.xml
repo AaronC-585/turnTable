@@ -14,16 +14,23 @@
         app:navigationIconTint="@color/app_icon_emphasis"
         app:titleTextColor="@color/app_text_primary" />
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabSubscriptions"
+    <!-- Same pattern as profile: home lives on the page, not the toolbar. -->
+    <LinearLayout
+        android:id="@+id/rowSubscriptionsHomeAction"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/app_surface_input"
-        app:tabGravity="fill"
-        app:tabIndicatorColor="@color/app_accent"
-        app:tabMode="scrollable"
-        app:tabSelectedTextColor="@color/app_accent"
-        app:tabTextColor="@color/app_text_label" />
+        android:gravity="end"
+        android:orientation="horizontal"
+        android:paddingHorizontal="8dp"
+        android:paddingTop="4dp"
+        android:background="@color/app_bg_main">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonSubscriptionsNavigateHome"
+            style="@style/HomeIconActionButton"
+            android:contentDescription="@string/nav_home"
+            app:icon="@drawable/ic_home" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progress"
@@ -43,10 +50,21 @@
         android:textColor="@color/app_text_label"
         android:visibility="gone" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollSubscriptions"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:clipToPadding="false" />
+        android:fillViewport="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/containerSubscriptionSections"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="24dp" />
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>

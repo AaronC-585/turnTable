@@ -91,13 +91,10 @@ final class SettingsViewController: UIViewController, UIPickerViewDataSource, UI
         row.addArrangedSubview(beepSwitch)
         stack.addArrangedSubview(row)
 
-        addLabel("About & support")
+        addLabel("About")
         let aboutBtn = settingsActionButton(title: "About", background: UIColor(white: 0.28, alpha: 1))
         aboutBtn.addTarget(self, action: #selector(openAbout), for: .touchUpInside)
-        let donateBtn = settingsActionButton(title: "Donate", background: UIColor(red: 0, green: 0.44, blue: 0.73, alpha: 1))
-        donateBtn.addTarget(self, action: #selector(openDonate), for: .touchUpInside)
         stack.addArrangedSubview(aboutBtn)
-        stack.addArrangedSubview(donateBtn)
 
         scroll.addSubview(stack)
         view.addSubview(scroll)
@@ -129,10 +126,6 @@ final class SettingsViewController: UIViewController, UIPickerViewDataSource, UI
 
     @objc private func openAbout() {
         navigationController?.pushViewController(AboutViewController(), animated: true)
-    }
-
-    @objc private func openDonate() {
-        navigationController?.pushViewController(DonationViewController(), animated: true)
     }
 
     private func settingsActionButton(title: String, background: UIColor) -> UIButton {

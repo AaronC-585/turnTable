@@ -9,6 +9,8 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
@@ -1076,9 +1078,7 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
     )
 
     private lateinit var binding: ActivityRedactedSubscriptionsBinding
-    private lateinit var adapter: TwoLineRowsAdapter
     private var tabs: List<SubscriptionTab> = emptyList()
-    private var activeEntries: List<SubscriptionEntry> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -1088,25 +1088,9 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
-        setupToolbarHome(binding.toolbar)
         supportActionBar?.title = getString(R.string.redacted_subscriptions)
 
-        adapter = TwoLineRowsAdapter { pos ->
-            openSubscriptionEntry(activeEntries.getOrNull(pos))
-        }
-        binding.recycler.layoutManager = LinearLayoutManager(this)
-        binding.recycler.adapter = adapter
-        binding.tabSubscriptions.addOnTabSelectedListener(
-            object : TabLayout.OnTabSelectedListener {
-                override fun onTabSelected(tab: TabLayout.Tab?) {
-                    showTab(tab?.position ?: 0)
-                }
-
-                override fun onTabUnselected(tab: TabLayout.Tab?) {}
-
-                override fun onTabReselected(tab: TabLayout.Tab?) {}
-            },
-        )
+        binding.buttonSubscriptionsNavigateHome.setOnClickListener { navigateToHome() }
 
         binding.progress.visibility = View.VISIBLE
         Thread {
@@ -1115,15 +1099,17 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
                 binding.progress.visibility = View.GONE
                 when (r) {
                     is RedactedResult.Failure -> {
+                        binding.scrollSubscriptions.visibility = View.GONE
                         binding.textEmpty.visibility = View.VISIBLE
                         binding.textEmpty.text = RedactedHtmlSafe.safePlainTextForUi(r.message)
                     }
                     is RedactedResult.Success -> {
                         val response = r.response ?: r.root
                         tabs = buildSubscriptionTabs(response)
-                        bindTabs()
+                        bindCollapsibleSections()
                     }
                     else -> {
+                        binding.scrollSubscriptions.visibility = View.GONE
                         binding.textEmpty.visibility = View.VISIBLE
                         binding.textEmpty.text = getString(R.string.redacted_unexpected)
                     }
@@ -1132,33 +1118,65 @@ class RedactedSubscriptionsActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun bindTabs() {
-        binding.tabSubscriptions.removeAllTabs()
-        if (tabs.isEmpty()) {
-            adapter.rows = emptyList()
+    /** Same collapsible cards + chevrons as [HomeProfileLayoutController] profile sections. */
+    private fun bindCollapsibleSections() {
+        binding.containerSubscriptionSections.removeAllViews()
+        val groups = tabs.filter { it.entries.isNotEmpty() }
+        if (groups.isEmpty()) {
+            binding.scrollSubscriptions.visibility = View.GONE
             binding.textEmpty.visibility = View.VISIBLE
             binding.textEmpty.text = getString(R.string.redacted_no_results)
             return
         }
-        tabs.forEach { t ->
-            binding.tabSubscriptions.addTab(
-                binding.tabSubscriptions.newTab().setText(prettyKeyLabel(t.forumName)),
-            )
-        }
-        val initial = 0
-        binding.tabSubscriptions.getTabAt(initial)?.select()
-        showTab(initial)
-    }
+        binding.textEmpty.visibility = View.GONE
+        binding.scrollSubscriptions.visibility = View.VISIBLE
 
-    private fun showTab(index: Int) {
-        val tab = tabs.getOrNull(index) ?: return
-        activeEntries = tab.entries
-        adapter.rows = tab.entries.map { it.row }
-        if (tab.entries.isEmpty()) {
-            binding.textEmpty.visibility = View.VISIBLE
-            binding.textEmpty.text = getString(R.string.redacted_no_results)
-        } else {
-            binding.textEmpty.visibility = View.GONE
+        for (tab in groups) {
+            val secView = layoutInflater.inflate(
+                R.layout.home_profile_section_collapsible,
+                binding.containerSubscriptionSections,
+                false,
+            )
+            val title = secView.findViewById<TextView>(R.id.textSectionTitle)
+            title.text = getString(
+                R.string.redacted_subscriptions_forum_section_title,
+                prettyKeyLabel(tab.forumName),
+                tab.entries.size,
+            )
+            val headerRow = secView.findViewById<LinearLayout>(R.id.sectionHeaderRow)
+            val rowsLayout = secView.findViewById<LinearLayout>(R.id.layoutSectionRows)
+            val chevron = secView.findViewById<TextView>(R.id.textChevron)
+
+            rowsLayout.visibility = View.GONE
+            chevron.text = getString(R.string.home_section_collapsed_icon)
+
+            for (entry in tab.entries) {
+                val rowView = layoutInflater.inflate(R.layout.item_redacted_two_line, rowsLayout, false)
+                rowView.findViewById<TextView>(R.id.textTitle).text = entry.row.title
+                val sub = rowView.findViewById<TextView>(R.id.textSubtitle)
+                sub.text = entry.row.subtitle
+                sub.visibility = if (entry.row.subtitle.isBlank()) View.GONE else View.VISIBLE
+                rowView.setOnClickListener { openSubscriptionEntry(entry) }
+                rowsLayout.addView(rowView)
+            }
+
+            headerRow.setOnClickListener {
+                val open = rowsLayout.visibility != View.VISIBLE
+                rowsLayout.visibility = if (open) View.VISIBLE else View.GONE
+                chevron.text = getString(
+                    if (open) R.string.home_section_expanded_icon else R.string.home_section_collapsed_icon,
+                )
+            }
+            headerRow.setOnLongClickListener {
+                openForumForTab(tab)
+                true
+            }
+            headerRow.contentDescription = getString(
+                R.string.redacted_subscriptions_forum_section_a11y,
+                prettyKeyLabel(tab.forumName),
+            )
+
+            binding.containerSubscriptionSections.addView(secView)
         }
     }
 

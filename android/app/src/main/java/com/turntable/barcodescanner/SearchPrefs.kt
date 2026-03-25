@@ -70,6 +70,30 @@ class SearchPrefs(context: Context) {
         get() = prefs.getString(KEY_THEME_MODE, THEME_FOLLOW_SYSTEM) ?: THEME_FOLLOW_SYSTEM
         set(value) = prefs.edit { putString(KEY_THEME_MODE, value) }
 
+    /** Custom tracker status strip background; null = theme default (`app_bg_bottom_nav`). */
+    var trackerStatusBarBackgroundColor: Int?
+        get() = if (!prefs.contains(KEY_TRACKER_STATUS_BAR_BG)) null else prefs.getInt(KEY_TRACKER_STATUS_BAR_BG, 0)
+        set(value) = prefs.edit {
+            if (value == null) remove(KEY_TRACKER_STATUS_BAR_BG)
+            else putInt(KEY_TRACKER_STATUS_BAR_BG, value)
+        }
+
+    /** Custom “up” icon tint; null = `tracker_status_up`. */
+    var trackerStatusIconUpColor: Int?
+        get() = if (!prefs.contains(KEY_TRACKER_STATUS_ICON_UP)) null else prefs.getInt(KEY_TRACKER_STATUS_ICON_UP, 0)
+        set(value) = prefs.edit {
+            if (value == null) remove(KEY_TRACKER_STATUS_ICON_UP)
+            else putInt(KEY_TRACKER_STATUS_ICON_UP, value)
+        }
+
+    /** Custom “down” / error icon tint; null = `tracker_status_down`. */
+    var trackerStatusIconDownColor: Int?
+        get() = if (!prefs.contains(KEY_TRACKER_STATUS_ICON_DOWN)) null else prefs.getInt(KEY_TRACKER_STATUS_ICON_DOWN, 0)
+        set(value) = prefs.edit {
+            if (value == null) remove(KEY_TRACKER_STATUS_ICON_DOWN)
+            else putInt(KEY_TRACKER_STATUS_ICON_DOWN, value)
+        }
+
     /**
      * TheAudioDB API key: sent as **`X-API-KEY`** on every v2 request (barcode lookup + text search).
      * Default in code is `123` if empty; v2 often requires a premium key from theaudiodb.com.
@@ -254,6 +278,9 @@ class SearchPrefs(context: Context) {
         const val KEY_BEEP_ON_SCAN = "beep_on_scan"
         const val KEY_DOWNLOAD_OVER_WIFI_ONLY = "download_over_wifi_only"
         const val KEY_THEME_MODE = "theme_mode"
+        const val KEY_TRACKER_STATUS_BAR_BG = "tracker_status_bar_bg"
+        const val KEY_TRACKER_STATUS_ICON_UP = "tracker_status_icon_up"
+        const val KEY_TRACKER_STATUS_ICON_DOWN = "tracker_status_icon_down"
 
         const val THEME_LIGHT = "light"
         const val THEME_DARK = "dark"

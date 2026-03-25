@@ -29,5 +29,12 @@ class AboutActivity : AppCompatActivity() {
         }
 
         binding.textAboutBody.setRichHelp(R.string.about_body)
+        binding.textDonationBody.setRichHelp(R.string.donation_body)
+        binding.buttonOpenPayPal.setOnClickListener {
+            BrowserLaunch.openHttpUrl(this, getString(R.string.donate_paypal_url))
+        }
+        binding.buttonOpenCashApp.setOnClickListener {
+            BrowserLaunch.openHttpUrl(this, getString(R.string.donate_cash_app_url))
+        }
     }
 }

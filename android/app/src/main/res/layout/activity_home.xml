@@ -83,6 +83,24 @@
                     android:orientation="vertical"
                     android:paddingBottom="24dp">
 
+                    <!-- Shown on other users' profiles only: same home action as former toolbar item. -->
+                    <LinearLayout
+                        android:id="@+id/rowProfileHomeAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="8dp"
+                        android:paddingTop="4dp"
+                        android:visibility="gone">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/buttonProfileNavigateHome"
+                            style="@style/HomeIconActionButton"
+                            android:contentDescription="@string/nav_home"
+                            app:icon="@drawable/ic_home" />
+                    </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

@@ -103,6 +103,10 @@ object RedactedGazelleTorrentParse {
         t = Regex("""\[(/)?i]""", RegexOption.IGNORE_CASE).replace(t, "*")
         t = Regex("""\[(/)?u]""", RegexOption.IGNORE_CASE).replace(t) { "_" }
         t = Regex("""\[(/)?s]""", RegexOption.IGNORE_CASE).replace(t) { "~~" }
+        // [img=…]…[/img] and [img=url] (no close) — same placeholder as [img]…[/img].
+        t = Regex("""\[img=([^\]]+)]\s*(.+?)\s*\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            .replace(t, "\n[image]\n")
+        t = Regex("""\[img=([^\]]+)]""", RegexOption.IGNORE_CASE).replace(t, "\n[image]\n")
         // [img]…[/img] — DOT_MATCHES_ALL so newlines inside tags match.
         t = Regex("""\[img].*?\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)).replace(t, "\n[image]\n")
         // [url=http://x]label[/url] — label runs until [/url]; [^\]]+ is only for the = attribute (escape ] in class).
@@ -111,6 +115,9 @@ object RedactedGazelleTorrentParse {
             val label = m.groupValues[2].ifBlank { link }
             "$label ($link)"
         }
+        // [url]…[/url] — keep inner text as readable link hint (same order as HTML converter).
+        t = Regex("""\[url]\s*(.+?)\s*\[/url]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            .replace(t) { m -> m.groupValues[1].trim() }
         t = t.replace(Regex("""\[/?quote]""", RegexOption.IGNORE_CASE), "\n")
         t = t.replace(Regex("""\[/?code]""", RegexOption.IGNORE_CASE), "\n")
         // Literal [url] and [/url] — must end with \], not a character class ] (\\[/?url] was only one char after [).

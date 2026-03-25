@@ -37,6 +37,10 @@ object AppBottomBars {
     @Volatile
     private var lastMailBadgeFetchElapsed: Long = 0L
 
+    /** Last successful status fetch; used to re-tint after user changes colors in Settings. */
+    @Volatile
+    private var lastTrackerRows: List<TrackerStatusClient.Row>? = null
+
     private val excludedActivities: Set<Class<out Activity>> = setOf(
         SplashActivity::class.java,
         PermissionOnboardingActivity::class.java,
@@ -54,6 +58,7 @@ object AppBottomBars {
         override fun onActivityResumed(activity: Activity) {
             if (activity !is AppCompatActivity) return
             if (excludedActivities.contains(activity.javaClass)) return
+            refreshTrackerStatusChrome(activity)
             maybeRefreshTracker(activity, force = false)
             maybeRefreshMailUnreadBadge(activity)
         }
@@ -98,6 +103,7 @@ object AppBottomBars {
         content.addView(outer)
 
         wireDock(activity, dock)
+        refreshTrackerStatusChrome(activity)
         dock.findViewById<View>(R.id.trackerStatusBar).alpha = 0.45f
         maybeRefreshTracker(activity, force = true)
         maybeRefreshMailUnreadBadge(activity, force = true)
@@ -255,6 +261,94 @@ object AppBottomBars {
         )
     }
 
+    /** Apply strip background and icon tints from prefs (and last fetch if any). */
+    fun refreshTrackerStatusChrome(activity: AppCompatActivity) {
+        if (excludedActivities.contains(activity.javaClass)) return
+        val dock = activity.findViewById<View>(R.id.appBottomDock) ?: return
+        applyTrackerStatusBarBackground(activity, dock)
+        applyTrackerRowsToViews(activity, dock, lastTrackerRows)
+    }
+
+    private fun trackerStatusImageViews(dock: View): List<ImageView> = listOf(
+        dock.findViewById(R.id.imageTrackerWebsite),
+        dock.findViewById(R.id.imageTrackerHttp),
+        dock.findViewById(R.id.imageTrackerHttps),
+        dock.findViewById(R.id.imageTrackerIrc),
+        dock.findViewById(R.id.imageTrackerAnnouncer),
+        dock.findViewById(R.id.imageTrackerUserId),
+    )
+
+    private fun resolveTrackerBarBgColor(activity: AppCompatActivity): Int {
+        val p = SearchPrefs(activity)
+        return p.trackerStatusBarBackgroundColor
+            ?: ContextCompat.getColor(activity, R.color.app_bg_bottom_nav)
+    }
+
+    private fun resolveTrackerUpColor(activity: AppCompatActivity): Int {
+        val p = SearchPrefs(activity)
+        return p.trackerStatusIconUpColor
+            ?: ContextCompat.getColor(activity, R.color.tracker_status_up)
+    }
+
+    private fun resolveTrackerDownColor(activity: AppCompatActivity): Int {
+        val p = SearchPrefs(activity)
+        return p.trackerStatusIconDownColor
+            ?: ContextCompat.getColor(activity, R.color.tracker_status_down)
+    }
+
+    private fun applyTrackerStatusBarBackground(activity: AppCompatActivity, dock: View) {
+        dock.findViewById<View>(R.id.trackerStatusBar)
+            .setBackgroundColor(resolveTrackerBarBgColor(activity))
+    }
+
+    /**
+     * @param rows null = error / not loaded yet (all services shown as down).
+     */
+    private fun applyTrackerRowsToViews(
+        activity: AppCompatActivity,
+        dock: View,
+        rows: List<TrackerStatusClient.Row>?,
+    ) {
+        val views = trackerStatusImageViews(dock)
+        val up = resolveTrackerUpColor(activity)
+        val down = resolveTrackerDownColor(activity)
+        if (rows != null) {
+            rows.zip(views).forEach { (row, iv) ->
+                iv.setImageResource(row.service.icon)
+                ImageViewCompat.setImageTintList(
+                    iv,
+                    ColorStateList.valueOf(if (row.ok) up else down),
+                )
+                val state = activity.getString(
+                    if (row.ok) R.string.tracker_status_up else R.string.tracker_status_down,
+                )
+                val title = activity.getString(trackerTitleRes(row.service))
+                val lat = activity.getString(R.string.tracker_status_latency, row.latency)
+                iv.contentDescription = activity.getString(
+                    R.string.tracker_status_a11y,
+                    title,
+                    state,
+                    lat,
+                )
+            }
+        } else {
+            Service.entries.zip(views).forEach { (svc, iv) ->
+                iv.setImageResource(svc.icon)
+                ImageViewCompat.setImageTintList(
+                    iv,
+                    ColorStateList.valueOf(down),
+                )
+                val title = activity.getString(trackerTitleRes(svc))
+                iv.contentDescription = activity.getString(
+                    R.string.tracker_status_a11y,
+                    title,
+                    activity.getString(R.string.tracker_status_down),
+                    activity.getString(R.string.tracker_status_latency, "—"),
+                )
+            }
+        }
+    }
+
     private fun maybeRefreshTracker(activity: AppCompatActivity, force: Boolean) {
         if (excludedActivities.contains(activity.javaClass)) return
         val dock = activity.findViewById<View>(R.id.appBottomDock) ?: return
@@ -277,57 +371,15 @@ object AppBottomBars {
         result: Result<List<TrackerStatusClient.Row>>,
     ) {
         dock.findViewById<View>(R.id.trackerStatusBar).alpha = 1f
-        val views = listOf(
-            dock.findViewById<ImageView>(R.id.imageTrackerWebsite),
-            dock.findViewById<ImageView>(R.id.imageTrackerHttp),
-            dock.findViewById<ImageView>(R.id.imageTrackerHttps),
-            dock.findViewById<ImageView>(R.id.imageTrackerIrc),
-            dock.findViewById<ImageView>(R.id.imageTrackerAnnouncer),
-            dock.findViewById<ImageView>(R.id.imageTrackerUserId),
-        )
+        applyTrackerStatusBarBackground(activity, dock)
         result.fold(
             onSuccess = { rows ->
-                rows.zip(views).forEach { (row, iv) ->
-                    iv.setImageResource(row.service.icon)
-                    ImageViewCompat.setImageTintList(
-                        iv,
-                        ColorStateList.valueOf(
-                            ContextCompat.getColor(
-                                activity,
-                                if (row.ok) R.color.tracker_status_up else R.color.tracker_status_down,
-                            ),
-                        ),
-                    )
-                    val state = activity.getString(
-                        if (row.ok) R.string.tracker_status_up else R.string.tracker_status_down,
-                    )
-                    val title = activity.getString(trackerTitleRes(row.service))
-                    val lat = activity.getString(R.string.tracker_status_latency, row.latency)
-                    iv.contentDescription = activity.getString(
-                        R.string.tracker_status_a11y,
-                        title,
-                        state,
-                        lat,
-                    )
-                }
+                lastTrackerRows = rows
+                applyTrackerRowsToViews(activity, dock, rows)
             },
             onFailure = {
-                Service.entries.zip(views).forEach { (svc, iv) ->
-                    iv.setImageResource(svc.icon)
-                    ImageViewCompat.setImageTintList(
-                        iv,
-                        ColorStateList.valueOf(
-                            ContextCompat.getColor(activity, R.color.tracker_status_down),
-                        ),
-                    )
-                    val title = activity.getString(trackerTitleRes(svc))
-                    iv.contentDescription = activity.getString(
-                        R.string.tracker_status_a11y,
-                        title,
-                        activity.getString(R.string.tracker_status_down),
-                        activity.getString(R.string.tracker_status_latency, "—"),
-                    )
-                }
+                lastTrackerRows = null
+                applyTrackerRowsToViews(activity, dock, null)
             },
         )
     }

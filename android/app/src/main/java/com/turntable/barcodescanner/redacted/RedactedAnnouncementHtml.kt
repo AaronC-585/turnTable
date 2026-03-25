@@ -63,6 +63,16 @@ object RedactedAnnouncementHtml {
     private fun escapeXmlAttr(text: String): String =
         text.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;")
 
+    /** Absolute URL for BBCode `[img]`, `[img=]`, `[url]`, and `[url=]` (http(s), `//`, or Redacted-relative). */
+    private fun absolutizeBbImgSrc(raw: String): String {
+        val t = raw.trim()
+        return when {
+            t.startsWith("http://", ignoreCase = true) || t.startsWith("https://", ignoreCase = true) -> t
+            t.startsWith("//") -> "https:$t"
+            else -> "https://redacted.sh/${t.trimStart('/')}"
+        }
+    }
+
     private fun nl2br(s: String): String =
         s.replace("\n", "<br/>")
 
@@ -103,27 +113,67 @@ object RedactedAnnouncementHtml {
         t = Regex("""\[url=([^\]]+)]\s*(.*?)\s*\[/url]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
             .replace(t) { m ->
                 val rawHref = m.groupValues[1].trim()
-                val href = when {
-                    rawHref.startsWith("http://", true) || rawHref.startsWith("https://", true) -> rawHref
-                    rawHref.startsWith("//") -> "https:$rawHref"
-                    else -> "https://redacted.sh/${rawHref.trimStart('/')}"
-                }
+                val href = absolutizeBbImgSrc(rawHref)
                 val label = escapeXml(m.groupValues[2]).ifBlank { escapeXml(href) }
                 """<a href="${escapeXmlAttr(href)}">$label</a>"""
             }
 
-        t = Regex("""\[url]\s*(https?://[^\[]+?)\s*\[/url]""", RegexOption.IGNORE_CASE)
-            .replace(t) {
-                val u = it.groupValues[1].trim()
-                val esc = escapeXmlAttr(u)
-                """<a href="$esc">${escapeXml(u)}</a>"""
+        // [url]…[/url] — any href (relative, //, http), same resolution as [url=…]
+        t = Regex("""\[url]\s*(.+?)\s*\[/url]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            .replace(t) { m ->
+                val raw = m.groupValues[1].trim()
+                if (raw.isEmpty()) return@replace m.value
+                val href = absolutizeBbImgSrc(raw)
+                val esc = escapeXmlAttr(href)
+                val label = escapeXml(raw)
+                """<a href="$esc">$label</a>"""
+            }
+
+        // [img=WxH]url[/img], [img=url]body[/img], or [img=url] with URL in = (Gazelle) — before plain [img]…[/img].
+        t = Regex("""\[img=([^\]]+)]\s*(.+?)\s*\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            .replace(t) { m ->
+                val arg = m.groupValues[1].trim()
+                val body = m.groupValues[2].trim()
+                val isDim = Regex("""^\d+\s*x\s*\d+$""", RegexOption.IGNORE_CASE).matches(arg)
+                val argIsUrl = arg.startsWith("http://", ignoreCase = true) ||
+                    arg.startsWith("https://", ignoreCase = true) ||
+                    arg.startsWith("//", ignoreCase = true)
+                val srcRaw = when {
+                    isDim -> body
+                    argIsUrl -> arg
+                    else -> body.ifBlank { arg }
+                }
+                val esc = escapeXmlAttr(absolutizeBbImgSrc(srcRaw))
+                if (isDim) {
+                    val dims = arg.lowercase().split('x')
+                    val w = dims.getOrNull(0)?.trim()?.toIntOrNull()
+                    val h = dims.getOrNull(1)?.trim()?.toIntOrNull()
+                    val wh = buildString {
+                        if (w != null) append(" width=\"").append(w).append("\"")
+                        if (h != null) append(" height=\"").append(h).append("\"")
+                    }
+                    """<br/><img src="$esc"$wh/><br/>"""
+                } else {
+                    """<br/><img src="$esc"/><br/>"""
+                }
             }
 
         t = Regex("""\[img]\s*(.+?)\s*\[/img]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
             .replace(t) {
-                val u = escapeXmlAttr(it.groupValues[1].trim())
+                val u = escapeXmlAttr(absolutizeBbImgSrc(it.groupValues[1].trim()))
                 """<br/><img src="$u"/><br/>"""
             }
+
+        // [img=url] without [/img] — same as [img]url[/img]
+        t = Regex("""\[img=([^\]]+)]""", RegexOption.IGNORE_CASE).replace(t) { m ->
+            val raw = m.groupValues[1].trim()
+            if (Regex("""^\d+\s*x\s*\d+$""", RegexOption.IGNORE_CASE).matches(raw)) {
+                m.value
+            } else {
+                val u = escapeXmlAttr(absolutizeBbImgSrc(raw))
+                """<br/><img src="$u"/><br/>"""
+            }
+        }
 
         // Lists: [*]item -> bullets (very loose)
         t = Regex("""\[\*]""", RegexOption.IGNORE_CASE).replace(t, "• ")

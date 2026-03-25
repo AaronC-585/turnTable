@@ -41,6 +41,25 @@
         <item name="rippleColor">?attr/colorControlHighlight</item>
     </style>
 
+    <!-- Album (torrent group) actions grid: icon above short label, three columns -->
+    <style name="Widget.Redacted.Button.AlbumActionGrid" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/app_chip_stroke</item>
+        <item name="android:textColor">@color/app_text_primary</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:maxLines">3</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="iconGravity">top</item>
+        <item name="iconPadding">6dp</item>
+        <item name="iconSize">26dp</item>
+        <item name="iconTint">@color/app_accent</item>
+        <item name="android:minHeight">76dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:paddingEnd">4dp</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
+
     <!-- Add: large white + on accent (filled) -->
     <style name="Widget.Redacted.Button.Add" parent="Widget.Redacted.Button">
         <item name="icon">@drawable/ic_add_plus</item>

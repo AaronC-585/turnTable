@@ -13,7 +13,6 @@
     <string name="donate_cash_app_url">https://cash.app/$RCBaaron</string>
     <string name="settings_section_about">About &amp; support</string>
     <string name="settings_about">About</string>
-    <string name="settings_donate">Donate</string>
     <string name="nav_home">Home</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_news">News</string>
@@ -107,6 +106,12 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_follow_system">Use system setting</string>
+    <string name="settings_tracker_status_colors_title">Tracker status strip</string>
+    <string name="settings_tracker_status_colors_help">Optional. Leave blank for the theme default. Hex: #RRGGBB or #AARRGGBB (e.g. #2E7D32).</string>
+    <string name="settings_tracker_status_bar_bg">Strip background</string>
+    <string name="settings_tracker_status_icon_up">Icon color (up)</string>
+    <string name="settings_tracker_status_icon_down">Icon color (down)</string>
+    <string name="settings_color_invalid">Invalid color for “%1$s”. Use #RRGGBB or #AARRGGBB.</string>
     <string name="permission_onboarding_title">Permissions needed</string>
     <string name="permission_onboarding_intro">turnTable needs the following permissions. Each is used only for the reason listed.</string>
     <string name="permission_internet_title">Internet</string>
@@ -339,6 +344,7 @@
     <string name="redacted_torrent_open_album">View album in app</string>
     <string name="redacted_section_torrents">Torrents</string>
     <string name="redacted_section_site_tools">Site &amp; tools</string>
+    <string name="redacted_section_actions">Actions</string>
     <string name="redacted_section_freeleech_tokens">Freeleech tokens</string>
     <string name="redacted_fl_tokens_summary_none">You have no freeleech tokens.</string>
     <plurals name="redacted_fl_tokens_count">
@@ -468,6 +474,8 @@
     <string name="redacted_subscriptions">Subscriptions</string>
     <string name="redacted_subscriptions_forum_other">Other</string>
     <string name="redacted_subscriptions_forum_nav_unavailable">No forum ID for this tab</string>
+    <string name="redacted_subscriptions_forum_section_title">%1$s (%2$d)</string>
+    <string name="redacted_subscriptions_forum_section_a11y">%1$s. Tap to expand or collapse. Long press to open forum.</string>
     <string name="redacted_wiki">Wiki</string>
     <string name="redacted_logchecker">Logchecker</string>
     <string name="redacted_rip_log">Rip log</string>
@@ -546,7 +554,7 @@
     <string name="tracker_status_down">Down</string>
     <string name="tracker_status_latency">Latency %1$s</string>
     <string name="tracker_status_legend_title">Tracker status</string>
-    <string name="tracker_status_legend_body">Icons show live checks for Redacted’s site, trackers, and IRC (data from red.trackerstatus.info).\n\n• Green — that check reported up\n• Red — reported down, or status couldn’t be loaded\n\nLeft to right: Website, Tracker HTTP, Tracker HTTPS, IRC server, IRC torrent announcer, IRC user identifiers.</string>
+    <string name="tracker_status_legend_body">Icons show live checks for Redacted’s site, trackers, and IRC (data from red.trackerstatus.info).\n\n• Green — that check reported up\n• Red — reported down, or status couldn’t be loaded\n\nYou can change the strip background and icon colors in Settings.\n\nLeft to right: Website, Tracker HTTP, Tracker HTTPS, IRC server, IRC torrent announcer, IRC user identifiers.</string>
 
     <!-- GitHub release update check (see values/github_update.xml for owner/repo) -->
     <string name="github_update_not_configured">GitHub update check isn’t configured. Add your GitHub user or org in github_update.xml (github_update_owner), then rebuild.</string>

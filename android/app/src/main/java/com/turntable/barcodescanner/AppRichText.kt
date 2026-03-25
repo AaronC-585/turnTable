@@ -101,6 +101,7 @@ object AppRichText {
 
     private fun looksLikeBbCode(raw: String): Boolean {
         if (!raw.contains('[')) return false
+        if (raw.contains("[img=", ignoreCase = true)) return true
         return bbCodeTagRegex.containsMatchIn(raw)
     }
 

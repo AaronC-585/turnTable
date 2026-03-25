@@ -73,6 +73,8 @@ class SettingsActivity : AppCompatActivity() {
             themeIndex.coerceIn(0, themeChoices.size - 1),
         )
 
+        bindTrackerStatusColorFields(prefs)
+
         loadListsAndBind()
 
         binding.editRedactedApiKey.setText(prefs.redactedApiKey ?: "")
@@ -105,9 +107,6 @@ class SettingsActivity : AppCompatActivity() {
         binding.buttonCheckUpdates.setOnClickListener {
             UpdateCheckCoordinator.checkManually(this)
         }
-        binding.buttonDonate.setOnClickListener {
-            startActivity(Intent(this, DonationActivity::class.java))
-        }
 
         binding.buttonPickTorrentDir.setOnClickListener {
             pickTorrentDirLauncher.launch(null)
@@ -126,6 +125,22 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.buttonSave.setOnClickListener {
+            val (barOk, barParsed) = parseOptionalColorForSave(
+                binding.editTrackerStatusBarBg.text?.toString(),
+                R.string.settings_tracker_status_bar_bg,
+            )
+            if (!barOk) return@setOnClickListener
+            val (upOk, upParsed) = parseOptionalColorForSave(
+                binding.editTrackerStatusIconUp.text?.toString(),
+                R.string.settings_tracker_status_icon_up,
+            )
+            if (!upOk) return@setOnClickListener
+            val (downOk, downParsed) = parseOptionalColorForSave(
+                binding.editTrackerStatusIconDown.text?.toString(),
+                R.string.settings_tracker_status_icon_down,
+            )
+            if (!downOk) return@setOnClickListener
+
             val themePos = ListViewSingleChoice.selectedIndex(binding.expandTheme.listExpandChoices).coerceIn(0, themeChoices.size - 1)
             val newTheme = themeChoices[themePos].first
             if (newTheme != prefs.themeMode) {
@@ -134,6 +149,11 @@ class SettingsActivity : AppCompatActivity() {
                 (application as TurnTableApp).bumpThemeEpoch()
                 delegate.applyDayNight()
             }
+
+            prefs.trackerStatusBarBackgroundColor = barParsed
+            prefs.trackerStatusIconUpColor = upParsed
+            prefs.trackerStatusIconDownColor = downParsed
+            AppBottomBars.refreshTrackerStatusChrome(this)
 
             prefs.beepOnScan = binding.checkBeepOnScan.isChecked
             prefs.downloadOverWifiOnly = binding.checkDownloadWifiOnly.isChecked
@@ -151,6 +171,33 @@ class SettingsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateTorrentClientsSummary()
+    }
+
+    private fun bindTrackerStatusColorFields(prefs: SearchPrefs) {
+        binding.editTrackerStatusBarBg.setText(
+            prefs.trackerStatusBarBackgroundColor?.let { ColorHexInput.formatForDisplay(it) } ?: "",
+        )
+        binding.editTrackerStatusIconUp.setText(
+            prefs.trackerStatusIconUpColor?.let { ColorHexInput.formatForDisplay(it) } ?: "",
+        )
+        binding.editTrackerStatusIconDown.setText(
+            prefs.trackerStatusIconDownColor?.let { ColorHexInput.formatForDisplay(it) } ?: "",
+        )
+    }
+
+    /** First = success; second = parsed ARGB or `null` to clear override (blank field). */
+    private fun parseOptionalColorForSave(raw: String?, labelRes: Int): Pair<Boolean, Int?> {
+        val t = raw?.trim().orEmpty()
+        if (t.isEmpty()) return true to null
+        val c = ColorHexInput.parseOrNull(t) ?: run {
+            Toast.makeText(
+                this,
+                getString(R.string.settings_color_invalid, getString(labelRes)),
+                Toast.LENGTH_LONG,
+            ).show()
+            return false to null
+        }
+        return true to c
     }
 
     private fun loadListsAndBind() {

@@ -38,7 +38,7 @@ object RedactedBbCodeToRtf {
     private val texTag = Regex("""\[tex]\s*(.*?)\s*\[/tex]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
     private val wikiTag = Regex("""\[\[([^\]]+)]]""")
     private val urlNamed = Regex("""\[url=([^\]]+)]\s*(.*?)\s*\[/url]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-    private val urlBare = Regex("""\[url]\s*(https?://[^\[]+?)\s*\[/url]""", RegexOption.IGNORE_CASE)
+    private val urlBare = Regex("""\[url]\s*(.+?)\s*\[/url]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
 
     private fun normalizeGazelleUrl(rawHref: String): String {
         val t = rawHref.trim()
@@ -231,8 +231,10 @@ object RedactedBbCodeToRtf {
         }
 
         t = urlBare.replace(t) { m ->
-            val u = m.groupValues[1].trim()
-            rtfHyperlinkField(u, escapeRtfPlain(u))
+            val raw = m.groupValues[1].trim()
+            if (raw.isEmpty()) return@replace m.value
+            val href = normalizeGazelleUrl(raw)
+            rtfHyperlinkField(href, escapeRtfPlain(raw))
         }
 
         t = artistTag.replace(t) { m ->
@@ -287,12 +289,17 @@ object RedactedBbCodeToRtf {
             imageMarker(u)
         }
         t = imgLegacyUrlTag.replace(t) { m ->
-            val u = m.groupValues[1].trim()
-            if (u.startsWith("http://", true) || u.startsWith("https://", true)) {
-                imageMarker(u)
-            } else {
-                m.value
+            val raw = m.groupValues[1].trim()
+            // Leave bare `[img=WxH]` (needs `…[/img]` body) untouched; final pass strips unknown tags.
+            if (Regex("""^\d+\s*x\s*\d+$""", RegexOption.IGNORE_CASE).matches(raw)) {
+                return@replace m.value
             }
+            val u = when {
+                raw.startsWith("http://", true) || raw.startsWith("https://", true) -> raw
+                raw.startsWith("//") -> "https:$raw"
+                else -> normalizeGazelleUrl(raw)
+            }
+            imageMarker(u)
         }
 
         t = Regex("""\[hr]""", RegexOption.IGNORE_CASE).replace(t, "\\line ________________________________\\line ")
