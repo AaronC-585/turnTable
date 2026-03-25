@@ -13,10 +13,13 @@
     <string name="donate_cash_app_url">https://cash.app/$RCBaaron</string>
     <string name="settings_section_about">About &amp; support</string>
     <string name="settings_about">About</string>
-    <string name="settings_backup_json">Backup settings to JSON…</string>
-    <string name="settings_backup_json_help">Saves search prefs, API keys, torrent clients, and update-check state to a file you choose (Downloads, Drive, etc.). Treat the file as sensitive.</string>
+    <string name="settings_backup">Backup settings…</string>
+    <string name="settings_load">Load config…</string>
+    <string name="settings_backup_help">Saves search prefs, API keys, torrent clients, and update-check state to a file you choose (Downloads, Drive, etc.). Treat the file as sensitive.</string>
     <string name="settings_backup_saved_toast">Settings backup saved</string>
     <string name="settings_backup_failed">Could not save backup: %1$s</string>
+    <string name="settings_load_success">Settings loaded</string>
+    <string name="settings_load_failed">Could not load config: %1$s</string>
     <string name="nav_home">Home</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_news">News</string>

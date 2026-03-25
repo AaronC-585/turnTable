@@ -47,10 +47,9 @@ jobs:
           yes | sdkmanager --licenses >/dev/null
           sdkmanager "ndk;28.0.12433566"
 
-      # Release APK: 64-bit ABIs only (Google Play native requirement — arm64 phones + x86_64 emulators/ChromeOS).
-      # See https://developer.android.com/google/play/requirements/64-bit
-      - name: Build release APK (arm64-v8a, x86_64)
-        run: npx --yes npm run build:android
+      # Release APK: x64-only ABI for emulator/desktop-style targets.
+      - name: Build release APK (x86_64 only)
+        run: npx --yes npm run build:android -- -PABI_FILTERS=x86_64
 
       - name: Stage manifest for artifact (manual-release / tooling)
         run: |

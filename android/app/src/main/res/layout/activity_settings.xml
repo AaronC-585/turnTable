@@ -356,10 +356,19 @@
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonBackupSettingsJson"
+            android:id="@+id/buttonBackupSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/settings_backup_json"
+            android:text="@string/settings_backup"
+            android:textColor="@color/app_text_on_button"
+            app:backgroundTint="@color/app_accent_teal"
+            android:layout_marginBottom="4dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonLoadSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_load"
             android:textColor="@color/app_text_on_button"
             app:backgroundTint="@color/app_accent_teal"
             android:layout_marginBottom="4dp" />
@@ -367,7 +376,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/settings_backup_json_help"
+            android:text="@string/settings_backup_help"
             android:textColor="@color/app_text_help_small"
             android:textSize="12sp"
             android:layout_marginBottom="12dp" />

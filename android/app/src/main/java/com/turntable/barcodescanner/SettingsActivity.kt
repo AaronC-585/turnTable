@@ -66,6 +66,29 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private val loadSettingsLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        try {
+            val raw = contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
+                ?: error("Could not read file")
+            val json = org.json.JSONObject(raw)
+            SettingsBackup.restoreFromJson(this, json)
+            AppTheme.applyPersistentNightMode(this)
+            (application as TurnTableApp).bumpThemeEpoch()
+            AppBottomBars.refreshTrackerStatusChrome(this)
+            Toast.makeText(this, R.string.settings_load_success, Toast.LENGTH_LONG).show()
+            recreate()
+        } catch (e: Exception) {
+            Toast.makeText(
+                this,
+                getString(R.string.settings_load_failed, e.message ?: e.javaClass.simpleName),
+                Toast.LENGTH_LONG,
+            ).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
@@ -123,9 +146,12 @@ class SettingsActivity : AppCompatActivity() {
             editListLauncher.launch(Intent(this, EditSecondaryListActivity::class.java))
         }
 
-        binding.buttonBackupSettingsJson.setOnClickListener {
+        binding.buttonBackupSettings.setOnClickListener {
             val stamp = SimpleDateFormat("yyyy-MM-dd-HHmm", Locale.US).format(Date())
             backupSettingsJsonLauncher.launch("turntable-settings-$stamp.json")
+        }
+        binding.buttonLoadSettings.setOnClickListener {
+            loadSettingsLauncher.launch(arrayOf("application/json", "text/*"))
         }
 
         binding.buttonAbout.setOnClickListener {
