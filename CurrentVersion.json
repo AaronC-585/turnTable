@@ -1,7 +1,10 @@
 {
-    "version": "2026.3.25.1",
+    "version": "2026.3.25.242",
+    "currentTag": "v2026.3.25.242",
     "releasePageUrl": "https://github.com/AaronC-585/turnTable/releases/latest",
     "assets": {
-        "apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.25.1/turnTable.release-2026.3.25.1.apk"
+        "turnTable-ios-2026.3.25.1.zip": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.25.242/turnTable-ios-2026.3.25.1.zip",
+        "turnTable.release-2026.3.25.242.apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.25.242/turnTable.release-2026.3.25.242.apk",
+        "apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.25.242/turnTable.release-2026.3.25.242.apk"
     }
 }
