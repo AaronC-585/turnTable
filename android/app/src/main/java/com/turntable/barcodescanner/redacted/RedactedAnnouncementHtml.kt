@@ -1,6 +1,7 @@
 package com.turntable.barcodescanner.redacted
 
 import org.json.JSONObject
+import java.net.URLEncoder
 
 /**
  * Builds HTML for [HtmlCompat.fromHtml] from API `body` (server-rendered) or `bbBody` (BBCode).
@@ -62,6 +63,9 @@ object RedactedAnnouncementHtml {
 
     private fun escapeXmlAttr(text: String): String =
         text.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;")
+
+    private fun urlEncodeQueryComponent(text: String): String =
+        URLEncoder.encode(text, Charsets.UTF_8.name()).replace("+", "%20")
 
     /** Absolute URL for BBCode `[img]`, `[img=]`, `[url]`, and `[url=]` (http(s), `//`, or Redacted-relative). */
     private fun absolutizeBbImgSrc(raw: String): String {
@@ -127,6 +131,15 @@ object RedactedAnnouncementHtml {
                 val esc = escapeXmlAttr(href)
                 val label = escapeXml(raw)
                 """<a href="$esc">$label</a>"""
+            }
+
+        // [user]name[/user] → site user search by username (same as web).
+        t = Regex("""\[user]\s*(.*?)\s*\[/user]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            .replace(t) { m ->
+                val name = m.groupValues[1].trim()
+                if (name.isEmpty()) return@replace m.value
+                val href = "https://redacted.sh/user.php?action=search&username=${urlEncodeQueryComponent(name)}"
+                """<a href="${escapeXmlAttr(href)}">${escapeXml(name)}</a>"""
             }
 
         // [img=WxH]url[/img], [img=url]body[/img], or [img=url] with URL in = (Gazelle) — before plain [img]…[/img].

@@ -27,6 +27,8 @@ object RedactedProfileUiBuilder {
         val torrentId: Int,
         val title: String,
         val subtitle: String,
+        /** Album / group cover from `user_torrents` row (same keys as browse / torrentgroup). */
+        val coverUrl: String? = null,
     )
 
     data class ProfileSection(
@@ -34,19 +36,63 @@ object RedactedProfileUiBuilder {
         val rows: List<ProfileRow>,
         /** Optional format arg for [R.string.home_section_dynamic_title]. */
         val titleArg: String? = null,
-        /** Collapsible list: double-tap opens [com.turntable.barcodescanner.RedactedTorrentDetailActivity]. */
+        /**
+         * Collapsible list: double-tap opens [com.turntable.barcodescanner.RedactedTorrentDetailActivity].
+         * Used for Uploads, Seeding, etc.
+         */
         val uploadRows: List<ProfileUploadRow>? = null,
     )
 
     /**
-     * Parses `user_torrents` JSON ([RedactedApiClient.userTorrents]) for `type=uploaded` — array key `uploaded`.
+     * Cover URL from a `user_torrents` or group-style JSON object (aligned with browse / artist torrentgroup).
      */
-    fun parseUploadedTorrents(response: JSONObject?): List<ProfileUploadRow> {
+    fun groupCoverUrlFromJson(g: JSONObject): String? {
+        fun firstString(vararg keys: String): String? {
+            for (k in keys) {
+                val s = g.optString(k).trim()
+                if (s.isNotEmpty()) return s
+            }
+            return null
+        }
+        firstString("cover", "wikiImage", "image", "coverUrl", "artworkUrl")?.let { return it }
+
+        val cov = g.optJSONArray("covers")
+        if (cov != null && cov.length() > 0) {
+            when (val el = cov.opt(0)) {
+                is String -> el.trim().takeIf { it.isNotEmpty() }?.let { return it }
+                is JSONObject -> {
+                    val u = el.optString("image").ifBlank {
+                        el.optString("url").ifBlank { el.optString("thumb") }
+                    }.trim()
+                    if (u.isNotEmpty()) return u
+                }
+            }
+        }
+        g.optJSONArray("coverArt")?.optJSONObject(0)?.let { o ->
+            val u = o.optString("image").ifBlank { o.optString("url") }.trim()
+            if (u.isNotEmpty()) return u
+        }
+        g.optJSONArray("alternateCovers")?.optJSONObject(0)?.let { o ->
+            val u = o.optString("image").ifBlank { o.optString("url") }.trim()
+            if (u.isNotEmpty()) return u
+        }
+        return null
+    }
+
+    private fun parseUserTorrentArrayRows(
+        response: JSONObject?,
+        arrayKey: String,
+        uploaderMustMatchUserId: Int?,
+    ): List<ProfileUploadRow> {
         if (response == null) return emptyList()
-        val arr = response.optJSONArray("uploaded") ?: JSONArray()
+        val arr = response.optJSONArray(arrayKey) ?: JSONArray()
         val out = mutableListOf<ProfileUploadRow>()
         for (i in 0 until arr.length()) {
             val o = arr.optJSONObject(i) ?: continue
+            if (uploaderMustMatchUserId != null) {
+                val uploaderId = RedactedGazelleTorrentUser.uploaderUserIdFromJson(o)
+                if (uploaderId > 0 && uploaderId != uploaderMustMatchUserId) continue
+            }
             val tid = o.optInt("id", o.optInt("torrentId", 0))
             if (tid <= 0) continue
             val name = o.optString("name").ifBlank { o.optString("groupName") }
@@ -64,11 +110,26 @@ object RedactedProfileUiBuilder {
                     torrentId = tid,
                     title = name.ifBlank { "Torrent $tid" },
                     subtitle = subtitle,
+                    coverUrl = groupCoverUrlFromJson(o),
                 ),
             )
         }
         return out
     }
+
+    /**
+     * Parses `user_torrents` JSON ([RedactedApiClient.userTorrents]) for `type=uploaded` — array key `uploaded`.
+     * Only includes rows whose uploader id matches [forUserId] when the API provides an uploader id;
+     * rows without uploader metadata are kept for backward compatibility.
+     */
+    fun parseUploadedTorrents(response: JSONObject?, forUserId: Int): List<ProfileUploadRow> {
+        if (forUserId <= 0) return emptyList()
+        return parseUserTorrentArrayRows(response, "uploaded", uploaderMustMatchUserId = forUserId)
+    }
+
+    /** Parses `user_torrents` for `type=seeding` — array key `seeding`. */
+    fun parseSeedingTorrents(response: JSONObject?): List<ProfileUploadRow> =
+        parseUserTorrentArrayRows(response, "seeding", uploaderMustMatchUserId = null)
 
     fun build(
         index: JSONObject?,

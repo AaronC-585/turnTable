@@ -6,24 +6,42 @@
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
-    android:orientation="vertical"
-    android:paddingVertical="8dp"
-    android:paddingHorizontal="4dp">
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="4dp"
+    android:paddingVertical="8dp">
 
-    <TextView
-        android:id="@+id/textUploadTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/home_text_primary"
-        android:textSize="14sp"
-        tools:text="Album name" />
+    <!-- Size set in code to 1in × 1in; 160dp fallback for preview -->
+    <ImageView
+        android:id="@+id/imageAlbumCover"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_marginEnd="10dp"
+        android:background="@color/home_section_header_bg"
+        android:contentDescription="@string/redacted_cover"
+        android:scaleType="centerCrop" />
 
-    <TextView
-        android:id="@+id/textUploadSubtitle"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:textColor="@color/home_text_muted"
-        android:textSize="12sp"
-        tools:text="Artist · FLAC" />
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textUploadTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/home_text_primary"
+            android:textSize="14sp"
+            tools:text="Album name" />
+
+        <TextView
+            android:id="@+id/textUploadSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/home_text_muted"
+            android:textSize="12sp"
+            tools:text="Artist · FLAC" />
+    </LinearLayout>
 </LinearLayout>

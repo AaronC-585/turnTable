@@ -118,6 +118,8 @@ object RedactedGazelleTorrentParse {
         // [url]…[/url] — keep inner text as readable link hint (same order as HTML converter).
         t = Regex("""\[url]\s*(.+?)\s*\[/url]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
             .replace(t) { m -> m.groupValues[1].trim() }
+        t = Regex("""\[user]\s*(.*?)\s*\[/user]""", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            .replace(t) { m -> m.groupValues[1].trim() }
         t = t.replace(Regex("""\[/?quote]""", RegexOption.IGNORE_CASE), "\n")
         t = t.replace(Regex("""\[/?code]""", RegexOption.IGNORE_CASE), "\n")
         // Literal [url] and [/url] — must end with \], not a character class ] (\\[/?url] was only one char after [).

@@ -301,6 +301,7 @@ class HomeActivity : AppCompatActivity() {
                     val userRes = if (userId > 0) api.user(userId) else null
                     val commRes = if (userId > 0) api.communityStats(userId) else null
                     val uploadsRes = if (userId > 0) api.userTorrents(userId, "uploaded", limit = 100) else null
+                    val seedingRes = if (userId > 0) api.userTorrents(userId, "seeding", limit = 100) else null
 
                     val userObj = when (userRes) {
                         is RedactedResult.Success -> userRes.responseOrNull()
@@ -312,7 +313,12 @@ class HomeActivity : AppCompatActivity() {
                     }
                     val uploadRows = when (uploadsRes) {
                         is RedactedResult.Success ->
-                            RedactedProfileUiBuilder.parseUploadedTorrents(uploadsRes.response)
+                            RedactedProfileUiBuilder.parseUploadedTorrents(uploadsRes.response, userId)
+                        else -> emptyList()
+                    }
+                    val seedingRows = when (seedingRes) {
+                        is RedactedResult.Success ->
+                            RedactedProfileUiBuilder.parseSeedingTorrents(seedingRes.response)
                         else -> emptyList()
                     }
 
@@ -325,6 +331,15 @@ class HomeActivity : AppCompatActivity() {
                                 titleRes = R.string.home_section_uploads,
                                 rows = emptyList(),
                                 uploadRows = uploadRows,
+                            ),
+                        )
+                    }
+                    if (seedingRows.isNotEmpty()) {
+                        sections.add(
+                            RedactedProfileUiBuilder.ProfileSection(
+                                titleRes = R.string.home_section_seeding,
+                                rows = emptyList(),
+                                uploadRows = seedingRows,
                             ),
                         )
                     }

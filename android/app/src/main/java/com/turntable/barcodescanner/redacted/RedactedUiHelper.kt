@@ -104,4 +104,5 @@ object RedactedUiHelper {
         val url = if (path.startsWith("http")) path else "https://redacted.sh/$path"
         BrowserLaunch.openHttpUrl(context, url)
     }
+
 }

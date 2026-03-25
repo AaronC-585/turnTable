@@ -52,6 +52,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Deep links + share-to-app for redacted.sh -->
+        <activity
+            android:name=".RedactedLinkDispatchActivity"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" android:host="redacted.sh" />
+                <data android:scheme="http" android:host="redacted.sh" />
+                <data android:scheme="https" android:host="www.redacted.sh" />
+                <data android:scheme="http" android:host="www.redacted.sh" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".HomeActivity"
             android:exported="false"

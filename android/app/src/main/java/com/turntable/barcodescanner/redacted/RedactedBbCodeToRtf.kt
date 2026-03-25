@@ -244,7 +244,7 @@ object RedactedBbCodeToRtf {
         }
         t = userTag.replace(t) { m ->
             val name = m.groupValues[1].trim()
-            val href = "https://redacted.sh/user.php?action=search&search=${urlEncodeComponent(name)}"
+            val href = "https://redacted.sh/user.php?action=search&username=${urlEncodeComponent(name)}"
             rtfHyperlinkField(href, escapeRtfPlain(name))
         }
         t = torrentTag.replace(t) { m ->

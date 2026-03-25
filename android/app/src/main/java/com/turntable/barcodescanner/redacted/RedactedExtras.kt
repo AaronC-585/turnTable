@@ -7,6 +7,8 @@ object RedactedExtras {
     const val ARTIST_ID = "artist_id"
     const val TORRENT_ID = "torrent_id"
     const val USER_ID = "user_id"
+    /** Resolve via [RedactedApiClient.userSearch] then load profile (used by `[user]` links). */
+    const val USERNAME = "profile_username"
     const val INITIAL_QUERY = "initial_query"
     /** Prefill [RedactedBrowseActivity] advanced fields (e.g. artist page file-list search). */
     const val BROWSE_ADVANCED_ARTIST_NAME = "browse_advanced_artist_name"

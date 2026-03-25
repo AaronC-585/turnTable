@@ -382,6 +382,10 @@ class RedactedUserTorrentsActivity : AppCompatActivity() {
                         groupIds.clear()
                         for (i in 0 until arr.length()) {
                             val o = arr.optJSONObject(i) ?: continue
+                            if (type == "uploaded") {
+                                val upId = RedactedGazelleTorrentUser.uploaderUserIdFromJson(o)
+                                if (upId > 0 && upId != uid) continue
+                            }
                             val gid = o.optString("groupId").toIntOrNull() ?: o.optInt("groupId")
                             val name = o.optString("name").ifBlank { o.optString("groupName") }
                             val artist = o.optString("artistName").ifBlank { o.optString("artist") }

@@ -535,6 +535,7 @@
     <string name="home_section_percentile_rankings">Percentile rankings</string>
     <string name="home_section_donor">Donor statistics</string>
     <string name="home_section_uploads">Uploads</string>
+    <string name="home_section_seeding">Seeding</string>
     <string name="home_profile_uploads_double_tap_hint">Double-tap a row for torrent details</string>
     <string name="home_section_dynamic_title">%1$s</string>
     <string name="home_content_cd_profile">Profile</string>

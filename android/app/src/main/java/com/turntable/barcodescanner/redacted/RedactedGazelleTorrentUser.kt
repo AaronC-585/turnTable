@@ -39,4 +39,17 @@ object RedactedGazelleTorrentUser {
         }
         return false
     }
+
+    /**
+     * Uploader account id from a torrent or `user_torrents` row — same fields as
+     * [com.turntable.barcodescanner.RedactedTorrentDetailActivity] uses for `torrent`.
+     */
+    fun uploaderUserIdFromJson(o: JSONObject): Int {
+        val uploader = o.optJSONObject("user")
+        if (uploader != null) {
+            val id = uploader.optInt("id", 0)
+            if (id > 0) return id
+        }
+        return o.optInt("userId", 0)
+    }
 }

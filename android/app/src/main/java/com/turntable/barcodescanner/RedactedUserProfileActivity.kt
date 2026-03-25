@@ -16,6 +16,9 @@ import com.turntable.barcodescanner.redacted.RedactedProfileUiBuilder
 import com.turntable.barcodescanner.redacted.RedactedResult
 import com.turntable.barcodescanner.redacted.RedactedUiHelper
 import com.turntable.barcodescanner.redacted.responseOrNull
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.Locale
 
 /**
  * Other users' profiles use the same layout and section styling as [HomeActivity], built from
@@ -28,13 +31,17 @@ class RedactedUserProfileActivity : AppCompatActivity() {
     private lateinit var profileUi: HomeProfileLayoutController
     private lateinit var api: RedactedApiClient
 
+    /** Set after intent or username resolution; used by [loadUser]. */
+    private var activeUserId: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val c = RedactedUiHelper.requireApi(this) ?: return
         api = c
 
         val userId = intent.getIntExtra(RedactedExtras.USER_ID, 0)
-        if (userId <= 0) {
+        val username = intent.getStringExtra(RedactedExtras.USERNAME)?.trim().orEmpty()
+        if (userId <= 0 && username.isEmpty()) {
             Toast.makeText(this, R.string.redacted_invalid_id, Toast.LENGTH_SHORT).show()
             finish()
             return
@@ -61,13 +68,70 @@ class RedactedUserProfileActivity : AppCompatActivity() {
         )
         binding.swipeRefresh.setOnRefreshListener {
             AppBottomBars.refreshTrackerNow(this)
-            loadUser(userId, isPullRefresh = true)
+            loadUser(isPullRefresh = true)
         }
 
         binding.textError.visibility = View.GONE
         binding.swipeRefresh.visibility = View.GONE
 
-        loadUser(userId, isPullRefresh = false)
+        when {
+            userId > 0 -> {
+                activeUserId = userId
+                loadUser(isPullRefresh = false)
+            }
+            else -> resolveUsernameThenLoad(username)
+        }
+    }
+
+    private fun resolveUserIdFromSearchResponse(resp: JSONObject, queryUsername: String): Int {
+        val arr: JSONArray = resp.optJSONArray("results")
+            ?: resp.optJSONArray("users")
+            ?: JSONArray()
+        val q = queryUsername.trim().lowercase(Locale.ROOT)
+        var fallback = 0
+        for (i in 0 until arr.length()) {
+            val o = arr.optJSONObject(i) ?: continue
+            val uid = o.optInt("userId", o.optInt("id", 0))
+            if (uid <= 0) continue
+            val un = o.optString("username").trim().lowercase(Locale.ROOT)
+            if (un == q) return uid
+            if (fallback == 0) fallback = uid
+        }
+        return fallback
+    }
+
+    private fun resolveUsernameThenLoad(username: String) {
+        binding.loadingTopBar.visibility = View.VISIBLE
+        binding.swipeRefresh.visibility = View.GONE
+        Thread {
+            val r = api.userSearch(username)
+            when (r) {
+                is RedactedResult.Failure -> runOnUiThread {
+                    binding.loadingTopBar.visibility = View.GONE
+                    Toast.makeText(this, r.message, Toast.LENGTH_LONG).show()
+                    finish()
+                }
+                is RedactedResult.Success -> {
+                    val resp = r.response ?: JSONObject()
+                    val uid = resolveUserIdFromSearchResponse(resp, username)
+                    runOnUiThread {
+                        if (uid <= 0) {
+                            binding.loadingTopBar.visibility = View.GONE
+                            Toast.makeText(this, R.string.redacted_no_results, Toast.LENGTH_SHORT).show()
+                            finish()
+                        } else {
+                            activeUserId = uid
+                            loadUser(isPullRefresh = false)
+                        }
+                    }
+                }
+                else -> runOnUiThread {
+                    binding.loadingTopBar.visibility = View.GONE
+                    Toast.makeText(this, R.string.redacted_unexpected, Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+        }.start()
     }
 
     private fun applyProfilePlaceholderIconTint() {
@@ -83,7 +147,12 @@ class RedactedUserProfileActivity : AppCompatActivity() {
         ImageViewCompat.setImageTintList(binding.imageProfile, null)
     }
 
-    private fun loadUser(userId: Int, isPullRefresh: Boolean) {
+    private fun loadUser(isPullRefresh: Boolean) {
+        val userId = activeUserId
+        if (userId <= 0) {
+            finish()
+            return
+        }
         val key = SearchPrefs(this).redactedApiKey?.trim().orEmpty()
         if (key.isEmpty()) {
             finish()
@@ -104,6 +173,7 @@ class RedactedUserProfileActivity : AppCompatActivity() {
             val userRes = api.user(userId)
             val commRes = api.communityStats(userId)
             val uploadsRes = api.userTorrents(userId, "uploaded", limit = 100)
+            val seedingRes = api.userTorrents(userId, "seeding", limit = 100)
 
             val userObj = when (userRes) {
                 is RedactedResult.Success -> userRes.responseOrNull()
@@ -115,7 +185,12 @@ class RedactedUserProfileActivity : AppCompatActivity() {
             }
             val uploadRows = when (uploadsRes) {
                 is RedactedResult.Success ->
-                    RedactedProfileUiBuilder.parseUploadedTorrents(uploadsRes.response)
+                    RedactedProfileUiBuilder.parseUploadedTorrents(uploadsRes.response, userId)
+                else -> emptyList()
+            }
+            val seedingRows = when (seedingRes) {
+                is RedactedResult.Success ->
+                    RedactedProfileUiBuilder.parseSeedingTorrents(seedingRes.response)
                 else -> emptyList()
             }
 
@@ -143,6 +218,15 @@ class RedactedUserProfileActivity : AppCompatActivity() {
                                 titleRes = R.string.home_section_uploads,
                                 rows = emptyList(),
                                 uploadRows = uploadRows,
+                            ),
+                        )
+                    }
+                    if (seedingRows.isNotEmpty()) {
+                        sections.add(
+                            RedactedProfileUiBuilder.ProfileSection(
+                                titleRes = R.string.home_section_seeding,
+                                rows = emptyList(),
+                                uploadRows = seedingRows,
                             ),
                         )
                     }

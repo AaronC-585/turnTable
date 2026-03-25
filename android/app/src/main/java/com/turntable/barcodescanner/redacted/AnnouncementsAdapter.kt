@@ -1,6 +1,5 @@
 package com.turntable.barcodescanner.redacted
 
-import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,8 +7,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.text.HtmlCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.turntable.barcodescanner.AppRichText
 import com.turntable.barcodescanner.DownloadNetworkPolicy
 import com.turntable.barcodescanner.R
 import com.turntable.barcodescanner.SearchPrefs
@@ -59,16 +58,14 @@ class AnnouncementsAdapter(
             itemView.tag = row
             title.text = row.title
             time.text = row.time
-            body.text =
-                if (row.htmlContent.isBlank()) {
-                    ""
-                } else {
-                    HtmlCompat.fromHtml(
-                        RedactedHtmlSafe.sanitizeHtmlForTextView(row.htmlContent),
-                        HtmlCompat.FROM_HTML_MODE_LEGACY,
-                    )
-                }
-            body.movementMethod = LinkMovementMethod.getInstance()
+            if (row.htmlContent.isBlank()) {
+                body.text = ""
+            } else {
+                AppRichText.applySanitizedHtml(
+                    body,
+                    RedactedHtmlSafe.sanitizeHtmlForTextView(row.htmlContent),
+                )
+            }
             val bg = if (row.useAltStripe) R.color.conv_message_stripe_b else R.color.conv_message_stripe_a
             itemView.setBackgroundColor(ContextCompat.getColor(itemView.context, bg))
 

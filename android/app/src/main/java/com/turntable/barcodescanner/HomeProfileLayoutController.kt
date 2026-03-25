@@ -2,15 +2,19 @@ package com.turntable.barcodescanner
 
 import android.content.Intent
 import android.graphics.Typeface
+import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 import com.turntable.barcodescanner.databinding.ActivityHomeBinding
+import com.turntable.barcodescanner.SearchPrefs
+import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedProfileUiBuilder
 
@@ -181,9 +185,44 @@ class HomeProfileLayoutController(
         }
         rowsLayout.addView(hint)
 
+        val albumSidePx = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_IN,
+            1f,
+            activity.resources.displayMetrics,
+        ).toInt().coerceAtLeast(1)
+        val albumDecodeMax = (albumSidePx * 2).coerceIn(albumSidePx, 720)
+        val auth = SearchPrefs(activity).redactedApiKey?.trim().orEmpty()
+        val placeholderColor = ContextCompat.getColor(activity, R.color.home_section_header_bg)
+
         for (upload in uploads) {
             val rv = activity.layoutInflater.inflate(R.layout.home_profile_upload_row, rowsLayout, false)
+            val cover = rv.findViewById<ImageView>(R.id.imageAlbumCover)
+            val lp = LinearLayout.LayoutParams(albumSidePx, albumSidePx)
+            cover.layoutParams = lp
+            cover.setImageDrawable(null)
+            val raw = upload.coverUrl?.trim().orEmpty()
+            cover.tag = raw
+            if (raw.isEmpty()) {
+                cover.setBackgroundColor(placeholderColor)
+            } else {
+                cover.setBackgroundResource(0)
+                Thread {
+                    val bmp = RedactedAvatarLoader.loadBitmap(raw, auth, maxSidePx = albumDecodeMax)
+                    activity.runOnUiThread {
+                        if (cover.tag != raw) return@runOnUiThread
+                        if (bmp != null) {
+                            cover.setImageBitmap(bmp)
+                            cover.setBackgroundResource(0)
+                        } else {
+                            cover.setImageDrawable(null)
+                            cover.setBackgroundColor(placeholderColor)
+                        }
+                    }
+                }.start()
+            }
             rv.findViewById<TextView>(R.id.textUploadTitle).text = upload.title
+            cover.contentDescription =
+                activity.getString(R.string.redacted_cover) + ": " + upload.title
             val sub = rv.findViewById<TextView>(R.id.textUploadSubtitle)
             if (upload.subtitle.isNotBlank()) {
                 sub.visibility = View.VISIBLE

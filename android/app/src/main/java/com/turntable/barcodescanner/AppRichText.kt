@@ -22,6 +22,7 @@ import com.turntable.barcodescanner.redacted.RedactedAnnouncementHtml
 import com.turntable.barcodescanner.redacted.RedactedAvatarLoader
 import com.turntable.barcodescanner.redacted.RedactedHtmlEntities
 import com.turntable.barcodescanner.redacted.RedactedHtmlSafe
+import com.turntable.barcodescanner.redacted.RedactedIncomingUrlRouter
 import kotlin.math.max
 import kotlin.math.min
 
@@ -49,7 +50,9 @@ object AppRichText {
             out.setSpan(
                 object : ClickableSpan() {
                     override fun onClick(widget: View) {
-                        BrowserLaunch.openHttpUrl(textView.context, url)
+                        val ctx = textView.context
+                        if (RedactedIncomingUrlRouter.startFromUrlString(ctx, url)) return
+                        BrowserLaunch.openHttpUrl(ctx, url)
                     }
 
                     override fun updateDrawState(ds: TextPaint) {
@@ -97,7 +100,7 @@ object AppRichText {
 
     /** True when [raw] looks like Gazelle-style BBCode (not only `[url]`). */
     private val bbCodeTagRegex =
-        Regex("""\[(/?)(url|b|i|u|s|quote|code|img|list|size|color|\*)""", RegexOption.IGNORE_CASE)
+        Regex("""\[(/?)(url|b|i|u|s|quote|code|img|list|size|color|user|\*)""", RegexOption.IGNORE_CASE)
 
     private fun looksLikeBbCode(raw: String): Boolean {
         if (!raw.contains('[')) return false
@@ -244,6 +247,26 @@ object AppRichText {
 
     fun applyTo(textView: TextView, raw: String) {
         textView.text = withPreferredBrowserSpans(textView, toSpanned(textView, raw))
+        textView.movementMethod = LinkMovementMethod.getInstance()
+        textView.linksClickable = true
+    }
+
+    /**
+     * HTML already passed through [RedactedHtmlSafe.sanitizeHtmlForTextView] (e.g. announcements).
+     * Applies the same in-app link behavior as [applyTo] for `user.php` profile URLs.
+     */
+    fun applySanitizedHtml(textView: TextView, sanitizedHtml: String) {
+        if (sanitizedHtml.isBlank()) {
+            textView.text = ""
+            return
+        }
+        val spanned = HtmlCompat.fromHtml(
+            sanitizedHtml,
+            HtmlCompat.FROM_HTML_MODE_LEGACY,
+            RichTextImageGetter(textView),
+            null,
+        )
+        textView.text = withPreferredBrowserSpans(textView, spanned)
         textView.movementMethod = LinkMovementMethod.getInstance()
         textView.linksClickable = true
     }
