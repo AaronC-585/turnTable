@@ -248,7 +248,7 @@ jobs:
 
           assets = {}
           android_by_abi = {}
-          abi_pattern = re.compile(r"(arm64-v8a|armeabi-v7a|x86_64|x86)", re.IGNORECASE)
+          abi_pattern = re.compile(r"(arm64-v8a|x86_64)", re.IGNORECASE)
           for a in sorted(release.get("assets", []), key=lambda x: x.get("name", "")):
               name = (a.get("name") or "").strip()
               url = (a.get("browser_download_url") or "").strip()
@@ -260,9 +260,7 @@ jobs:
 
           fallback_apk = (
               android_by_abi.get("arm64-v8a")
-              or android_by_abi.get("armeabi-v7a")
               or android_by_abi.get("x86_64")
-              or android_by_abi.get("x86")
               or next((u for n, u in assets.items() if n.lower().endswith(".apk")), "")
           )
           if fallback_apk:
