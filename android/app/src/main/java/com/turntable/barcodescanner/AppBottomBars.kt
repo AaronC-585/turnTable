@@ -142,27 +142,6 @@ object AppBottomBars {
                 activity.startActivity(Intent(activity, RedactedForumMainActivity::class.java))
             }
         }
-        dock.findViewById<View>(R.id.buttonHomeSubscriptions).setOnClickListener {
-            if (SearchPrefs(activity).redactedApiKey.isNullOrBlank()) {
-                Toast.makeText(activity, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
-            } else {
-                activity.startActivity(Intent(activity, RedactedSubscriptionsActivity::class.java))
-            }
-        }
-        dock.findViewById<View>(R.id.buttonHomeMail).setOnClickListener {
-            if (SearchPrefs(activity).redactedApiKey.isNullOrBlank()) {
-                Toast.makeText(activity, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
-            } else {
-                activity.startActivity(Intent(activity, RedactedInboxActivity::class.java))
-            }
-        }
-        dock.findViewById<View>(R.id.buttonHomeFriends).setOnClickListener {
-            if (SearchPrefs(activity).redactedApiKey.isNullOrBlank()) {
-                Toast.makeText(activity, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
-            } else {
-                activity.startActivity(Intent(activity, RedactedFriendsActivity::class.java))
-            }
-        }
         dock.findViewById<View>(R.id.buttonHomeHome).setOnClickListener {
             activity.navigateToHome()
         }
@@ -244,10 +223,32 @@ object AppBottomBars {
         }.start()
     }
 
+    @Volatile
+    private var cachedMailUnreadCount: Int = 0
+
     private fun setMailBadgeCount(activity: AppCompatActivity, count: Int) {
-        val dock = activity.findViewById<View>(R.id.appBottomDock) ?: return
-        val badge = dock.findViewById<TextView>(R.id.badgeMailUnread) ?: return
-        val mailColumn = dock.findViewById<LinearLayout>(R.id.homeActionMail) ?: return
+        cachedMailUnreadCount = count
+        applyMailUnreadBadgeUi(activity)
+    }
+
+    /**
+     * Re-apply [cachedMailUnreadCount] to [R.id.badgeMailUnreadHome] when [HomeActivity] resumes
+     * (badge was updated while another screen was foreground).
+     */
+    fun applyCachedMailUnreadBadgeToHome(activity: AppCompatActivity) {
+        applyMailUnreadBadgeUi(activity)
+    }
+
+    /** Clear unread count and hide the home mail badge (e.g. API key removed or index failed). */
+    fun clearMailUnreadBadgeState(activity: AppCompatActivity) {
+        cachedMailUnreadCount = 0
+        applyMailUnreadBadgeUi(activity)
+    }
+
+    private fun applyMailUnreadBadgeUi(activity: AppCompatActivity) {
+        val badge = activity.findViewById<TextView>(R.id.badgeMailUnreadHome) ?: return
+        val mailColumn = activity.findViewById<LinearLayout>(R.id.homeProfileActionMail) ?: return
+        val count = cachedMailUnreadCount
         if (count <= 0) {
             badge.visibility = View.GONE
             mailColumn.contentDescription = activity.getString(R.string.home_content_cd_mail)

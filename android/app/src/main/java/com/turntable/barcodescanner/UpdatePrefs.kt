@@ -22,7 +22,7 @@ class UpdatePrefs(context: Context) {
         }
 
     companion object {
-        private const val PREFS_NAME = "app_update_prefs"
+        const val PREFS_NAME = "app_update_prefs"
         private const val KEY_LAST_BG_CHECK_MS = "last_bg_check_wall_ms"
         private const val KEY_SKIPPED_TAG = "skipped_release_tag"
     }

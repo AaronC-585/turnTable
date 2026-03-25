@@ -2,7 +2,6 @@
 <!-- Docked at bottom of most screens: tracker status + shortcut row. Inflated by [AppBottomBars]. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/appBottomDock"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -199,63 +198,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/homeActionSubscriptions"
-            style="@style/HomeActionColumn"
-            android:contentDescription="@string/home_content_cd_subscriptions">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonHomeSubscriptions"
-                style="@style/HomeIconActionButton"
-                app:icon="@android:drawable/ic_menu_agenda" />
-
-            <TextView
-                style="@style/HomeActionLabel"
-                android:text="@string/nav_subscriptions" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/homeActionMail"
-            style="@style/HomeActionColumn"
-            android:contentDescription="@string/home_content_cd_mail">
-
-            <FrameLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonHomeMail"
-                    style="@style/HomeIconActionButton"
-                    app:icon="@drawable/ic_mail" />
-
-                <TextView
-                    android:id="@+id/badgeMailUnread"
-                    android:layout_width="wrap_content"
-                    android:layout_height="18dp"
-                    android:minWidth="18dp"
-                    android:layout_gravity="top|end"
-                    android:layout_marginTop="0dp"
-                    android:layout_marginEnd="0dp"
-                    android:background="@drawable/bg_mail_unread_badge"
-                    android:clickable="false"
-                    android:focusable="false"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:paddingHorizontal="5dp"
-                    android:textColor="@color/app_text_on_button"
-                    android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:visibility="gone"
-                    tools:text="3"
-                    tools:visibility="visible" />
-            </FrameLayout>
-
-            <TextView
-                style="@style/HomeActionLabel"
-                android:text="@string/nav_mail" />
-        </LinearLayout>
-
-        <LinearLayout
             android:id="@+id/homeActionHome"
             style="@style/HomeActionColumn"
             android:contentDescription="@string/home_content_cd_profile">
@@ -268,21 +210,6 @@
             <TextView
                 style="@style/HomeActionLabel"
                 android:text="@string/nav_profile" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/homeActionFriends"
-            style="@style/HomeActionColumn"
-            android:contentDescription="@string/home_content_cd_friends">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonHomeFriends"
-                style="@style/HomeIconActionButton"
-                app:icon="@drawable/ic_people_friends" />
-
-            <TextView
-                style="@style/HomeActionLabel"
-                android:text="@string/nav_friends" />
         </LinearLayout>
 
         <LinearLayout

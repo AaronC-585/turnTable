@@ -146,6 +146,90 @@
                         </LinearLayout>
                     </LinearLayout>
 
+                    <!-- Subscriptions, mail, friends: on profile tab only (not in bottom dock). -->
+                    <LinearLayout
+                        android:id="@+id/rowHomeProfileSocialActions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="8dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="8dp">
+
+                        <LinearLayout
+                            android:id="@+id/homeProfileActionSubscriptions"
+                            style="@style/HomeActionColumn"
+                            android:contentDescription="@string/home_content_cd_subscriptions">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/buttonHomeProfileSubscriptions"
+                                style="@style/HomeIconActionButton"
+                                app:icon="@android:drawable/ic_menu_agenda" />
+
+                            <TextView
+                                style="@style/HomeActionLabel"
+                                android:text="@string/nav_subscriptions" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/homeProfileActionMail"
+                            style="@style/HomeActionColumn"
+                            android:contentDescription="@string/home_content_cd_mail">
+
+                            <FrameLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_horizontal">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/buttonHomeProfileMail"
+                                    style="@style/HomeIconActionButton"
+                                    app:icon="@drawable/ic_mail" />
+
+                                <TextView
+                                    android:id="@+id/badgeMailUnreadHome"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="18dp"
+                                    android:minWidth="18dp"
+                                    android:layout_gravity="top|end"
+                                    android:layout_marginTop="0dp"
+                                    android:layout_marginEnd="0dp"
+                                    android:background="@drawable/bg_mail_unread_badge"
+                                    android:clickable="false"
+                                    android:focusable="false"
+                                    android:gravity="center"
+                                    android:includeFontPadding="false"
+                                    android:paddingHorizontal="5dp"
+                                    android:textColor="@color/app_text_on_button"
+                                    android:textSize="10sp"
+                                    android:textStyle="bold"
+                                    android:visibility="gone"
+                                    tools:text="3"
+                                    tools:visibility="visible" />
+                            </FrameLayout>
+
+                            <TextView
+                                style="@style/HomeActionLabel"
+                                android:text="@string/nav_mail" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/homeProfileActionFriends"
+                            style="@style/HomeActionColumn"
+                            android:contentDescription="@string/home_content_cd_friends">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/buttonHomeProfileFriends"
+                                style="@style/HomeIconActionButton"
+                                app:icon="@drawable/ic_people_friends" />
+
+                            <TextView
+                                style="@style/HomeActionLabel"
+                                android:text="@string/nav_friends" />
+                        </LinearLayout>
+                    </LinearLayout>
+
                     <LinearLayout
                         android:id="@+id/containerProfileSections"
                         android:layout_width="match_parent"

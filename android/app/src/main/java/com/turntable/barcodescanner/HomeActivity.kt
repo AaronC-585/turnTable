@@ -82,6 +82,16 @@ class HomeActivity : AppCompatActivity() {
 
         binding.buttonAddApiKey.setOnClickListener { showApiKeyDialog(allowDismissToNoKey = true) }
 
+        binding.buttonHomeProfileSubscriptions.setOnClickListener {
+            openRedactedIfKey { startActivity(Intent(this, RedactedSubscriptionsActivity::class.java)) }
+        }
+        binding.buttonHomeProfileMail.setOnClickListener {
+            openRedactedIfKey { startActivity(Intent(this, RedactedInboxActivity::class.java)) }
+        }
+        binding.buttonHomeProfileFriends.setOnClickListener {
+            openRedactedIfKey { startActivity(Intent(this, RedactedFriendsActivity::class.java)) }
+        }
+
         binding.textNoApiKeyHint.setRichHelp(R.string.home_no_api_key_hint)
 
         if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
@@ -113,6 +123,7 @@ class HomeActivity : AppCompatActivity() {
         maybeRequestNotificationPermissionOnce()
         UpdateCheckCoordinator.consumePendingSplashUpdateIfAny(this)
         UpdateCheckCoordinator.requestBackgroundCheckIfDue(this)
+        AppBottomBars.applyCachedMailUnreadBadgeToHome(this)
         if (!SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
             scheduleAutoRefresh()
         }
@@ -172,12 +183,21 @@ class HomeActivity : AppCompatActivity() {
         prefs.lastRedactedNotificationsSnapshot = eval.snapshot
     }
 
+    private fun openRedactedIfKey(block: () -> Unit) {
+        if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
+            Toast.makeText(this, R.string.redacted_need_api_key, Toast.LENGTH_LONG).show()
+        } else {
+            block()
+        }
+    }
+
     private fun showNoKeyState() {
         binding.loadingTopBar.visibility = View.GONE
         binding.swipeRefresh.isRefreshing = false
         binding.swipeRefresh.visibility = View.GONE
         binding.textError.visibility = View.GONE
         binding.layoutNoKey.visibility = View.VISIBLE
+        AppBottomBars.clearMailUnreadBadgeState(this)
         profileUi.clearProfileContainers()
         binding.imageProfile.setImageResource(android.R.drawable.ic_menu_myplaces)
         applyProfilePlaceholderIconTint()
@@ -271,6 +291,7 @@ class HomeActivity : AppCompatActivity() {
                     binding.textError.visibility = View.VISIBLE
                     binding.textError.text = idx.message
                     binding.layoutNoKey.visibility = View.VISIBLE
+                    AppBottomBars.clearMailUnreadBadgeState(this@HomeActivity)
                     supportActionBar?.title = getString(R.string.home_title)
                 }
                 is RedactedResult.Success -> {
@@ -334,6 +355,7 @@ class HomeActivity : AppCompatActivity() {
                     binding.textError.visibility = View.VISIBLE
                     binding.textError.text = getString(R.string.redacted_unexpected)
                     binding.layoutNoKey.visibility = View.VISIBLE
+                    AppBottomBars.clearMailUnreadBadgeState(this@HomeActivity)
                     supportActionBar?.title = getString(R.string.home_title)
                 }
             }

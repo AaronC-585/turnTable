@@ -5,6 +5,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.documentfile.provider.DocumentFile
@@ -42,6 +45,25 @@ class SettingsActivity : AppCompatActivity() {
         releasePersistableTree(prefs.redactedTorrentDownloadTreeUri)
         prefs.redactedTorrentDownloadTreeUri = uri.toString()
         updateTorrentDirSummary()
+    }
+
+    private val backupSettingsJsonLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        if (uri == null) return@registerForActivityResult
+        try {
+            val payload = SettingsBackup.buildJson(this).toString(2).toByteArray(Charsets.UTF_8)
+            contentResolver.openOutputStream(uri)?.use { out ->
+                out.write(payload)
+            } ?: error("openOutputStream returned null")
+            Toast.makeText(this, R.string.settings_backup_saved_toast, Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(
+                this,
+                getString(R.string.settings_backup_failed, e.message ?: e.javaClass.simpleName),
+                Toast.LENGTH_LONG,
+            ).show()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,6 +121,11 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.buttonEditSecondaryList.setOnClickListener {
             editListLauncher.launch(Intent(this, EditSecondaryListActivity::class.java))
+        }
+
+        binding.buttonBackupSettingsJson.setOnClickListener {
+            val stamp = SimpleDateFormat("yyyy-MM-dd-HHmm", Locale.US).format(Date())
+            backupSettingsJsonLauncher.launch("turntable-settings-$stamp.json")
         }
 
         binding.buttonAbout.setOnClickListener {
