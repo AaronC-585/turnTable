@@ -1,8 +1,7 @@
 name: Update CurrentVersion
 
 on:
-  release:
-    types: [published]
+  # Release assets + CurrentVersion.json are driven from `.github/workflows/compile.yml` (main).
   workflow_dispatch:
     inputs:
       tag:
@@ -26,6 +25,7 @@ jobs:
       - name: Resolve release metadata
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           INPUT_TAG: ${{ github.event.inputs.tag }}
           EVENT_TAG: ${{ github.event.release.tag_name }}
         run: |
@@ -38,6 +38,7 @@ jobs:
           fi
           python3 - <<'PY'
           import json
+          import os
           from pathlib import Path
           import re
 
@@ -72,10 +73,13 @@ jobs:
           if android_by_abi:
               assets["androidByAbi"] = android_by_abi
 
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          release_page = f"https://github.com/{repo}/releases/latest" if repo else ""
+
           payload = {
               "version": version,
               "currentTag": tag_name,
-              "releasePageUrl": "https://github.com/AaronC-585/turnTable/releases/latest",
+              "releasePageUrl": release_page,
               "assets": assets,
           }
           Path("CurrentVersion.json").write_text(

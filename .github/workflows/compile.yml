@@ -13,6 +13,7 @@ on:
       - "cpp/**"
       - "Makefile"
       - "package.json"
+      - ".github/workflows/compile.yml"
   pull_request:
     paths:
       - "ios/**"
@@ -20,6 +21,7 @@ on:
       - "cpp/**"
       - "Makefile"
       - "package.json"
+      - ".github/workflows/compile.yml"
 jobs:
   # One release APK per 64-bit ABI: AArch64 phones (arm64-v8a) vs x86_64 emulators / x64 ChromeOS.
   build-android-release-abi:
@@ -55,11 +57,28 @@ jobs:
       - name: Build release APK (${{ matrix.abi }})
         run: npx --yes npm run build:android -- -PABI_FILTERS=${{ matrix.abi }}
 
+      - name: Rename APK for per-ABI release assets
+        run: |
+          set -euo pipefail
+          VER="$(cd android && ./gradlew :app:printAppVersion --console=plain --no-daemon 2>&1 | sed -n 's/^\([0-9][0-9.]*\) (.*/\1/p' | head -n1)"
+          if [ -z "$VER" ]; then
+            echo "Could not resolve versionName from Gradle"
+            exit 1
+          fi
+          APK="$(ls android/app/build/outputs/apk/release/turnTable.release.x86-*.apk | head -n1)"
+          if [ -z "$APK" ]; then
+            echo "No APK produced"
+            exit 1
+          fi
+          DEST="android/app/build/outputs/apk/release/turnTable.release-${VER}-${{ matrix.abi }}.apk"
+          mv "$APK" "$DEST"
+          echo "Renamed to $DEST"
+
       - name: Stage manifest for artifact (manual-release / tooling)
         run: |
-          APK_PATH="$(ls android/app/build/outputs/apk/release/turnTable.release-*.apk | head -n1)"
+          APK_PATH="$(ls android/app/build/outputs/apk/release/turnTable.release.arm64-v8a-*-${{ matrix.abi }}.apk | head -n1)"
           if [ -z "$APK_PATH" ]; then
-            echo "No APK produced"
+            echo "No APK produced after rename"
             exit 1
           fi
           cp CurrentVersion.json "android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json"
@@ -69,7 +88,7 @@ jobs:
         with:
           name: android-release-${{ matrix.abi }}
           path: |
-            android/app/build/outputs/apk/release/turnTable.release-*.apk
+            android/app/build/outputs/apk/release/turnTable.release-*-${{ matrix.abi }}.apk
             android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json
 
   build-ios:
@@ -132,3 +151,153 @@ jobs:
             ios/build/${{ env.PKG_NAME }}
             ios/build/Release-iphoneos/libbarcode_scanner_core.a
             ios/build/Release-iphonesimulator/libbarcode_scanner_core.a
+
+  # Main / manual only: publish APKs and commit CurrentVersion.json (paths filter avoids loops on doc-only pushes).
+  github-release:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [build-android-release-abi]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      release_tag: ${{ steps.publish.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Resolve app versionName
+        id: ver
+        run: |
+          set -euo pipefail
+          cd android && chmod +x gradlew
+          APP_VERSION="$(./gradlew :app:printAppVersion --console=plain --no-daemon 2>&1 | sed -n 's/^\([0-9][0-9.]*\) (.*/\1/p' | head -n1)"
+          if [ -z "$APP_VERSION" ]; then
+            echo "Could not parse version from :app:printAppVersion"
+            exit 1
+          fi
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved versionName=$APP_VERSION"
+
+      - name: Download Android release APKs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: android-release-*
+          merge-multiple: true
+          path: rel-assets
+
+      - name: Create or update GitHub Release
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="v${{ steps.ver.outputs.app_version }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          mapfile -t APKs < <(find rel-assets -type f -name '*.apk' | sort)
+          if [ "${#APKs[@]}" -eq 0 ]; then
+            echo "No APK files under rel-assets"
+            exit 1
+          fi
+          if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
+            gh release upload "$TAG" "${APKs[@]}" --clobber --repo "${{ github.repository }}"
+          else
+            gh release create "$TAG" "${APKs[@]}" \
+              --repo "${{ github.repository }}" \
+              --title "turnTable ${{ steps.ver.outputs.app_version }}" \
+              --generate-notes \
+              --latest
+          fi
+
+  sync-current-version-json:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [github-release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
+
+      - name: Rebuild CurrentVersion.json from release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYNC_TAG: ${{ needs.github-release.outputs.release_tag }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${SYNC_TAG}" > /tmp/release.json
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import re
+
+          release = json.loads(Path("/tmp/release.json").read_text(encoding="utf-8"))
+          tag_name = release.get("tag_name", "").strip()
+          if not tag_name:
+              raise SystemExit("Missing release tag_name")
+          version = tag_name[1:] if tag_name.startswith("v") else tag_name
+
+          assets = {}
+          android_by_abi = {}
+          abi_pattern = re.compile(r"(arm64-v8a|armeabi-v7a|x86_64|x86)", re.IGNORECASE)
+          for a in sorted(release.get("assets", []), key=lambda x: x.get("name", "")):
+              name = (a.get("name") or "").strip()
+              url = (a.get("browser_download_url") or "").strip()
+              if name and url:
+                  assets[name] = url
+                  m = abi_pattern.search(name)
+                  if name.lower().endswith(".apk") and m:
+                      android_by_abi[m.group(1).lower()] = url
+
+          fallback_apk = (
+              android_by_abi.get("arm64-v8a")
+              or android_by_abi.get("armeabi-v7a")
+              or android_by_abi.get("x86_64")
+              or android_by_abi.get("x86")
+              or next((u for n, u in assets.items() if n.lower().endswith(".apk")), "")
+          )
+          if fallback_apk:
+              assets["apk"] = fallback_apk
+          if android_by_abi:
+              assets["androidByAbi"] = android_by_abi
+
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          release_page = f"https://github.com/{repo}/releases/latest" if repo else ""
+
+          payload = {
+              "version": version,
+              "currentTag": tag_name,
+              "releasePageUrl": release_page,
+              "assets": assets,
+          }
+          Path("CurrentVersion.json").write_text(
+              json.dumps(payload, indent=4) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Commit and push when changed
+        env:
+          SYNC_TAG: ${{ needs.github-release.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- CurrentVersion.json; then
+            echo "CurrentVersion.json already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CurrentVersion.json
+          git commit -m "chore: sync CurrentVersion.json from CI release ${SYNC_TAG}"
+          git push
