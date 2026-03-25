@@ -16,13 +16,9 @@ on:
       - ".github/workflows/android.yml"
 
 jobs:
-  build-android-per-abi:
+  build-android-universal:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        abi: [armeabi-v7a, arm64-v8a, x86, x86_64]
 
     steps:
       - name: Checkout
@@ -46,27 +42,27 @@ jobs:
           yes | sdkmanager --licenses >/dev/null
           sdkmanager "ndk;28.0.12433566"
 
-      - name: Build release APK for ABI
+      # One APK with all JNI ABIs (matches former matrix coverage).
+      - name: Build universal release APK
         run: |
           cd android
-          ./gradlew :app:assembleRelease :app:printAppVersion -PABI_FILTERS=${{ matrix.abi }} -Dorg.gradle.java.home="${JAVA_HOME}"
+          ./gradlew :app:assembleRelease :app:printAppVersion \
+            -PABI_FILTERS=armeabi-v7a,arm64-v8a,x86,x86_64 \
+            -Dorg.gradle.java.home="${JAVA_HOME}"
 
-      - name: Prepare ABI artifact names
+      - name: Stage manifest for artifact (manual-release / tooling)
         run: |
           APK_PATH="$(ls android/app/build/outputs/apk/release/turnTable.release-*.apk | head -n1)"
           if [ -z "$APK_PATH" ]; then
             echo "No APK produced"
             exit 1
           fi
-          BASE="$(basename "$APK_PATH" .apk)"
-          ABI_APK="android/app/build/outputs/apk/release/${BASE}-${{ matrix.abi }}.apk"
-          cp "$APK_PATH" "$ABI_APK"
-          cp CurrentVersion.json "android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json"
+          cp CurrentVersion.json android/app/build/outputs/apk/release/CurrentVersion-universal.json
 
-      - name: Upload ABI APK + CurrentVersion manifest
+      - name: Upload universal APK + CurrentVersion manifest
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ matrix.abi }}
+          name: android-universal
           path: |
-            android/app/build/outputs/apk/release/turnTable.release-*-${{ matrix.abi }}.apk
-            android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json
+            android/app/build/outputs/apk/release/turnTable.release-*.apk
+            android/app/build/outputs/apk/release/CurrentVersion-universal.json
