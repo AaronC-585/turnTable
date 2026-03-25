@@ -21,9 +21,14 @@ on:
       - "Makefile"
       - "package.json"
 jobs:
-  build-android-universal:
+  # One release APK per 64-bit ABI: AArch64 phones (arm64-v8a) vs x86_64 emulators / x64 ChromeOS.
+  build-android-release-abi:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        abi: [arm64-v8a, x86_64]
 
     steps:
       - name: Checkout
@@ -47,9 +52,8 @@ jobs:
           yes | sdkmanager --licenses >/dev/null
           sdkmanager "ndk;28.0.12433566"
 
-      # Release APK: x64-only ABI for emulator/desktop-style targets.
-      - name: Build release APK (x86_64 only)
-        run: npx --yes npm run build:android -- -PABI_FILTERS=x86_64
+      - name: Build release APK (${{ matrix.abi }})
+        run: npx --yes npm run build:android -- -PABI_FILTERS=${{ matrix.abi }}
 
       - name: Stage manifest for artifact (manual-release / tooling)
         run: |
@@ -58,15 +62,15 @@ jobs:
             echo "No APK produced"
             exit 1
           fi
-          cp CurrentVersion.json android/app/build/outputs/apk/release/CurrentVersion-universal.json
+          cp CurrentVersion.json "android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json"
 
       - name: Upload release APK + CurrentVersion manifest
         uses: actions/upload-artifact@v4
         with:
-          name: android-universal
+          name: android-release-${{ matrix.abi }}
           path: |
             android/app/build/outputs/apk/release/turnTable.release-*.apk
-            android/app/build/outputs/apk/release/CurrentVersion-universal.json
+            android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json
 
   build-ios:
     runs-on: macos-14
