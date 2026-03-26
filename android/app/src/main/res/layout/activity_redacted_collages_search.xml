@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/app_bg_root_browse">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/app_bg_toolbar"
+        app:title="@string/redacted_collages_search_title"
+        app:titleTextColor="@color/app_text_primary"
+        app:navigationIconTint="@color/app_icon_emphasis" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                app:cardBackgroundColor="@color/app_card_browse"
+                app:strokeColor="@color/app_stroke_browse_card"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="8dp"
+                        android:text="@string/redacted_collages_search_title"
+                        android:textColor="@color/app_text_secondary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="6dp">
+
+                        <TextView
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_collages_search_terms"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="13sp" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            app:hintEnabled="false">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editSearch"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:textColor="@color/app_text_primary" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/app_stroke_browse_card" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="6dp">
+
+                        <TextView
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_collages_tags_hint"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="13sp" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            app:hintEnabled="false">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/editTags"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="text"
+                                android:textColor="@color/app_text_primary" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <RadioGroup
+                            android:id="@+id/radioTagsMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/radioTagsAny"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:buttonTint="@color/app_accent"
+                                android:text="@string/redacted_browse_tags_any"
+                                android:textColor="@color/app_text_secondary" />
+
+                            <RadioButton
+                                android:id="@+id/radioTagsAll"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:buttonTint="@color/app_accent"
+                                android:checked="true"
+                                android:text="@string/redacted_browse_tags_all"
+                                android:textColor="@color/app_text_secondary" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/app_stroke_browse_card" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingVertical="6dp">
+
+                        <TextView
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="4dp"
+                            android:text="@string/redacted_collages_categories"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="13sp" />
+
+                        <HorizontalScrollView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:scrollbars="none">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <CheckBox
+                                    android:id="@+id/checkCat0"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="false"
+                                    android:text="@string/redacted_collage_cat_personal"
+                                    android:textColor="@color/app_text_secondary"
+                                    android:textSize="12sp" />
+
+                                <CheckBox
+                                    android:id="@+id/checkCat1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true"
+                                    android:text="@string/redacted_collage_cat_theme"
+                                    android:textColor="@color/app_text_secondary"
+                                    android:textSize="12sp" />
+
+                                <CheckBox
+                                    android:id="@+id/checkCat2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true"
+                                    android:text="@string/redacted_collage_cat_genre_intro"
+                                    android:textColor="@color/app_text_secondary"
+                                    android:textSize="12sp" />
+
+                                <CheckBox
+                                    android:id="@+id/checkCat3"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true"
+                                    android:text="@string/redacted_collage_cat_discography"
+                                    android:textColor="@color/app_text_secondary"
+                                    android:textSize="12sp" />
+
+                                <CheckBox
+                                    android:id="@+id/checkCat4"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true"
+                                    android:text="@string/redacted_collage_cat_label"
+                                    android:textColor="@color/app_text_secondary"
+                                    android:textSize="12sp" />
+
+                                <CheckBox
+                                    android:id="@+id/checkCat5"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true"
+                                    android:text="@string/redacted_collage_cat_staff_picks"
+                                    android:textColor="@color/app_text_secondary"
+                                    android:textSize="12sp" />
+
+                                <CheckBox
+                                    android:id="@+id/checkCat6"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true"
+                                    android:text="@string/redacted_collage_cat_charts"
+                                    android:textColor="@color/app_text_secondary"
+                                    android:textSize="12sp" />
+
+                                <CheckBox
+                                    android:id="@+id/checkCat7"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:checked="true"
+                                    android:text="@string/redacted_collage_cat_artists"
+                                    android:textColor="@color/app_text_secondary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </HorizontalScrollView>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/app_stroke_browse_card" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingVertical="6dp">
+
+                        <TextView
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/redacted_collages_search_in"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="13sp" />
+
+                        <RadioGroup
+                            android:id="@+id/radioSearchIn"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/radioSearchNames"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:buttonTint="@color/app_accent"
+                                android:checked="true"
+                                android:text="@string/redacted_collages_search_in_names"
+                                android:textColor="@color/app_text_secondary" />
+
+                            <RadioButton
+                                android:id="@+id/radioSearchDescriptions"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="16dp"
+                                android:buttonTint="@color/app_accent"
+                                android:text="@string/redacted_collages_search_in_descriptions"
+                                android:textColor="@color/app_text_secondary" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/app_stroke_browse_card" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingTop="6dp">
+
+                        <TextView
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="8dp"
+                            android:text="@string/redacted_collages_order_by_column"
+                            android:textColor="@color/app_text_secondary"
+                            android:textSize="13sp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                            <include
+                                android:id="@+id/expandOrderBy"
+                                layout="@layout/expandable_bullet_choice"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="6dp"
+                                android:layout_weight="1" />
+
+                            <include
+                                android:id="@+id/expandOrderWay"
+                                layout="@layout/expandable_bullet_choice"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/buttonSearch"
+                        style="@style/Widget.Redacted.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/redacted_collages_button_search"
+                        android:textColor="@color/app_text_primary"
+                        app:strokeColor="@color/app_stroke_browse_card"
+                        app:strokeWidth="1dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

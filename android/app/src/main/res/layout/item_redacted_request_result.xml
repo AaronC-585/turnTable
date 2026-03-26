@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardBackgroundColor="@color/app_card_browse"
+    app:strokeColor="@color/app_stroke_browse_card"
+    app:strokeWidth="1dp">
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingEnd="12dp">
+
+                <TextView
+                    android:id="@+id/textTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/app_accent"
+                    android:textSize="14sp"
+                    tools:text="Artist – Title [2026]" />
+
+                <TextView
+                    android:id="@+id/textTags"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/app_text_muted"
+                    android:textSize="12sp"
+                    tools:text="tag1, tag2" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingEnd="12dp">
+
+                <TextView
+                    android:id="@+id/textVotes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="44dp"
+                    android:textColor="@color/app_text_secondary"
+                    android:textSize="13sp"
+                    tools:text="1" />
+
+                <TextView
+                    android:id="@+id/textVotePlus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="6dp"
+                    android:textColor="@color/app_accent"
+                    android:textSize="13sp"
+                    tools:text="[+]" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textBounty"
+                android:layout_width="88dp"
+                android:layout_height="wrap_content"
+                android:paddingEnd="12dp"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="13sp"
+                tools:text="9.88 GB" />
+
+            <TextView
+                android:id="@+id/textFilled"
+                android:layout_width="56dp"
+                android:layout_height="wrap_content"
+                android:paddingEnd="12dp"
+                android:textColor="@color/app_text_primary"
+                android:textSize="13sp"
+                tools:text="No" />
+
+            <TextView
+                android:id="@+id/textFilledBy"
+                android:layout_width="96dp"
+                android:layout_height="wrap_content"
+                android:paddingEnd="12dp"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="13sp"
+                tools:text="—" />
+
+            <TextView
+                android:id="@+id/textRequestedBy"
+                android:layout_width="96dp"
+                android:layout_height="wrap_content"
+                android:paddingEnd="12dp"
+                android:textColor="@color/app_accent"
+                android:textSize="13sp"
+                tools:text="user" />
+
+            <TextView
+                android:id="@+id/textCreated"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:paddingEnd="12dp"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="12sp"
+                tools:text="1h ago" />
+
+            <TextView
+                android:id="@+id/textLastVote"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:textColor="@color/app_text_secondary"
+                android:textSize="12sp"
+                tools:text="1h ago" />
+        </LinearLayout>
+    </HorizontalScrollView>
+</com.google.android.material.card.MaterialCardView>

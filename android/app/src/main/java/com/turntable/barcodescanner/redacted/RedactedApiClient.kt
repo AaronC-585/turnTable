@@ -157,6 +157,10 @@ class RedactedApiClient(private val apiKey: String) {
     fun browse(params: List<Pair<String, String?>>): RedactedResult =
         executeJson(authorized(buildUrl("browse", params)).get().build())
 
+    /** Collage list search (same query shape as `collages.php` on site). */
+    fun collagesSearch(params: List<Pair<String, String?>>): RedactedResult =
+        executeJson(authorized(buildUrl("collages", params)).get().build())
+
     fun logcheckerPaste(pasteLog: String): RedactedResult {
         val url = buildUrl("logchecker")
         val body = MultipartBody.Builder()
@@ -417,6 +421,10 @@ class RedactedApiClient(private val apiKey: String) {
         }
         return executeJson(authorized(buildUrl("requests", p)).get().build())
     }
+
+    /** Request list search (same query shape as `requests.php` / ajax `requests`). */
+    fun requestsSearch(params: List<Pair<String, String?>>): RedactedResult =
+        executeJson(authorized(buildUrl("requests", params)).get().build())
 
     fun request(requestId: Int, page: Int? = null): RedactedResult {
         val p = buildList {

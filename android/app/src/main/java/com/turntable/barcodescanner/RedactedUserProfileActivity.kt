@@ -56,9 +56,6 @@ class RedactedUserProfileActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { finish() }
         supportActionBar?.title = getString(R.string.redacted_user_profile)
 
-        binding.rowProfileHomeAction.visibility = View.VISIBLE
-        binding.buttonProfileNavigateHome.setOnClickListener { navigateToHome() }
-
         binding.layoutNoKey.visibility = View.GONE
         binding.buttonAddApiKey.visibility = View.GONE
 

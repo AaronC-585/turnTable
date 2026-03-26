@@ -17,6 +17,10 @@ object RedactedExtras {
     const val BROWSE_AUTO_SUBMIT_RESULTS = "browse_auto_submit_results"
     /** JSON object of string keys/values for `browse` API (see [RedactedBrowseParamsCodec]). */
     const val BROWSE_PARAMS_JSON = "browse_params_json"
+    /** JSON object of string keys/values for `collages` search (same codec shape as browse params). */
+    const val COLLAGES_SEARCH_PARAMS_JSON = "collages_search_params_json"
+    /** JSON object of string keys/values for `requests` search. */
+    const val REQUESTS_SEARCH_PARAMS_JSON = "requests_search_params_json"
     const val REQUEST_ID = "request_id"
     const val CONV_ID = "conv_id"
     const val FORUM_ID = "forum_id"

@@ -78,6 +78,16 @@
             android:textColor="@color/app_text_on_button"
             android:visibility="gone"
             app:backgroundTint="@color/app_accent_purple" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonRedactedCollages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/redacted_search_collages_in_app"
+            android:textColor="@color/app_text_on_button"
+            android:visibility="gone"
+            app:backgroundTint="@color/app_accent_purple" />
     </LinearLayout>
     </ScrollView>
 </LinearLayout>

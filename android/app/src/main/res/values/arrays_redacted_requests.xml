@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="redacted_requests_category_labels">
+        <item>Music</item>
+        <item>Applications</item>
+        <item>E-Books</item>
+        <item>Audiobooks</item>
+        <item>E-Learning Videos</item>
+        <item>Comedy</item>
+        <item>Comics</item>
+    </string-array>
+</resources>

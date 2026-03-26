@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches Gazelle collages browse sort keys (SortableTableHeader). Row 0 = section title. -->
+    <string-array name="redacted_collages_order_by">
+        <item>Order by</item>
+        <item>Time</item>
+        <item>Name</item>
+        <item>Subscribers</item>
+        <item>Entries</item>
+        <item>Updated</item>
+    </string-array>
+    <string-array name="redacted_collages_order_by_values">
+        <item></item>
+        <item>time</item>
+        <item>name</item>
+        <item>subscribers</item>
+        <item>torrents</item>
+        <item>updated</item>
+    </string-array>
+    <string-array name="redacted_collages_order_way">
+        <item>Order direction</item>
+        <item>Descending</item>
+        <item>Ascending</item>
+    </string-array>
+    <string-array name="redacted_collages_order_way_values">
+        <item></item>
+        <item>desc</item>
+        <item>asc</item>
+    </string-array>
+    <!-- CategoryID 0–7 (Gazelle CollageType order). -->
+    <string-array name="redacted_collages_category_labels">
+        <item>Personal</item>
+        <item>Theme</item>
+        <item>Genre introduction</item>
+        <item>Discography</item>
+        <item>Label</item>
+        <item>Staff picks</item>
+        <item>Charts</item>
+        <item>Artists</item>
+    </string-array>
+</resources>

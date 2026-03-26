@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.turntable.barcodescanner.databinding.ActivityRedactedBookmarksBinding
-import com.turntable.barcodescanner.databinding.ActivityRedactedSimpleListBinding
 import com.turntable.barcodescanner.databinding.ActivityRedactedTop10Binding
 import com.turntable.barcodescanner.databinding.ActivityRedactedUserTorrentsBinding
 import com.turntable.barcodescanner.redacted.RedactedExtras
@@ -219,90 +218,6 @@ class RedactedBookmarksActivity : AppCompatActivity() {
                                     rows.add(TwoLineRow(o.optString("artistName"), ""))
                                     artistIds.add(aid)
                                 }
-                            }
-                        }
-                        adapter.rows = rows
-                    }
-                    else -> {}
-                }
-            }
-        }.start()
-    }
-}
-
-class RedactedRequestsActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityRedactedSimpleListBinding
-    private lateinit var api: com.turntable.barcodescanner.redacted.RedactedApiClient
-    private var currentPage = 1
-    private var totalPages = 1
-    private val requestIds = mutableListOf<Int>()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val c = RedactedUiHelper.requireApi(this) ?: return
-        api = c
-        binding = ActivityRedactedSimpleListBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = getString(R.string.redacted_requests)
-        binding.toolbar.setNavigationOnClickListener { finish() }
-        setupToolbarHome(binding.toolbar)
-        binding.inputQueryLayout.hint = getString(R.string.redacted_requests_search_hint)
-
-        val adapter = TwoLineRowsAdapter { pos ->
-            val rid = requestIds.getOrNull(pos) ?: return@TwoLineRowsAdapter
-            startActivity(
-                Intent(this, RedactedRequestDetailActivity::class.java)
-                    .putExtra(RedactedExtras.REQUEST_ID, rid),
-            )
-        }
-        binding.recycler.layoutManager = LinearLayoutManager(this)
-        binding.recycler.adapter = adapter
-
-        binding.buttonSearch.setOnClickListener { currentPage = 1; load(adapter) }
-        binding.buttonPrev.setOnClickListener {
-            if (currentPage > 1) {
-                currentPage--
-                load(adapter)
-            }
-        }
-        binding.buttonNext.setOnClickListener {
-            if (currentPage < totalPages) {
-                currentPage++
-                load(adapter)
-            }
-        }
-    }
-
-    private fun load(adapter: TwoLineRowsAdapter) {
-        val q = binding.editQuery.text?.toString()?.trim().orEmpty()
-        binding.progress.visibility = View.VISIBLE
-        Thread {
-            val r = api.requests(search = q.takeIf { it.isNotBlank() }, page = currentPage)
-            runOnUiThread {
-                binding.progress.visibility = View.GONE
-                when (r) {
-                    is RedactedResult.Failure -> Toast.makeText(this, r.message, Toast.LENGTH_LONG).show()
-                    is RedactedResult.Success -> {
-                        val resp = r.response ?: return@runOnUiThread
-                        totalPages = resp.optInt("pages", 1).coerceAtLeast(1)
-                        currentPage = resp.optInt("currentPage", currentPage).coerceAtLeast(1)
-                        binding.textPage.text = getString(R.string.redacted_page_fmt, currentPage, totalPages)
-                        val arr = resp.optJSONArray("results")
-                        val rows = mutableListOf<TwoLineRow>()
-                        requestIds.clear()
-                        if (arr != null) {
-                            for (i in 0 until arr.length()) {
-                                val o = arr.optJSONObject(i) ?: continue
-                                val rid = o.optInt("requestId")
-                                rows.add(
-                                    TwoLineRow(
-                                        o.optString("title"),
-                                        "${o.optInt("year")} · votes ${o.optInt("voteCount")}",
-                                    ),
-                                )
-                                requestIds.add(rid)
                             }
                         }
                         adapter.rows = rows

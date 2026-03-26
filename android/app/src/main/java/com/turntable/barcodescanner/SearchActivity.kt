@@ -46,11 +46,21 @@ class SearchActivity : AppCompatActivity() {
         }
 
         binding.buttonRedactedSearch.visibility = if (hasRedactedEarly) View.VISIBLE else View.GONE
+        binding.buttonRedactedCollages.visibility = if (hasRedactedEarly) View.VISIBLE else View.GONE
         binding.buttonRedactedSearch.setOnClickListener {
             val q = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty()
             AppEventLog.log(AppEventLog.Category.REDACTED, "Search screen → Redacted browse${if (q.isNotBlank()) " query=\"$q\"" else ""}")
             startActivity(
                 Intent(this, RedactedBrowseActivity::class.java).apply {
+                    if (q.isNotBlank()) putExtra(RedactedExtras.INITIAL_QUERY, q)
+                },
+            )
+        }
+        binding.buttonRedactedCollages.setOnClickListener {
+            val q = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty()
+            AppEventLog.log(AppEventLog.Category.REDACTED, "Search screen → Redacted collages${if (q.isNotBlank()) " query=\"$q\"" else ""}")
+            startActivity(
+                Intent(this, RedactedCollagesSearchActivity::class.java).apply {
                     if (q.isNotBlank()) putExtra(RedactedExtras.INITIAL_QUERY, q)
                 },
             )

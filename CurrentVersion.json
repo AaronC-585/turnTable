@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
     "version": "2026.3.25.1381",
     "currentTag": "v2026.3.25.1381",
     "releasePageUrl": "https://github.com/AaronC-585/turnTable/releases/latest",
@@ -10,5 +11,11 @@
             "arm64-v8a": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.25.1381/turnTable.arm64-v8a.apk",
             "x86_64": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.25.1381/turnTable.x86_64.apk"
         }
+=======
+    "version": "2026.3.25.1209",
+    "releasePageUrl": "https://github.com/AaronC-585/turnTable/releases/latest",
+    "assets": {
+        "apk": "https://github.com/AaronC-585/turnTable/releases/download/v2026.3.25.1209/turnTable.release-2026.3.25.1209.apk"
+>>>>>>> 614d022 (chore: release prep 2026-03-26T00:12Z)
     }
 }

@@ -10,6 +10,7 @@ import com.turntable.barcodescanner.RedactedArtistActivity
 import com.turntable.barcodescanner.RedactedBookmarksActivity
 import com.turntable.barcodescanner.RedactedBrowseActivity
 import com.turntable.barcodescanner.RedactedCollageActivity
+import com.turntable.barcodescanner.RedactedCollagesSearchActivity
 import com.turntable.barcodescanner.RedactedForumMainActivity
 import com.turntable.barcodescanner.RedactedForumThreadActivity
 import com.turntable.barcodescanner.RedactedForumThreadsActivity
@@ -17,7 +18,7 @@ import com.turntable.barcodescanner.RedactedInboxActivity
 import com.turntable.barcodescanner.RedactedNotificationsActivity
 import com.turntable.barcodescanner.RedactedTop10Activity
 import com.turntable.barcodescanner.RedactedRequestDetailActivity
-import com.turntable.barcodescanner.RedactedRequestsActivity
+import com.turntable.barcodescanner.RedactedRequestsSearchActivity
 import com.turntable.barcodescanner.RedactedSubscriptionsActivity
 import com.turntable.barcodescanner.RedactedTorrentDetailActivity
 import com.turntable.barcodescanner.RedactedTorrentGroupActivity
@@ -113,7 +114,7 @@ object RedactedIncomingUrlRouter {
                 return Intent(context, RedactedRequestDetailActivity::class.java)
                     .putExtra(RedactedExtras.REQUEST_ID, requestId)
             }
-            return Intent(context, RedactedRequestsActivity::class.java)
+            return Intent(context, RedactedRequestsSearchActivity::class.java)
         }
 
         if (file == "forums.php" || file == "forum.php" ||
@@ -143,7 +144,7 @@ object RedactedIncomingUrlRouter {
                 return Intent(context, RedactedCollageActivity::class.java)
                     .putExtra(RedactedExtras.COLLAGE_ID, collageId)
             }
-            return Intent(context, HomeActivity::class.java)
+            return Intent(context, RedactedCollagesSearchActivity::class.java)
         }
 
         if (file == "inbox.php" || path.contains("inbox.php", ignoreCase = true) ||
