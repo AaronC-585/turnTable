@@ -76,12 +76,6 @@ class RedactedCommunityStatsActivity : RedactedBaseIdActivity() {
     override fun loadForId(id: Int) = api.communityStats(id)
 }
 
-class RedactedCollageActivity : RedactedBaseIdActivity() {
-    override fun screenTitle() = getString(R.string.redacted_collage)
-    override fun idExtraKey() = RedactedExtras.COLLAGE_ID
-    override fun loadForId(id: Int) = api.collage(id)
-}
-
 class RedactedSimilarArtistsActivity : RedactedBaseIdActivity() {
     override fun screenTitle() = getString(R.string.redacted_similar_artists)
     override fun idExtraKey() = RedactedExtras.ARTIST_ID

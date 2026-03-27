@@ -17,6 +17,6 @@
         android:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_redacted"
-        android:title="@string/redacted_torrent_search"
+        android:title="@string/redacted_search"
         android:showAsAction="never" />
 </menu>

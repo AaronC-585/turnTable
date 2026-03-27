@@ -10,7 +10,7 @@
     <item
         android:id="@+id/action_redacted"
         android:icon="@android:drawable/ic_menu_compass"
-        android:title="@string/redacted_torrent_search"
+        android:title="@string/redacted_search"
         app:showAsAction="always" />
     <item
         android:id="@+id/action_history"

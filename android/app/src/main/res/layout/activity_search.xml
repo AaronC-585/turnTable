@@ -16,78 +16,90 @@
         app:title="@string/search_pane_title"
         app:titleTextColor="@color/app_text_primary" />
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true">
-
-    <LinearLayout
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/searchTabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:visibility="gone"
+        android:background="@color/app_bg_main"
+        app:tabMode="fixed"
+        app:tabGravity="fill" />
 
-        <com.google.android.material.textfield.TextInputLayout
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:id="@+id/panelSearchMain"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/scanned_code"
-            app:hintTextColor="@color/app_text_label"
-            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="16dp">
+            android:layout_height="match_parent"
+            android:fillViewport="true">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editBarcode"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
-                android:textColor="@color/app_text_primary" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:orientation="vertical"
+                android:padding="24dp">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/secondarySearchTermsContainer"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/scanned_code"
+                    app:hintTextColor="@color/app_text_label"
+                    style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editBarcode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:textColor="@color/app_text_primary" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/secondarySearchTermsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/secondary_search_terms_hint"
+                    app:hintTextColor="@color/app_text_label"
+                    style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
+                    android:layout_marginBottom="24dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editSecondarySearchTerms"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:textColor="@color/app_text_primary" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonSubmit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/submit_search"
+                    android:textColor="@color/app_text_on_button"
+                    app:backgroundTint="@color/app_accent" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonRedactedSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/redacted_search_in_app"
+                    android:textColor="@color/app_text_on_button"
+                    android:visibility="gone"
+                    app:backgroundTint="@color/app_accent_purple" />
+            </LinearLayout>
+        </ScrollView>
+
+        <include
+            android:id="@+id/collagesFormEmbed"
+            layout="@layout/content_redacted_collages_search"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/secondary_search_terms_hint"
-            app:hintTextColor="@color/app_text_label"
-            style="@style/Widget.Redacted.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="24dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/editSecondarySearchTerms"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text"
-                android:textColor="@color/app_text_primary" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonSubmit"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/submit_search"
-            android:textColor="@color/app_text_on_button"
-            app:backgroundTint="@color/app_accent" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonRedactedSearch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/redacted_search_in_app"
-            android:textColor="@color/app_text_on_button"
-            android:visibility="gone"
-            app:backgroundTint="@color/app_accent_purple" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonRedactedCollages"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/redacted_search_collages_in_app"
-            android:textColor="@color/app_text_on_button"
-            android:visibility="gone"
-            app:backgroundTint="@color/app_accent_purple" />
-    </LinearLayout>
-    </ScrollView>
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+    </FrameLayout>
 </LinearLayout>

@@ -68,6 +68,7 @@
     <string name="post_headers">Headers (one per line: Key: Value)</string>
     <string name="save">Save</string>
     <string name="search_pane_title">Search</string>
+    <string name="search_tab_collage">Collage</string>
     <string name="scanned_code">Scanned code</string>
     <string name="question_notes">Notes (optional)</string>
     <string name="question_category">Category (optional)</string>
