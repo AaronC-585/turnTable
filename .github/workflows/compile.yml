@@ -155,8 +155,12 @@ jobs:
             ios/build/Release-iphonesimulator/libbarcode_scanner_core.a
 
   # Main / manual only: publish APKs + iOS artifacts and commit CurrentVersion.json (paths filter avoids loops on doc-only pushes).
+  # Runs even when a matrix leg or iOS/Android job fails, so a partial build can still ship (needs: + always()).
   github-release:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: >-
+      always() && !cancelled() &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: [build-android-release-abi, build-ios]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -169,6 +173,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Android release APKs + manifests
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           pattern: android-release-*
@@ -176,6 +181,7 @@ jobs:
           path: rel-assets
 
       - name: Download iOS build artifacts
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           pattern: turnTable-ios-*
@@ -188,19 +194,32 @@ jobs:
         id: ver
         run: |
           set -euo pipefail
-          JSON="$(find rel-assets -type f -name 'CurrentVersion-*.json' | head -n1)"
-          if [ -z "$JSON" ]; then
-            echo "No CurrentVersion-*.json found under rel-assets"
-            find rel-assets -type f -maxdepth 3 || true
-            exit 1
+          mkdir -p rel-assets
+          JSON="$(find rel-assets -type f -name 'CurrentVersion-*.json' 2>/dev/null | head -n1)"
+          if [ -n "$JSON" ]; then
+            APP_VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1],encoding="utf-8"))["version"].strip())' "$JSON")"
+            echo "Resolved versionName=$APP_VERSION (from artifact $JSON)"
+          else
+            IOSZIP="$(find rel-assets -type f -name 'turnTable-ios-*.zip' 2>/dev/null | head -n1)"
+            if [ -n "$IOSZIP" ]; then
+              BASENAME="$(basename "$IOSZIP")"
+              APP_VERSION="${BASENAME#turnTable-ios-}"
+              APP_VERSION="${APP_VERSION%.zip}"
+              echo "Resolved versionName=$APP_VERSION (from iOS zip basename)"
+            elif [ -f CurrentVersion.json ]; then
+              APP_VERSION="$(python3 -c 'import json; print(json.load(open("CurrentVersion.json",encoding="utf-8"))["version"].strip())')"
+              echo "Resolved versionName=$APP_VERSION (from repo CurrentVersion.json fallback)"
+            else
+              echo "No version source: no CurrentVersion-*.json in rel-assets, no turnTable-ios-*.zip, no CurrentVersion.json"
+              find rel-assets -type f -maxdepth 4 2>/dev/null || true
+              exit 1
+            fi
           fi
-          APP_VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1],encoding="utf-8"))["version"].strip())' "$JSON")"
           if [ -z "$APP_VERSION" ]; then
-            echo "Empty version in $JSON"
+            echo "Empty app version"
             exit 1
           fi
           echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
-          echo "Resolved versionName=$APP_VERSION (from $JSON)"
 
       - name: Verify GitHub CLI (release + publish)
         run: gh --version
@@ -215,13 +234,8 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           mapfile -t RELEASE_FILES < <(find rel-assets -type f \( -name '*.apk' -o -name 'turnTable-ios-*.zip' \) | sort)
           if [ "${#RELEASE_FILES[@]}" -eq 0 ]; then
-            echo "No APK or iOS zip files under rel-assets"
+            echo "No APK or iOS zip files under rel-assets — nothing to attach (all compile jobs may have failed)."
             find rel-assets -type f 2>/dev/null | head -50 || true
-            exit 1
-          fi
-          mapfile -t APKs < <(find rel-assets -type f -name '*.apk' | sort)
-          if [ "${#APKs[@]}" -eq 0 ]; then
-            echo "No APK files (required for version resolution)"
             exit 1
           fi
           if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
