@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.textfield.TextInputEditText
 import com.turntable.barcodescanner.databinding.ActivityRedactedBrowseBinding
 import com.turntable.barcodescanner.redacted.RedactedBrowseParamsCodec
@@ -36,6 +37,22 @@ class RedactedBrowseActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
+
+        binding.browseTabs.addTab(binding.browseTabs.newTab().setText(R.string.redacted_browse_header))
+        binding.browseTabs.addTab(binding.browseTabs.newTab().setText(R.string.search_tab_collage))
+        binding.browseTabs.getTabAt(0)?.select()
+        binding.buttonOpenCollageFromBrowse.setOnClickListener { openCollageSearchFromBrowse() }
+        binding.browseTabs.addOnTabSelectedListener(
+            object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    syncBrowseTabVisibility(tab.position)
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab) {}
+                override fun onTabReselected(tab: TabLayout.Tab) {}
+            },
+        )
+        syncBrowseTabVisibility(0)
 
         orderByValues = resources.getStringArray(R.array.redacted_browse_order_by_values)
         orderWayValues = resources.getStringArray(R.array.redacted_browse_order_way_values)
@@ -84,6 +101,37 @@ class RedactedBrowseActivity : AppCompatActivity() {
                 binding.root.post { openResults() }
             }
         }
+    }
+
+    private fun syncBrowseTabVisibility(position: Int) {
+        binding.panelTorrentBrowse.visibility = if (position == 0) View.VISIBLE else View.GONE
+        binding.panelCollageBrowse.visibility = if (position == 1) View.VISIBLE else View.GONE
+    }
+
+    /** Opens full collage search; prefill from basic search or artist/group when advanced. */
+    private fun openCollageSearchFromBrowse() {
+        val fromBasic = binding.editSearchStr.text?.toString()?.trim().orEmpty()
+        val initial = if (fromBasic.isNotEmpty()) {
+            fromBasic
+        } else {
+            val artist = binding.editArtistName.text?.toString()?.trim().orEmpty()
+            val group = binding.editGroupName.text?.toString()?.trim().orEmpty()
+            when {
+                artist.isNotEmpty() && group.isNotEmpty() -> "$artist $group"
+                artist.isNotEmpty() -> artist
+                group.isNotEmpty() -> group
+                else -> ""
+            }
+        }
+        AppEventLog.log(
+            AppEventLog.Category.REDACTED,
+            "browse (Collage tab) → RedactedCollagesSearchActivity${if (initial.isNotEmpty()) " prefill len=${initial.length}" else ""}",
+        )
+        startActivity(
+            Intent(this, RedactedCollagesSearchActivity::class.java).apply {
+                if (initial.isNotEmpty()) putExtra(RedactedExtras.INITIAL_QUERY, initial)
+            },
+        )
     }
 
     private fun bindExpandableBrowseFilters() {

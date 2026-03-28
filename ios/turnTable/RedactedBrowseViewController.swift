@@ -8,7 +8,11 @@ final class RedactedBrowseViewController: UIViewController, UISearchBarDelegate 
     var initialQuery: String?
 
     private let apiKey: String
+    private let modeSeg = UISegmentedControl(items: ["Torrents", "Collage"])
     private let searchBar = UISearchBar()
+    private let collagePanel = UIStackView()
+    private var torrentContentStack: UIStackView!
+    private var searchBarButton: UIBarButtonItem!
 
     init(apiKey: String) {
         self.apiKey = apiKey
@@ -22,7 +26,15 @@ final class RedactedBrowseViewController: UIViewController, UISearchBarDelegate 
         view.backgroundColor = UIColor(white: 0.1, alpha: 1)
         title = "Torrent search"
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Home", style: .plain, target: self, action: #selector(goHome))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Search", style: .done, target: self, action: #selector(openResults))
+        searchBarButton = UIBarButtonItem(title: "Search", style: .done, target: self, action: #selector(openResults))
+        navigationItem.rightBarButtonItem = searchBarButton
+
+        modeSeg.selectedSegmentIndex = 0
+        modeSeg.addTarget(self, action: #selector(browseModeChanged), for: .valueChanged)
+        if #available(iOS 13.0, *) {
+            modeSeg.selectedSegmentTintColor = UIColor(white: 0.25, alpha: 1)
+        }
+        modeSeg.translatesAutoresizingMaskIntoConstraints = false
 
         searchBar.delegate = self
         searchBar.text = initialQuery
@@ -36,21 +48,72 @@ final class RedactedBrowseViewController: UIViewController, UISearchBarDelegate 
         hint.text = "Tap Search to see torrent results on the next screen."
         hint.translatesAutoresizingMaskIntoConstraints = false
 
-        let stack = UIStackView(arrangedSubviews: [searchBar, hint])
-        stack.axis = .vertical
-        stack.spacing = 16
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(stack)
+        let ts = UIStackView(arrangedSubviews: [searchBar, hint])
+        ts.axis = .vertical
+        ts.spacing = 16
+        ts.translatesAutoresizingMaskIntoConstraints = false
+        torrentContentStack = ts
+
+        collagePanel.axis = .vertical
+        collagePanel.spacing = 16
+        collagePanel.isHidden = true
+        let collageTitle = UILabel()
+        collageTitle.text = "Collages"
+        collageTitle.textColor = UIColor(white: 0.85, alpha: 1)
+        collageTitle.font = .systemFont(ofSize: 15, weight: .bold)
+        let collageBody = UILabel()
+        collageBody.numberOfLines = 0
+        collageBody.textColor = UIColor(white: 0.6, alpha: 1)
+        collageBody.font = .systemFont(ofSize: 14)
+        collageBody.text = "Open the full collage search screen to filter by tags, category, and sort options, then view results."
+        let openCollages = UIButton(type: .system)
+        openCollages.setTitle("Search collages (Redacted)", for: .normal)
+        openCollages.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        openCollages.backgroundColor = UIColor(red: 0.45, green: 0.35, blue: 0.75, alpha: 1)
+        openCollages.setTitleColor(.white, for: .normal)
+        openCollages.layer.cornerRadius = 10
+        openCollages.heightAnchor.constraint(equalToConstant: 48).isActive = true
+        openCollages.addTarget(self, action: #selector(openCollageSearchFromBrowse), for: .touchUpInside)
+        collagePanel.addArrangedSubview(collageTitle)
+        collagePanel.addArrangedSubview(collageBody)
+        collagePanel.addArrangedSubview(openCollages)
+
+        let outer = UIStackView(arrangedSubviews: [modeSeg, ts, collagePanel])
+        outer.axis = .vertical
+        outer.spacing = 16
+        outer.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(outer)
 
         NSLayoutConstraint.activate([
-            stack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            stack.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+            outer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            outer.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+            outer.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+            outer.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
         ])
+
+        browseModeChanged()
 
         if let q = initialQuery?.trimmingCharacters(in: .whitespacesAndNewlines), !q.isEmpty {
             DispatchQueue.main.async { [weak self] in self?.openResults() }
         }
+    }
+
+    @objc private func browseModeChanged() {
+        let showCollage = modeSeg.selectedSegmentIndex == 1
+        torrentContentStack.isHidden = showCollage
+        collagePanel.isHidden = !showCollage
+        if showCollage {
+            navigationItem.rightBarButtonItem = nil
+        } else {
+            navigationItem.rightBarButtonItem = searchBarButton
+        }
+    }
+
+    @objc private func openCollageSearchFromBrowse() {
+        let q = searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let vc = RedactedCollagesSearchViewController(apiKey: apiKey)
+        if !q.isEmpty { vc.initialSearchTerms = q }
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     @objc private func goHome() {
