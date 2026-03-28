@@ -25,6 +25,7 @@ final class SplashViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        TurnTableUpdateCoordinator.requestSplashLaunchUpdateCheckIfDue()
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.splashMs) { [weak self] in
             self?.goNext()
         }

@@ -7,19 +7,21 @@ final class RedactedMoreViewController: UITableViewController {
 
     private struct Item {
         let title: String
-        let loader: (RedactedApiClient) -> RedactedResult
+        /// When `nil`, row opens in-app flow (e.g. collage search) instead of JSON loader.
+        let loader: ((RedactedApiClient) -> RedactedResult)?
     }
 
     private lazy var items: [Item] = [
-        Item(title: "Top 10") { $0.top10(type: "torrents", limit: 10) },
-        Item(title: "Bookmarks (torrents)") { $0.bookmarks(type: "torrents") },
-        Item(title: "Inbox") { $0.inbox(page: 1, type: nil, sort: nil, search: nil, searchType: nil) },
-        Item(title: "Forum main") { $0.forumMain() },
-        Item(title: "Notifications") { $0.notifications(page: 1) },
-        Item(title: "Announcements") { $0.announcements(page: 1, perPage: 25, orderWay: nil, orderBy: nil) },
-        Item(title: "Subscriptions") { $0.subscriptions(showUnreadOnly: true) },
-        Item(title: "Requests") { $0.requests(search: nil, page: 1, tags: nil, tagsType: nil, showFilled: nil, extra: []) },
-        Item(title: "Wiki (main)") { $0.wiki(id: nil, name: nil) },
+        Item(title: "Search collages", loader: nil),
+        Item(title: "Top 10", loader: { $0.top10(type: "torrents", limit: 10) }),
+        Item(title: "Bookmarks (torrents)", loader: { $0.bookmarks(type: "torrents") }),
+        Item(title: "Inbox", loader: { $0.inbox(page: 1, type: nil, sort: nil, search: nil, searchType: nil) }),
+        Item(title: "Forum main", loader: { $0.forumMain() }),
+        Item(title: "Notifications", loader: { $0.notifications(page: 1) }),
+        Item(title: "Announcements", loader: { $0.announcements(page: 1, perPage: 25, orderWay: nil, orderBy: nil) }),
+        Item(title: "Subscriptions", loader: { $0.subscriptions(showUnreadOnly: true) }),
+        Item(title: "Requests", loader: { $0.requests(search: nil, page: 1, tags: nil, tagsType: nil, showFilled: nil, extra: []) }),
+        Item(title: "Wiki (main)", loader: { $0.wiki(id: nil, name: nil) }),
     ]
 
     init(apiKey: String) {
@@ -55,7 +57,11 @@ final class RedactedMoreViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let it = items[indexPath.row]
-        let vc = RedactedJsonLoaderViewController(apiKey: apiKey, title: it.title, load: it.loader)
-        navigationController?.pushViewController(vc, animated: true)
+        if let load = it.loader {
+            let vc = RedactedJsonLoaderViewController(apiKey: apiKey, title: it.title, load: load)
+            navigationController?.pushViewController(vc, animated: true)
+        } else {
+            navigationController?.pushViewController(RedactedCollagesSearchViewController(apiKey: apiKey), animated: true)
+        }
     }
 }

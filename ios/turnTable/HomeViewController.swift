@@ -64,12 +64,19 @@ final class HomeViewController: UIViewController {
         navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        TurnTableUpdateCoordinator.consumePendingUpdateIfAny(from: self)
+        TurnTableUpdateCoordinator.requestBackgroundCheckIfDue(from: self)
+    }
+
     private func makeShortcutRow() -> UIStackView {
         let row = UIStackView()
         row.axis = .vertical
         row.spacing = 12
         row.addArrangedSubview(labeledButton("Scan", action: #selector(openScan)))
         row.addArrangedSubview(labeledButton("Redacted torrent search", action: #selector(openRedacted)))
+        row.addArrangedSubview(labeledButton("Search collages (Redacted)", action: #selector(openCollages)))
         row.addArrangedSubview(labeledButton("History", action: #selector(openHistory)))
         row.addArrangedSubview(labeledButton("Settings", action: #selector(openSettings)))
         row.addArrangedSubview(labeledButton("Redacted account (index)", action: #selector(openAccount)))
@@ -164,6 +171,14 @@ final class HomeViewController: UIViewController {
             return
         }
         navigationController?.pushViewController(RedactedBrowseViewController(apiKey: key), animated: true)
+    }
+
+    @objc private func openCollages() {
+        guard let key = prefs.redactedApiKey, !key.isEmpty else {
+            openSettings()
+            return
+        }
+        navigationController?.pushViewController(RedactedCollagesSearchViewController(apiKey: key), animated: true)
     }
 
     @objc private func openAccount() {

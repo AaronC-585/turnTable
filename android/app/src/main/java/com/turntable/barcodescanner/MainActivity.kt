@@ -18,6 +18,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import com.turntable.barcodescanner.databinding.ActivityMainBinding
 import com.turntable.barcodescanner.debug.AppEventLog
@@ -36,34 +37,39 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.topToolbar.inflateMenu(R.menu.main_toolbar_menu)
-        binding.topToolbar.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_home -> {
-                    navigateToHome()
-                    true
-                }
-                R.id.action_settings -> {
-                    startActivity(Intent(this, SettingsActivity::class.java))
-                    true
-                }
-                R.id.action_history -> {
-                    startActivity(Intent(this, SearchHistoryActivity::class.java))
-                    true
-                }
-                R.id.action_redacted -> {
-                    if (SearchPrefs(this).redactedApiKey.isNullOrBlank()) {
-                        Toast.makeText(
-                            this,
-                            R.string.redacted_need_api_key,
-                            Toast.LENGTH_LONG,
-                        ).show()
-                    } else {
-                        startActivity(Intent(this, RedactedBrowseActivity::class.java))
+        binding.buttonScanMenu.setOnClickListener { anchor ->
+            PopupMenu(this, anchor).apply {
+                menuInflater.inflate(R.menu.main_toolbar_menu, menu)
+                setOnMenuItemClickListener { item ->
+                    when (item.itemId) {
+                        R.id.action_home -> {
+                            navigateToHome()
+                            true
+                        }
+                        R.id.action_settings -> {
+                            startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                            true
+                        }
+                        R.id.action_history -> {
+                            startActivity(Intent(this@MainActivity, SearchHistoryActivity::class.java))
+                            true
+                        }
+                        R.id.action_redacted -> {
+                            if (SearchPrefs(this@MainActivity).redactedApiKey.isNullOrBlank()) {
+                                Toast.makeText(
+                                    this@MainActivity,
+                                    R.string.redacted_need_api_key,
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                            } else {
+                                startActivity(Intent(this@MainActivity, RedactedBrowseActivity::class.java))
+                            }
+                            true
+                        }
+                        else -> false
                     }
-                    true
                 }
-                else -> false
+                show()
             }
         }
 

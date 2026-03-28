@@ -6,10 +6,13 @@ protocol ScannerDelegate: AnyObject {
     func scanner(_ scanner: ScannerViewController, didScan code: String)
 }
 
-/// Mirrors Android `MainActivity`: camera decode + toolbar actions.
+/// Mirrors Android `MainActivity`: full-screen camera; navigation actions live in overlay controls (no top bar).
 final class ScannerViewController: UIViewController {
 
     weak var delegate: ScannerDelegate?
+
+    private let menuButton = UIButton(type: .system)
+    private let flashButton = UIButton(type: .system)
 
     private let previewLayer = AVCaptureVideoPreviewLayer()
     private let session = AVCaptureSession()
@@ -39,31 +42,73 @@ final class ScannerViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(white: 0.1, alpha: 1)
-        title = "Scan"
 
         previewLayer.session = session
         previewLayer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer)
 
+        styleChromeButton(menuButton, title: "⋯", accessibilityLabel: "Scanner menu")
+        menuButton.addTarget(self, action: #selector(showScanMenu), for: .touchUpInside)
+        styleChromeButton(flashButton, title: "Light", accessibilityLabel: "Flashlight")
+        flashButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
+        flashButton.addTarget(self, action: #selector(toggleTorch), for: .touchUpInside)
+
+        view.addSubview(menuButton)
+        view.addSubview(flashButton)
         view.addSubview(resultLabel)
         NSLayoutConstraint.activate([
+            menuButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            menuButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            menuButton.widthAnchor.constraint(equalToConstant: 56),
+            menuButton.heightAnchor.constraint(equalToConstant: 56),
+
+            flashButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            flashButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            flashButton.widthAnchor.constraint(equalToConstant: 56),
+            flashButton.heightAnchor.constraint(equalToConstant: 56),
+
             resultLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
             resultLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             resultLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -24),
             resultLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 48),
         ])
 
-        navigationItem.rightBarButtonItems = makeToolbarItems()
+        updateFlashButtonAppearance()
         requestCameraAndStart()
     }
 
-    private func makeToolbarItems() -> [UIBarButtonItem] {
-        let home = UIBarButtonItem(title: "Home", style: .plain, target: self, action: #selector(tapHome))
-        let hist = UIBarButtonItem(title: "History", style: .plain, target: self, action: #selector(tapHistory))
-        let set = UIBarButtonItem(title: "Settings", style: .plain, target: self, action: #selector(tapSettings))
-        let flash = UIBarButtonItem(title: "Light", style: .plain, target: self, action: #selector(toggleTorch))
-        let red = UIBarButtonItem(title: "Redacted", style: .plain, target: self, action: #selector(tapRedacted))
-        return [home, hist, set, flash, red]
+    private func styleChromeButton(_ b: UIButton, title: String, accessibilityLabel: String) {
+        b.translatesAutoresizingMaskIntoConstraints = false
+        b.setTitle(title, for: .normal)
+        b.setTitleColor(.white, for: .normal)
+        b.titleLabel?.font = .systemFont(ofSize: 24, weight: .semibold)
+        b.backgroundColor = UIColor(white: 0.16, alpha: 0.92)
+        b.layer.cornerRadius = 28
+        b.accessibilityLabel = accessibilityLabel
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+
+    @objc private func showScanMenu() {
+        let sheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: "Home", style: .default) { [weak self] _ in self?.tapHome() })
+        sheet.addAction(UIAlertAction(title: "History", style: .default) { [weak self] _ in self?.tapHistory() })
+        sheet.addAction(UIAlertAction(title: "Settings", style: .default) { [weak self] _ in self?.tapSettings() })
+        sheet.addAction(UIAlertAction(title: "Redacted", style: .default) { [weak self] _ in self?.tapRedacted() })
+        sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        if let pop = sheet.popoverPresentationController {
+            pop.sourceView = menuButton
+            pop.sourceRect = menuButton.bounds
+        }
+        present(sheet, animated: true)
     }
 
     @objc private func tapHome() {
@@ -102,6 +147,18 @@ final class ScannerViewController: UIViewController {
             d.torchMode = .off
         }
         d.unlockForConfiguration()
+        updateFlashButtonAppearance()
+    }
+
+    private func updateFlashButtonAppearance() {
+        let hasTorch = device?.hasTorch == true
+        flashButton.isEnabled = hasTorch
+        flashButton.alpha = hasTorch ? 1 : 0.45
+        if torchOn {
+            flashButton.backgroundColor = UIColor(red: 0.2, green: 0.55, blue: 0.35, alpha: 0.95)
+        } else {
+            flashButton.backgroundColor = UIColor(white: 0.16, alpha: 0.92)
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -155,6 +212,9 @@ final class ScannerViewController: UIViewController {
         session.commitConfiguration()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             self?.session.startRunning()
+            DispatchQueue.main.async { [weak self] in
+                self?.updateFlashButtonAppearance()
+            }
         }
     }
 

@@ -102,7 +102,7 @@ final class AboutViewController: UIViewController {
     }
 
     @objc private func checkUpdates() {
-        TurnTableGithubUpdate.presentCheck(from: self)
+        TurnTableUpdateCoordinator.presentManualCheck(from: self)
     }
 
     @objc private func openPayPal() {

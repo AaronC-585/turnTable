@@ -146,6 +146,13 @@ final class RedactedApiClient {
         return executeJson(r)
     }
 
+    /// Collage list search (same query shape as `collages.php` on site).
+    func collagesSearch(params: [(String, String?)]) -> RedactedResult {
+        var r = authorizedRequest(url: buildURL(action: "collages", params: params))
+        r.httpMethod = "GET"
+        return executeJson(r)
+    }
+
     func logcheckerPaste(pasteLog: String) -> RedactedResult {
         let url = buildURL(action: "logchecker")
         return postMultipart(url: url, fields: [("pastelog", pasteLog)])

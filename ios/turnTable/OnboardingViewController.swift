@@ -51,6 +51,11 @@ final class OnboardingViewController: UIViewController {
         ])
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        TurnTableUpdateCoordinator.consumePendingUpdateIfAny(from: self)
+    }
+
     @objc private func continueTapped() {
         UserDefaults(suiteName: Self.onboardingSuite)?.set(true, forKey: Self.onboardingDoneKey)
         navigationController?.setViewControllers([HomeViewController()], animated: true)

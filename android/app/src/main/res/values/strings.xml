@@ -21,6 +21,7 @@
     <string name="settings_load_success">Settings loaded</string>
     <string name="settings_load_failed">Could not load config: %1$s</string>
     <string name="nav_home">Home</string>
+    <string name="scan_overflow_menu_cd">Scanner menu</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_news">News</string>
     <string name="nav_forums">Forums</string>

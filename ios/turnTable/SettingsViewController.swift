@@ -91,6 +91,11 @@ final class SettingsViewController: UIViewController, UIPickerViewDataSource, UI
         row.addArrangedSubview(beepSwitch)
         stack.addArrangedSubview(row)
 
+        addLabel("Updates")
+        let updatesBtn = settingsActionButton(title: "Check for updates", background: UIColor(white: 0.28, alpha: 1))
+        updatesBtn.addTarget(self, action: #selector(checkUpdates), for: .touchUpInside)
+        stack.addArrangedSubview(updatesBtn)
+
         addLabel("About")
         let aboutBtn = settingsActionButton(title: "About", background: UIColor(white: 0.28, alpha: 1))
         aboutBtn.addTarget(self, action: #selector(openAbout), for: .touchUpInside)
@@ -122,6 +127,10 @@ final class SettingsViewController: UIViewController, UIPickerViewDataSource, UI
 
     @objc private func goHome() {
         AppNavigation.navigateToHome(from: self)
+    }
+
+    @objc private func checkUpdates() {
+        TurnTableUpdateCoordinator.presentManualCheck(from: self)
     }
 
     @objc private func openAbout() {
