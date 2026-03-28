@@ -195,7 +195,7 @@ enum TurnTableGithubUpdate {
             title: title,
             body: body,
             htmlUrl: htmlUrl,
-            iosZipUrl: iosZip,
+            iosZipUrl: iosZip
         )
     }
 
