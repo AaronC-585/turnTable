@@ -177,7 +177,7 @@
     <string name="redacted_torrent_download_dir_clear">Use share sheet instead</string>
     <string name="redacted_torrent_saved_to_folder_fmt">Saved redacted_%1$d.torrent to your folder</string>
     <string name="redacted_torrent_folder_permission_failed">Could not use that folder. Try another or clear the setting.</string>
-    <string name="redacted_torrent_search">Torrent search</string>
+    <string name="redacted_torrent_search">Search</string>
     <string name="redacted_browse_header">Torrents</string>
     <string name="redacted_browse_results_title">Results</string>
     <string name="redacted_collages_search_title">Collages</string>

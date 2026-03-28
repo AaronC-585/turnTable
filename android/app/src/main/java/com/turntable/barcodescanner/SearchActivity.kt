@@ -12,6 +12,7 @@ import com.google.android.material.tabs.TabLayout
 import com.turntable.barcodescanner.databinding.ActivitySearchBinding
 import com.turntable.barcodescanner.debug.AppEventLog
 import com.turntable.barcodescanner.debug.OutgoingUrlLog
+import com.turntable.barcodescanner.redacted.RedactedBrowseParamsCodec
 import com.turntable.barcodescanner.redacted.RedactedExtras
 import com.turntable.barcodescanner.redacted.RedactedSearchAssist
 class SearchActivity : AppCompatActivity() {
@@ -20,9 +21,6 @@ class SearchActivity : AppCompatActivity() {
 
     /** Cover URL from primary/Redacted assist (no longer shown in UI; still used for %cover% substitution). */
     private var assistedCoverUrl: String? = null
-
-    /** Intent prefill for collage search terms when opening [RedactedCollagesSearchActivity]. */
-    private var collagePrefillTerms: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,11 +49,17 @@ class SearchActivity : AppCompatActivity() {
 
         binding.buttonRedactedSearch.visibility = if (hasRedactedEarly) View.VISIBLE else View.GONE
         if (hasRedactedEarly) {
-            collagePrefillTerms = prefillTerms
+            val orderByValues = resources.getStringArray(R.array.redacted_collages_order_by_values)
+            val orderWayValues = resources.getStringArray(R.array.redacted_collages_order_way_values)
+            val collageForm = binding.panelCollageSearch
+            RedactedCollagesSearchForm.setupOrderChoices(collageForm, orderByValues, orderWayValues)
+            if (prefillTerms.isNotBlank()) {
+                collageForm.editSearch.setText(prefillTerms)
+            }
+            collageForm.buttonSearch.setOnClickListener { openCollageSearchResults() }
             binding.searchTabs.visibility = View.VISIBLE
             binding.searchTabs.addTab(binding.searchTabs.newTab().setText(R.string.search_pane_title))
             binding.searchTabs.addTab(binding.searchTabs.newTab().setText(R.string.search_tab_collage))
-            binding.buttonOpenCollageSearch.setOnClickListener { openCollageSearchScreen() }
             binding.searchTabs.addOnTabSelectedListener(
                 object : TabLayout.OnTabSelectedListener {
                     override fun onTabSelected(tab: TabLayout.Tab) {
@@ -85,20 +89,23 @@ class SearchActivity : AppCompatActivity() {
 
     private fun syncSearchTabVisibility(position: Int) {
         binding.panelSearchMain.visibility = if (position == 0) View.VISIBLE else View.GONE
-        binding.panelCollageSearch.visibility = if (position == 1) View.VISIBLE else View.GONE
+        binding.panelCollageSearch.root.visibility = if (position == 1) View.VISIBLE else View.GONE
+        if (position == 1) {
+            val sec = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty()
+            val collageTerms = binding.panelCollageSearch.editSearch.text?.toString()?.trim().orEmpty()
+            if (sec.isNotEmpty() && collageTerms.isEmpty()) {
+                binding.panelCollageSearch.editSearch.setText(sec)
+            }
+        }
     }
 
-    private fun openCollageSearchScreen() {
-        val fromField = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty()
-        val initial = fromField.ifBlank { collagePrefillTerms }.trim()
-        AppEventLog.log(
-            AppEventLog.Category.REDACTED,
-            "Search screen (Collage tab) → RedactedCollagesSearchActivity${if (initial.isNotEmpty()) " prefill len=${initial.length}" else ""}",
-        )
+    private fun openCollageSearchResults() {
+        val form = binding.panelCollageSearch
+        val json = RedactedBrowseParamsCodec.encode(RedactedCollagesSearchForm.buildParams(form, page = 1))
+        AppEventLog.log(AppEventLog.Category.REDACTED, "collages search from SearchActivity (params length=${json.length})")
         startActivity(
-            Intent(this, RedactedCollagesSearchActivity::class.java).apply {
-                if (initial.isNotEmpty()) putExtra(RedactedExtras.INITIAL_QUERY, initial)
-            },
+            Intent(this, RedactedCollagesSearchResultsActivity::class.java)
+                .putExtra(RedactedExtras.COLLAGES_SEARCH_PARAMS_JSON, json),
         )
     }
 

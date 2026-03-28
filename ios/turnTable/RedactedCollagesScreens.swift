@@ -6,6 +6,8 @@ final class RedactedCollagesSearchViewController: UIViewController, UIPickerView
 
     private let apiKey: String
     var initialSearchTerms: String?
+    /// When true, hides nav items and pins the form to the top (embedded under another screen).
+    var isEmbedded: Bool = false
 
     private static let orderByLabels = ["(default)", "Time", "Name", "Subscribers", "Entries", "Updated"]
     private static let orderByValues = ["", "time", "name", "subscribers", "torrents", "updated"]
@@ -34,9 +36,11 @@ final class RedactedCollagesSearchViewController: UIViewController, UIPickerView
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(white: 0.1, alpha: 1)
-        title = "Collages"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(goBack))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Home", style: .plain, target: self, action: #selector(goHome))
+        if !isEmbedded {
+            title = "Collages"
+            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: self, action: #selector(goBack))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Home", style: .plain, target: self, action: #selector(goHome))
+        }
 
         scroll.translatesAutoresizingMaskIntoConstraints = false
         let stack = UIStackView()
@@ -114,8 +118,11 @@ final class RedactedCollagesSearchViewController: UIViewController, UIPickerView
 
         scroll.addSubview(stack)
         view.addSubview(scroll)
+        let topAnchor = isEmbedded
+            ? scroll.topAnchor.constraint(equalTo: view.topAnchor)
+            : scroll.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8)
         NSLayoutConstraint.activate([
-            scroll.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            topAnchor,
             scroll.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scroll.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -125,6 +132,14 @@ final class RedactedCollagesSearchViewController: UIViewController, UIPickerView
             stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -24),
             stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -32),
         ])
+    }
+
+    /// Copies `raw` into the search field when it is empty (e.g. secondary terms from [SearchViewController]).
+    func applySearchPrefillIfEmpty(_ raw: String?) {
+        let t = raw?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !t.isEmpty else { return }
+        let cur = searchField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if cur.isEmpty { searchField.text = t }
     }
 
     private func styleField(_ f: UITextField, placeholder: String) {

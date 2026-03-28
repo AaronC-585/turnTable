@@ -9,6 +9,8 @@ final class SearchViewController: UIViewController {
     private let scroll = UIScrollView()
     private let modeSeg = UISegmentedControl(items: ["Search", "Collage"])
     private let collagePanel = UIStackView()
+    private let collageFormContainer = UIView()
+    private var embeddedCollageSearch: RedactedCollagesSearchViewController?
     private let barcodeField = UITextField()
     private let secondaryField = UITextField()
 
@@ -69,28 +71,10 @@ final class SearchViewController: UIViewController {
         scroll.alwaysBounceVertical = true
 
         collagePanel.axis = .vertical
-        collagePanel.spacing = 16
+        collagePanel.spacing = 0
         collagePanel.isHidden = true
-        let collageCardTitle = UILabel()
-        collageCardTitle.text = "Collages"
-        collageCardTitle.textColor = UIColor(white: 0.85, alpha: 1)
-        collageCardTitle.font = .systemFont(ofSize: 15, weight: .bold)
-        let collageBody = UILabel()
-        collageBody.numberOfLines = 0
-        collageBody.textColor = UIColor(white: 0.6, alpha: 1)
-        collageBody.font = .systemFont(ofSize: 14)
-        collageBody.text = "Open the full collage search screen to filter by tags, category, and sort options, then view results."
-        let openCollages = UIButton(type: .system)
-        openCollages.setTitle("Search collages (Redacted)", for: .normal)
-        openCollages.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        openCollages.backgroundColor = UIColor(red: 0.45, green: 0.35, blue: 0.75, alpha: 1)
-        openCollages.setTitleColor(.white, for: .normal)
-        openCollages.layer.cornerRadius = 10
-        openCollages.heightAnchor.constraint(equalToConstant: 48).isActive = true
-        openCollages.addTarget(self, action: #selector(openCollageSearchFromPane), for: .touchUpInside)
-        collagePanel.addArrangedSubview(collageCardTitle)
-        collagePanel.addArrangedSubview(collageBody)
-        collagePanel.addArrangedSubview(openCollages)
+        collageFormContainer.translatesAutoresizingMaskIntoConstraints = false
+        collagePanel.addArrangedSubview(collageFormContainer)
 
         if hasRedacted {
             outer.addArrangedSubview(modeSeg)
@@ -109,7 +93,11 @@ final class SearchViewController: UIViewController {
             stack.trailingAnchor.constraint(equalTo: scroll.frameLayoutGuide.trailingAnchor),
             stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -8),
             stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor),
+            collageFormContainer.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.62),
         ])
+        if hasRedacted {
+            embedCollageSearchFormIfNeeded()
+        }
         searchModeChanged()
 
         if !barcode.isEmpty, preferRedactedOverBrowser() {
@@ -121,14 +109,31 @@ final class SearchViewController: UIViewController {
         let showCollage = modeSeg.selectedSegmentIndex == 1 && !modeSeg.isHidden
         scroll.isHidden = showCollage
         collagePanel.isHidden = !showCollage
+        if showCollage {
+            embedCollageSearchFormIfNeeded()
+            let fromField = secondaryField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            embeddedCollageSearch?.applySearchPrefillIfEmpty(fromField.nilIfEmptySearchAssist)
+        }
     }
 
-    @objc private func openCollageSearchFromPane() {
-        guard let key = prefs.redactedApiKey?.trimmingCharacters(in: .whitespacesAndNewlines), !key.isEmpty else { return }
-        let fromField = secondaryField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    private func embedCollageSearchFormIfNeeded() {
+        guard embeddedCollageSearch == nil,
+              let key = prefs.redactedApiKey?.trimmingCharacters(in: .whitespacesAndNewlines), !key.isEmpty else { return }
         let vc = RedactedCollagesSearchViewController(apiKey: key)
-        vc.initialSearchTerms = fromField.nilIfEmptySearchAssist
-        navigationController?.pushViewController(vc, animated: true)
+        vc.isEmbedded = true
+        let prefill = secondaryField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        vc.initialSearchTerms = prefill.nilIfEmptySearchAssist
+        addChild(vc)
+        collageFormContainer.addSubview(vc.view)
+        vc.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            vc.view.topAnchor.constraint(equalTo: collageFormContainer.topAnchor),
+            vc.view.leadingAnchor.constraint(equalTo: collageFormContainer.leadingAnchor),
+            vc.view.trailingAnchor.constraint(equalTo: collageFormContainer.trailingAnchor),
+            vc.view.bottomAnchor.constraint(equalTo: collageFormContainer.bottomAnchor),
+        ])
+        vc.didMove(toParent: self)
+        embeddedCollageSearch = vc
     }
 
     private func preferRedactedOverBrowser() -> Bool {

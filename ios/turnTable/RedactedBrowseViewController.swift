@@ -24,7 +24,7 @@ final class RedactedBrowseViewController: UIViewController, UISearchBarDelegate 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(white: 0.1, alpha: 1)
-        title = "Torrent search"
+        title = "Search"
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Home", style: .plain, target: self, action: #selector(goHome))
         searchBarButton = UIBarButtonItem(title: "Search", style: .done, target: self, action: #selector(openResults))
         navigationItem.rightBarButtonItem = searchBarButton

@@ -75,7 +75,7 @@ final class HomeViewController: UIViewController {
         row.axis = .vertical
         row.spacing = 12
         row.addArrangedSubview(labeledButton("Scan", action: #selector(openScan)))
-        row.addArrangedSubview(labeledButton("Redacted torrent search", action: #selector(openRedacted)))
+        row.addArrangedSubview(labeledButton("Search", action: #selector(openRedacted)))
         row.addArrangedSubview(labeledButton("Search collages (Redacted)", action: #selector(openCollages)))
         row.addArrangedSubview(labeledButton("History", action: #selector(openHistory)))
         row.addArrangedSubview(labeledButton("Settings", action: #selector(openSettings)))
