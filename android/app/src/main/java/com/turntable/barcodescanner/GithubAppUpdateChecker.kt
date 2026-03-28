@@ -184,7 +184,7 @@ object GithubAppUpdateChecker {
             }
             var apkUrl = extractApkUrlFromManifest(root)?.trim()?.takeIf { it.isNotEmpty() }
             if (apkUrl.isNullOrEmpty() && owner.isNotEmpty() && repo.isNotEmpty()) {
-                apkUrl = syntheticReleaseApkUrl(owner, repo, norm)
+                apkUrl = syntheticPerAbiApkUrl(owner, repo, norm)
             }
             Result.success(
                 ReleaseInfo(
@@ -201,12 +201,18 @@ object GithubAppUpdateChecker {
     }
 
     private fun extractApkUrlFromManifest(root: JSONObject): String? {
-        root.optString("apkUrl").trim().takeIf { it.isNotEmpty() }?.let { return it }
+        root.optString("apkUrl").trim().takeIf { it.isNotEmpty() }?.let {
+            if (apkUrlMatchesPreferredAbi(it)) return it
+        }
         val obj = root.optJSONObject("assets")
         if (obj != null) {
             pickApkUrlByArchFromAssetsObject(obj)?.let { return it }
-            obj.optString("apk").trim().takeIf { it.isNotEmpty() }?.let { return it }
-            obj.optString("android").trim().takeIf { it.isNotEmpty() }?.let { return it }
+            obj.optString("apk").trim().takeIf { it.isNotEmpty() }?.let {
+                if (apkUrlMatchesPreferredAbi(it)) return it
+            }
+            obj.optString("android").trim().takeIf { it.isNotEmpty() }?.let {
+                if (apkUrlMatchesPreferredAbi(it)) return it
+            }
         }
         val arr = root.optJSONArray("assets")
         if (arr != null) {
@@ -216,10 +222,33 @@ object GithubAppUpdateChecker {
         return null
     }
 
+    private fun preferredPrimaryAbi(): String = preferredAndroidAbis().firstOrNull() ?: "arm64-v8a"
+
+    /**
+     * Rejects APK URLs whose filename encodes a different ABI than this device's primary
+     * (avoids installing arm64 APK on x86_64 emulator / wrong-arch "apk" fallback).
+     */
+    private fun apkUrlMatchesPreferredAbi(url: String): Boolean {
+        val name = url.substringAfterLast('/').substringBefore('?').lowercase()
+        if (!name.endsWith(".apk")) return true
+        return !filenameImpliesDifferentAbi(name, preferredAndroidAbis())
+    }
+
+    private fun filenameImpliesDifferentAbi(filenameLower: String, preferredAbis: List<String>): Boolean {
+        val mentioned = mutableListOf<String>()
+        if (filenameLower.contains("arm64-v8a")) mentioned.add("arm64-v8a")
+        if (filenameLower.contains("armeabi-v7a")) mentioned.add("armeabi-v7a")
+        if (filenameLower.contains("x86_64")) mentioned.add("x86_64")
+        else if (filenameLower.contains("x86")) mentioned.add("x86")
+        if (mentioned.isEmpty()) return false
+        val primary = preferredAbis.firstOrNull() ?: return false
+        return mentioned.none { it == primary }
+    }
+
     private fun pickApkUrlByArchFromAssetsObject(assets: JSONObject): String? {
         val preferredAbis = preferredAndroidAbis()
         val explicitByAbi = assets.optJSONObject("androidByAbi")
-        if (explicitByAbi != null) {
+        if (explicitByAbi != null && explicitByAbi.length() > 0) {
             for (abi in preferredAbis) {
                 explicitByAbi.optString(abi).trim().takeIf { it.isNotEmpty() }?.let { return it }
             }
@@ -229,10 +258,12 @@ object GithubAppUpdateChecker {
         val keys = assets.keys()
         while (keys.hasNext()) {
             val key = keys.next()
+            if (key.equals("androidByAbi", ignoreCase = true)) continue
             if (!key.endsWith(".apk", ignoreCase = true)) continue
             val url = assets.optString(key).trim()
             if (url.isEmpty()) continue
             val keyLower = key.lowercase()
+            if (filenameImpliesDifferentAbi(keyLower, preferredAbis)) continue
             val score = abiScore(keyLower, preferredAbis)
             candidates.add(score to url)
         }
@@ -250,7 +281,7 @@ object GithubAppUpdateChecker {
     private fun normalizeAbi(abi: String): String = when (abi.lowercase()) {
         "arm64", "aarch64" -> "arm64-v8a"
         "armv7", "armeabi", "armeabi-v7a" -> "armeabi-v7a"
-        "x64", "x86-64", "x86_64" -> "x86_64"
+        "x64", "x86-64", "x86_64", "amd64" -> "x86_64"
         "x86", "i686" -> "x86"
         else -> abi.lowercase()
     }
@@ -267,6 +298,7 @@ object GithubAppUpdateChecker {
     }
 
     private fun pickApkUrlFromManifestAssetsArray(arr: JSONArray): String? {
+        val preferredAbis = preferredAndroidAbis()
         val candidates = mutableListOf<Pair<Int, String>>()
         for (i in 0 until arr.length()) {
             val o = arr.optJSONObject(i) ?: continue
@@ -274,7 +306,9 @@ object GithubAppUpdateChecker {
             if (!name.endsWith(".apk", ignoreCase = true)) continue
             val url = o.optString("url").trim().ifEmpty { o.optString("browser_download_url").trim() }
             if (url.isEmpty()) continue
-            val score = when {
+            val nameLower = name.lowercase()
+            if (filenameImpliesDifferentAbi(nameLower, preferredAbis)) continue
+            val score = abiScore(nameLower, preferredAbis) * 10 + when {
                 name.contains("release", ignoreCase = true) -> 2
                 else -> 1
             }
@@ -283,8 +317,11 @@ object GithubAppUpdateChecker {
         return candidates.maxByOrNull { it.first }?.second
     }
 
-    private fun syntheticReleaseApkUrl(owner: String, repo: String, versionPlain: String): String =
-        "https://github.com/$owner/$repo/releases/download/v$versionPlain/turnTable.release-$versionPlain.apk"
+    /** Same naming as CI per-ABI artifacts: turnTable.<abi>.apk */
+    private fun syntheticPerAbiApkUrl(owner: String, repo: String, versionPlain: String): String {
+        val abi = preferredPrimaryAbi()
+        return "https://github.com/$owner/$repo/releases/download/v$versionPlain/turnTable.$abi.apk"
+    }
 
     fun isRemoteNewerThanLocal(remoteTag: String, localVersionName: String): Boolean {
         val remoteNorm = normalizedTag(remoteTag)

@@ -69,6 +69,7 @@
     <string name="save">Save</string>
     <string name="search_pane_title">Search</string>
     <string name="search_tab_collage">Collage</string>
+    <string name="search_collage_pane_summary">Open the full collage search screen to filter by tags, category, and sort options, then view results.</string>
     <string name="scanned_code">Scanned code</string>
     <string name="question_notes">Notes (optional)</string>
     <string name="question_category">Category (optional)</string>

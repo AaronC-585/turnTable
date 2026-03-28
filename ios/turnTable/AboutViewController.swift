@@ -68,8 +68,18 @@ final class AboutViewController: UIViewController {
         cashBtn.contentEdgeInsets = UIEdgeInsets(top: 14, left: 20, bottom: 14, right: 20)
         cashBtn.addTarget(self, action: #selector(openCashApp), for: .touchUpInside)
 
+        let updatesBtn = UIButton(type: .system)
+        updatesBtn.setTitle("Check for updates", for: .normal)
+        updatesBtn.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        updatesBtn.backgroundColor = UIColor(red: 0.35, green: 0.35, blue: 0.4, alpha: 1)
+        updatesBtn.setTitleColor(.white, for: .normal)
+        updatesBtn.layer.cornerRadius = 10
+        updatesBtn.contentEdgeInsets = UIEdgeInsets(top: 14, left: 20, bottom: 14, right: 20)
+        updatesBtn.addTarget(self, action: #selector(checkUpdates), for: .touchUpInside)
+
         stack.addArrangedSubview(titleLabel)
         stack.addArrangedSubview(verLine)
+        stack.addArrangedSubview(updatesBtn)
         stack.addArrangedSubview(body)
         stack.setCustomSpacing(24, after: body)
         stack.addArrangedSubview(donationBody)
@@ -89,6 +99,10 @@ final class AboutViewController: UIViewController {
             stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -24),
             stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, constant: -40),
         ])
+    }
+
+    @objc private func checkUpdates() {
+        TurnTableGithubUpdate.presentCheck(from: self)
     }
 
     @objc private func openPayPal() {

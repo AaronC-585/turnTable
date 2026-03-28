@@ -1,10 +1,13 @@
 package com.turntable.barcodescanner.redacted
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.turntable.barcodescanner.R
 
@@ -13,6 +16,8 @@ data class TwoLineRow(
     val subtitle: String = "",
     /** Optional cover from Redacted `browse` / similar JSON (`cover` field). */
     val coverUrl: String? = null,
+    /** When [coverUrl] is empty, show this drawable in the cover slot (e.g. collage list vs torrent browse). */
+    val coverPlaceholderResId: Int? = null,
     /** Acorn when this row is a torrent you are seeding (e.g. user torrents list). */
     val showSeedingUtorrentIcon: Boolean = false,
 )
@@ -53,28 +58,61 @@ class TwoLineRowsAdapter(
         }
 
         val raw = r.coverUrl?.trim().orEmpty()
-        if (raw.isEmpty()) {
-            holder.cover.visibility = View.GONE
-            holder.cover.setImageDrawable(null)
-            holder.cover.tag = null
-        } else {
-            holder.cover.visibility = View.VISIBLE
-            holder.cover.setImageDrawable(null)
-            holder.cover.tag = raw
-            val auth = redactedAuthorizationKey
-            Thread {
-                val bmp = RedactedAvatarLoader.loadBitmap(raw, auth, maxSidePx = 128)
-                holder.itemView.post {
-                    if (holder.cover.tag != raw) return@post
-                    if (bmp != null) {
-                        holder.cover.setImageBitmap(bmp)
-                        holder.cover.visibility = View.VISIBLE
-                    } else {
-                        holder.cover.setImageDrawable(null)
-                        holder.cover.visibility = View.GONE
+        val ph = r.coverPlaceholderResId
+        when {
+            raw.isNotEmpty() -> {
+                holder.cover.visibility = View.VISIBLE
+                holder.cover.setImageDrawable(null)
+                ImageViewCompat.setImageTintList(holder.cover, null)
+                holder.cover.alpha = 1f
+                holder.cover.tag = raw
+                val auth = redactedAuthorizationKey
+                Thread {
+                    val bmp = RedactedAvatarLoader.loadBitmap(raw, auth, maxSidePx = 128)
+                    holder.itemView.post {
+                        if (holder.cover.tag != raw) return@post
+                        if (bmp != null) {
+                            ImageViewCompat.setImageTintList(holder.cover, null)
+                            holder.cover.alpha = 1f
+                            holder.cover.setImageBitmap(bmp)
+                            holder.cover.visibility = View.VISIBLE
+                        } else if (ph != null) {
+                            holder.cover.tag = "__ph__"
+                            holder.cover.setImageResource(ph)
+                            ImageViewCompat.setImageTintList(
+                                holder.cover,
+                                ColorStateList.valueOf(
+                                    ContextCompat.getColor(holder.cover.context, R.color.app_text_label),
+                                ),
+                            )
+                            holder.cover.alpha = 0.55f
+                            holder.cover.visibility = View.VISIBLE
+                        } else {
+                            holder.cover.setImageDrawable(null)
+                            holder.cover.visibility = View.GONE
+                        }
                     }
-                }
-            }.start()
+                }.start()
+            }
+            ph != null -> {
+                holder.cover.visibility = View.VISIBLE
+                holder.cover.tag = "__ph__"
+                holder.cover.setImageResource(ph)
+                ImageViewCompat.setImageTintList(
+                    holder.cover,
+                    ColorStateList.valueOf(
+                        ContextCompat.getColor(holder.cover.context, R.color.app_text_label),
+                    ),
+                )
+                holder.cover.alpha = 0.55f
+            }
+            else -> {
+                holder.cover.visibility = View.GONE
+                holder.cover.setImageDrawable(null)
+                holder.cover.tag = null
+                ImageViewCompat.setImageTintList(holder.cover, null)
+                holder.cover.alpha = 1f
+            }
         }
     }
 

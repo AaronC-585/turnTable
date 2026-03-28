@@ -1,9 +1,9 @@
 {
   "name": "turntable",
   "private": true,
-  "description": "turnTable — native scanner app; npm scripts wrap Gradle for CI and local builds",
+  "description": "turnTable — native scanner app. npm scripts run Gradle locally/CI only. GitHub releases and committing CurrentVersion.json are done by the GitHub Actions workflow .github/workflows/compile.yml (push or workflow_dispatch on main), not by these scripts.",
   "scripts": {
-    "build:android": "cd android && ./gradlew :app:assembleRelease :app:printAppVersion -PABI_FILTERS=arm64-v8a,x86_64 -Dorg.gradle.java.home=\"${JAVA_HOME}\"",
+    "build:android": "cd android && ./gradlew :app:assembleRelease :app:printAppVersion -Dorg.gradle.java.home=\"${JAVA_HOME}\"",
     "build:android:debug": "cd android && ./gradlew :app:assembleDebug -Dorg.gradle.java.home=\"${JAVA_HOME}\""
   }
 }

@@ -56,6 +56,7 @@ class RedactedCollagesSearchResultsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { finish() }
         setupToolbarHome(binding.toolbar)
+        supportActionBar?.title = getString(R.string.redacted_browse_results_title)
 
         val categoryLabels = resources.getStringArray(R.array.redacted_collages_category_labels)
 
@@ -130,7 +131,15 @@ class RedactedCollagesSearchResultsActivity : AppCompatActivity() {
                                         append(subs).append(" ").append(getString(R.string.redacted_collages_subscribers_suffix))
                                     }
                                 }
-                                rows.add(TwoLineRow(name, sub))
+                                val cover = collageSearchResultCoverUrl(o)?.trim()?.takeIf { it.isNotEmpty() }
+                                rows.add(
+                                    TwoLineRow(
+                                        title = name,
+                                        subtitle = sub,
+                                        coverUrl = cover,
+                                        coverPlaceholderResId = if (cover == null) R.drawable.ic_push_pin else null,
+                                    ),
+                                )
                                 collageIds.add(cid)
                             }
                         }
@@ -166,5 +175,17 @@ class RedactedCollagesSearchResultsActivity : AppCompatActivity() {
     private fun unwrapResponse(root: JSONObject): JSONObject {
         val inner = root.optJSONObject("response")
         return if (inner != null && (inner.has("results") || inner.has("pages"))) inner else root
+    }
+
+    /** Collage list JSON may expose art under several keys (site-dependent). */
+    private fun collageSearchResultCoverUrl(o: JSONObject): String? {
+        fun first(vararg keys: String): String? {
+            for (k in keys) {
+                val s = o.optString(k).trim()
+                if (s.isNotEmpty()) return s
+            }
+            return null
+        }
+        return first("cover", "image", "wikiImage", "picture", "thumb", "coverUrl")
     }
 }

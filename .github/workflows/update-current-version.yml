@@ -1,7 +1,8 @@
 name: Update CurrentVersion
 
 on:
-  # Release assets + CurrentVersion.json are driven from `.github/workflows/compile.yml` (main).
+  # Primary path: `.github/workflows/compile.yml` publishes the release and commits CurrentVersion.json on main.
+  # Use this workflow only to re-sync the manifest from an existing release (manual repair or tag override).
   workflow_dispatch:
     inputs:
       tag:
@@ -72,6 +73,17 @@ jobs:
               assets["apk"] = fallback_apk
           if android_by_abi:
               assets["androidByAbi"] = android_by_abi
+
+          ios_zip = next(
+              (
+                  u
+                  for n, u in assets.items()
+                  if n.lower().endswith(".zip") and "turntable-ios" in n.lower()
+              ),
+              "",
+          )
+          if ios_zip:
+              assets["iosZip"] = ios_zip
 
           repo = os.environ.get("GITHUB_REPOSITORY", "")
           release_page = f"https://github.com/{repo}/releases/latest" if repo else ""

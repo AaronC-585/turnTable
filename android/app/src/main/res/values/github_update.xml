@@ -4,7 +4,7 @@
   github_update_current_version_json_url = full raw URL to the manifest (preferred).
   If empty, URL is built from owner/repo/ref below (forks).
 
-  Gradle writeCurrentVersion + scripts/release-github.sh maintain CurrentVersion.json on GitHub.
+  Gradle writeCurrentVersion (preBuild) writes CurrentVersion.json with per-ABI APK URLs; CI on main refreshes it from the release.
   github_update_owner / github_update_repo still used for JSON fallbacks (release page, synthetic APK) and Gradle.
 -->
 <resources>

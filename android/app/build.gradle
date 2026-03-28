@@ -196,11 +196,22 @@ tasks.register("writeCurrentVersion") {
             }
         }
         def releasePage = (owner && repo) ? "https://github.com/${owner}/${repo}/releases/latest" : ""
-        def apkAsset = (owner && repo) ? "https://github.com/${owner}/${repo}/releases/download/v${versionNameAuto}/turnTable.release-${versionNameAuto}.apk" : ""
+        // CI ships per-ABI APKs (turnTable.arm64-v8a.apk, turnTable.x86_64.apk); keep androidByAbi in sync for in-app updates.
+        def baseDl = (owner && repo) ? "https://github.com/${owner}/${repo}/releases/download/v${versionNameAuto}" : ""
+        def armUrl = baseDl ? "${baseDl}/turnTable.arm64-v8a.apk" : ""
+        def x64Url = baseDl ? "${baseDl}/turnTable.x86_64.apk" : ""
+        def assetsMap = [:]
+        if (armUrl) {
+            assetsMap.apk = armUrl
+            assetsMap.androidByAbi = [
+                "arm64-v8a": armUrl,
+                "x86_64"   : x64Url,
+            ]
+        }
         def payload = [
             version         : versionNameAuto,
             releasePageUrl  : releasePage,
-            assets          : [apk: apkAsset],
+            assets          : assetsMap,
         ]
         outFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(payload)) + System.lineSeparator()
     }
