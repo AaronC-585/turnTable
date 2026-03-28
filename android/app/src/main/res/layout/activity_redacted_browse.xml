@@ -575,59 +575,11 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <androidx.core.widget.NestedScrollView
+    <include
         android:id="@+id/panelCollageBrowse"
+        layout="@layout/content_redacted_collages_search"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardBackgroundColor="@color/app_card_browse"
-                app:strokeColor="@color/app_stroke_browse_card"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="8dp"
-                        android:text="@string/redacted_collages_search_title"
-                        android:textColor="@color/app_text_secondary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="16dp"
-                        android:text="@string/search_collage_pane_summary"
-                        android:textColor="@color/app_text_tertiary"
-                        android:textSize="14sp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/buttonOpenCollageFromBrowse"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/redacted_search_collages_in_app"
-                        android:textColor="@color/app_text_on_button"
-                        app:backgroundTint="@color/app_accent_purple" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+        android:visibility="gone" />
     </FrameLayout>
 </LinearLayout>

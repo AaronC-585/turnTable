@@ -40,6 +40,12 @@ final class SearchViewController: UIViewController {
             modeSeg.selectedSegmentTintColor = UIColor(white: 0.25, alpha: 1)
         }
         modeSeg.isHidden = !hasRedacted
+        if hasRedacted {
+            modeSeg.setTitle("Collage (disabled)", forSegmentAt: 1)
+            if #available(iOS 14.0, *) {
+                modeSeg.setEnabled(false, forSegmentAt: 1)
+            }
+        }
 
         let stack = UIStackView()
         stack.axis = .vertical
@@ -106,6 +112,9 @@ final class SearchViewController: UIViewController {
     }
 
     @objc private func searchModeChanged() {
+        if !modeSeg.isHidden && modeSeg.numberOfSegments > 1 && modeSeg.selectedSegmentIndex == 1 {
+            modeSeg.selectedSegmentIndex = 0
+        }
         let showCollage = modeSeg.selectedSegmentIndex == 1 && !modeSeg.isHidden
         scroll.isHidden = showCollage
         collagePanel.isHidden = !showCollage

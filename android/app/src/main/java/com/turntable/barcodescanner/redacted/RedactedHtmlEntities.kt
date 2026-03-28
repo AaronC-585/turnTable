@@ -5,7 +5,8 @@ package com.turntable.barcodescanner.redacted
  * [ISO 8859-1 / Latin-1 entity names](https://cs.stanford.edu/people/miles/iso8859.html)
  * and [HTML 4.01](https://www.w3.org/TR/html4/sgml/entities.html#h-24.2.1).
  *
- * Handles `&#decimal;`, `&#xhex;`, and `&name;` (semicolon required). Iterates so `&amp;#233;` → é.
+ * Handles `&#decimal` / `&#decimal;`, `&#xhex` / `&#xhex;`, and `&name;` (named refs require `;`).
+ * Iterates so `&amp;#233;` → é.
  */
 object RedactedHtmlEntities {
 
@@ -38,6 +39,7 @@ object RedactedHtmlEntities {
         put("gt", ">")
         put("quot", "\"")
         put("apos", "'")
+        put("num", "#")
         // Common punctuation / symbols (often seen next to Latin-1 content)
         put("euro", "\u20AC")
         put("ndash", "\u2013")
@@ -120,8 +122,10 @@ object RedactedHtmlEntities {
         put("diams", "\u2666")
     }
 
-    private val DECIMAL_REF = Regex("&#([0-9]{1,7});")
-    private val HEX_REF = Regex("&#(?i)x([0-9a-f]{1,6});")
+    /** Decimal code point; semicolon optional if followed by a non-digit (HTML5-style). */
+    private val DECIMAL_REF = Regex("&#([0-9]{1,7})(?:;|(?![0-9]))")
+    /** Hex code point after `x`; semicolon optional if followed by a non-hex digit. */
+    private val HEX_REF = Regex("&#(?i)x([0-9a-f]{1,6})(?:;|(?![0-9a-fA-F]))")
     private val NAMED_REF = Regex("&([a-zA-Z][a-zA-Z0-9]*);")
 
     /**
@@ -166,6 +170,7 @@ object RedactedHtmlEntities {
             "gt" -> ">"
             "quot" -> "\""
             "apos" -> "'"
+            "num" -> "#"
             else -> null
         }
     }

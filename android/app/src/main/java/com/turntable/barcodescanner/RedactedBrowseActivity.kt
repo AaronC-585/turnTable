@@ -41,7 +41,11 @@ class RedactedBrowseActivity : AppCompatActivity() {
         binding.browseTabs.addTab(binding.browseTabs.newTab().setText(R.string.redacted_browse_header))
         binding.browseTabs.addTab(binding.browseTabs.newTab().setText(R.string.search_tab_collage))
         binding.browseTabs.getTabAt(0)?.select()
-        binding.buttonOpenCollageFromBrowse.setOnClickListener { openCollageSearchFromBrowse() }
+        val collageOrderByValues = resources.getStringArray(R.array.redacted_collages_order_by_values)
+        val collageOrderWayValues = resources.getStringArray(R.array.redacted_collages_order_way_values)
+        val collageForm = binding.panelCollageBrowse
+        RedactedCollagesSearchForm.setupOrderChoices(collageForm, collageOrderByValues, collageOrderWayValues)
+        collageForm.buttonSearch.setOnClickListener { openCollageSearchResults() }
         binding.browseTabs.addOnTabSelectedListener(
             object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab) {
@@ -105,32 +109,42 @@ class RedactedBrowseActivity : AppCompatActivity() {
 
     private fun syncBrowseTabVisibility(position: Int) {
         binding.panelTorrentBrowse.visibility = if (position == 0) View.VISIBLE else View.GONE
-        binding.panelCollageBrowse.visibility = if (position == 1) View.VISIBLE else View.GONE
+        binding.panelCollageBrowse.root.visibility = if (position == 1) View.VISIBLE else View.GONE
+        if (position == 1) {
+            applyBrowseTermsToCollageSearchIfEmpty()
+        }
     }
 
-    /** Opens full collage search; prefill from basic search or artist/group when advanced. */
-    private fun openCollageSearchFromBrowse() {
+    /** Prefill collage search field from torrent basic/advanced fields when user opens the Collage tab. */
+    private fun collagePrefillFromBrowse(): String {
         val fromBasic = binding.editSearchStr.text?.toString()?.trim().orEmpty()
-        val initial = if (fromBasic.isNotEmpty()) {
-            fromBasic
-        } else {
-            val artist = binding.editArtistName.text?.toString()?.trim().orEmpty()
-            val group = binding.editGroupName.text?.toString()?.trim().orEmpty()
-            when {
-                artist.isNotEmpty() && group.isNotEmpty() -> "$artist $group"
-                artist.isNotEmpty() -> artist
-                group.isNotEmpty() -> group
-                else -> ""
-            }
+        if (fromBasic.isNotEmpty()) return fromBasic
+        val artist = binding.editArtistName.text?.toString()?.trim().orEmpty()
+        val group = binding.editGroupName.text?.toString()?.trim().orEmpty()
+        return when {
+            artist.isNotEmpty() && group.isNotEmpty() -> "$artist $group"
+            artist.isNotEmpty() -> artist
+            group.isNotEmpty() -> group
+            else -> ""
         }
-        AppEventLog.log(
-            AppEventLog.Category.REDACTED,
-            "browse (Collage tab) → RedactedCollagesSearchActivity${if (initial.isNotEmpty()) " prefill len=${initial.length}" else ""}",
-        )
+    }
+
+    private fun applyBrowseTermsToCollageSearchIfEmpty() {
+        val collageTerms = binding.panelCollageBrowse.editSearch.text?.toString()?.trim().orEmpty()
+        if (collageTerms.isNotEmpty()) return
+        val initial = collagePrefillFromBrowse()
+        if (initial.isNotEmpty()) {
+            binding.panelCollageBrowse.editSearch.setText(initial)
+        }
+    }
+
+    private fun openCollageSearchResults() {
+        val form = binding.panelCollageBrowse
+        val json = RedactedBrowseParamsCodec.encode(RedactedCollagesSearchForm.buildParams(form, page = 1))
+        AppEventLog.log(AppEventLog.Category.REDACTED, "browse (Collage tab) collages search (params length=${json.length})")
         startActivity(
-            Intent(this, RedactedCollagesSearchActivity::class.java).apply {
-                if (initial.isNotEmpty()) putExtra(RedactedExtras.INITIAL_QUERY, initial)
-            },
+            Intent(this, RedactedCollagesSearchResultsActivity::class.java)
+                .putExtra(RedactedExtras.COLLAGES_SEARCH_PARAMS_JSON, json),
         )
     }
 

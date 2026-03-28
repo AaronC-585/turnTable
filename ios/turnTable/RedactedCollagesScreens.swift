@@ -477,7 +477,89 @@ final class RedactedCollageDetailViewController: UITableViewController {
         if let a = body["torrentGroup"] as? [[String: Any]] { return a }
         if let a = body["torrentgroup"] as? [[String: Any]] { return a }
         if let a = body["torrentgroups"] as? [[String: Any]] { return a }
+        if let a = body["torrentGroups"] as? [[String: Any]] { return a }
         return nil
+    }
+
+    private func torrentGroupIdListKeys(_ body: [String: Any]) -> [String] {
+        let raw = (body["torrentGroupIDList"] as? [Any]) ?? (body["torrentGroupIdList"] as? [Any]) ?? []
+        return raw.compactMap { el -> String? in
+            if let s = el as? String, !s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return s.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            if let n = el as? NSNumber { return "\(n.intValue)" }
+            if let i = el as? Int { return "\(i)" }
+            return nil
+        }
+    }
+
+    private static func jsonIntCollage(_ v: Any?) -> Int? {
+        if let i = v as? Int { return i }
+        if let n = v as? NSNumber { return n.intValue }
+        if let s = v as? String { return Int(s.trimmingCharacters(in: .whitespacesAndNewlines)) }
+        return nil
+    }
+
+    private func indexTorrentGroupsById(_ arr: [[String: Any]]) -> [String: [String: Any]] {
+        var m: [String: [String: Any]] = [:]
+        for o in arr {
+            let sid = (o["id"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !sid.isEmpty {
+                m[sid] = o
+                continue
+            }
+            if let idn = Self.jsonIntCollage(o["id"]), idn > 0 {
+                m["\(idn)"] = o
+            } else if let gid = Self.jsonIntCollage(o["groupId"]), gid > 0 {
+                m["\(gid)"] = o
+            }
+        }
+        return m
+    }
+
+    private func coverRawFromCollageGroup(_ o: [String: Any]) -> String? {
+        for k in ["wikiImage", "cover", "image", "picture", "thumb", "coverUrl"] {
+            if let s = o[k] as? String, !s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return s.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+        return nil
+    }
+
+    private func primaryArtistLineFromCollageGroup(_ o: [String: Any]) -> String {
+        if let a = o["artist"] as? String, !a.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return a.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        guard let mi = o["musicInfo"] as? [String: Any] else { return "" }
+        func names(_ key: String) -> [String] {
+            guard let arr = mi[key] as? [[String: Any]] else { return [] }
+            return arr.compactMap { ($0["name"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyCollage }
+        }
+        var seen = Set<String>()
+        var parts: [String] = []
+        for key in ["artists", "dj", "composers", "conductor", "with", "remixedBy", "producer"] {
+            for n in names(key) where seen.insert(n).inserted {
+                parts.append(n)
+            }
+        }
+        return parts.joined(separator: ", ")
+    }
+
+    private func browseRowFromCollageGroup(_ o: [String: Any], listGid: Int) -> BrowseGroupRow? {
+        let gid = listGid > 0 ? listGid : (Self.jsonIntCollage(o["id"]) ?? Self.jsonIntCollage(o["groupId"]) ?? 0)
+        guard gid > 0 else { return nil }
+        let nameRaw = ((o["name"] as? String) ?? (o["groupName"] as? String) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = nameRaw.isEmpty ? "(no title)" : nameRaw
+        let artistLine = primaryArtistLineFromCollageGroup(o)
+        let year = Self.jsonIntCollage(o["year"]) ?? Self.jsonIntCollage(o["groupYear"]) ?? 0
+        var sub = artistLine
+        if year > 0 {
+            if !sub.isEmpty { sub += " · " }
+            sub += "\(year)"
+        }
+        let cover = coverRawFromCollageGroup(o)?.nilIfEmptyCollage
+        return BrowseGroupRow(gid: gid, title: title, subtitle: sub, coverRaw: cover)
     }
 
     private func loadCollage() {
@@ -491,26 +573,29 @@ final class RedactedCollageDetailViewController: UITableViewController {
                     let name = (payload["name"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                     if !name.isEmpty { self.title = name }
                     let arr = self.torrentGroupsArray(payload) ?? []
+                    let byId = self.indexTorrentGroupsById(arr)
+                    let idKeys = self.torrentGroupIdListKeys(payload)
                     var out: [BrowseGroupRow] = []
                     var gids: [Int] = []
-                    for o in arr {
-                        let gid = o["groupId"] as? Int ?? 0
-                        let nameG = (o["groupName"] as? String) ?? ""
-                        let artist = (o["artist"] as? String) ?? ""
-                        let year = o["groupYear"] as? Int ?? 0
-                        var sub = artist
-                        if year > 0 {
-                            if !sub.isEmpty { sub += " · " }
-                            sub += "\(year)"
+                    if !idKeys.isEmpty {
+                        for key in idKeys {
+                            guard let gid = Int(key), gid > 0 else { continue }
+                            if let o = byId[key] {
+                                if let row = self.browseRowFromCollageGroup(o, listGid: gid) {
+                                    out.append(row)
+                                    gids.append(gid)
+                                }
+                            } else {
+                                out.append(BrowseGroupRow(gid: gid, title: "Torrent group \(gid)", subtitle: "", coverRaw: nil))
+                                gids.append(gid)
+                            }
                         }
-                        let cover = (o["cover"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyCollage
-                        out.append(BrowseGroupRow(
-                            gid: gid,
-                            title: nameG.isEmpty ? "(no title)" : nameG,
-                            subtitle: sub,
-                            coverRaw: cover,
-                        ))
-                        gids.append(gid)
+                    } else {
+                        for o in arr {
+                            guard let row = self.browseRowFromCollageGroup(o, listGid: 0) else { continue }
+                            out.append(row)
+                            gids.append(row.gid)
+                        }
                     }
                     self.rows = out
                     self.groupIds = gids

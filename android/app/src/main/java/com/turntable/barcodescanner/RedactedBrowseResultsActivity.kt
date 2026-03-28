@@ -16,6 +16,7 @@ import com.turntable.barcodescanner.redacted.TwoLineRow
 import com.turntable.barcodescanner.debug.AppEventLog
 import com.turntable.barcodescanner.redacted.TwoLineRowsAdapter
 import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * Second step of torrent search: paged list of `browse` results (form is [RedactedBrowseActivity]).
@@ -86,7 +87,7 @@ class RedactedBrowseResultsActivity : AppCompatActivity() {
 
     private fun load(adapter: TwoLineRowsAdapter) {
         binding.progress.visibility = View.VISIBLE
-        val params = RedactedBrowseParamsCodec.withPage(baseParams, currentPage)
+        val params = withShowOnlyGroups(RedactedBrowseParamsCodec.withPage(baseParams, currentPage))
         Thread {
             val result = api.browse(params)
             runOnUiThread {
@@ -131,6 +132,9 @@ class RedactedBrowseResultsActivity : AppCompatActivity() {
                                 groupIds.add(gid)
                             }
                         }
+                        if (rows.isEmpty()) {
+                            appendBrowseRowsFromTorrentGroupIdList(resp, rows, groupIds)
+                        }
                         adapter.rows = rows
                         AppEventLog.log(
                             AppEventLog.Category.REDACTED,
@@ -157,5 +161,43 @@ class RedactedBrowseResultsActivity : AppCompatActivity() {
                 }
             }
         }.start()
+    }
+
+    /**
+     * Some `browse` responses omit `results` but return [torrentGroupIDList] under `response`
+     * (same group ids as grouped browse — one row per id, tap opens [RedactedTorrentGroupActivity]).
+     */
+    /** Site `browse` uses `showonlygroups=1` for grouped / torrentGroupIDList-style responses. */
+    private fun withShowOnlyGroups(params: List<Pair<String, String?>>): List<Pair<String, String?>> {
+        val stripped = params.filterNot { it.first.equals("showonlygroups", ignoreCase = true) }
+        return stripped + ("showonlygroups" to "1")
+    }
+
+    private fun appendBrowseRowsFromTorrentGroupIdList(
+        resp: JSONObject,
+        rows: MutableList<TwoLineRow>,
+        groupIds: MutableList<Int>,
+    ) {
+        val idList = resp.optJSONArray("torrentGroupIDList")
+            ?: resp.optJSONArray("torrentGroupIdList")
+            ?: return
+        for (i in 0 until idList.length()) {
+            if (idList.isNull(i)) continue
+            val gid = try {
+                idList.getInt(i)
+            } catch (_: Exception) {
+                idList.optString(i).toIntOrNull() ?: 0
+            }
+            if (gid <= 0) continue
+            rows.add(
+                TwoLineRow(
+                    title = getString(R.string.redacted_browse_group_id_row_title, gid),
+                    subtitle = "",
+                    coverUrl = null,
+                    showSeedingUtorrentIcon = false,
+                ),
+            )
+            groupIds.add(gid)
+        }
     }
 }

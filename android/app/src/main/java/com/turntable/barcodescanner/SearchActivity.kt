@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.tabs.TabLayout
@@ -59,10 +60,14 @@ class SearchActivity : AppCompatActivity() {
             collageForm.buttonSearch.setOnClickListener { openCollageSearchResults() }
             binding.searchTabs.visibility = View.VISIBLE
             binding.searchTabs.addTab(binding.searchTabs.newTab().setText(R.string.search_pane_title))
-            binding.searchTabs.addTab(binding.searchTabs.newTab().setText(R.string.search_tab_collage))
+            binding.searchTabs.addTab(binding.searchTabs.newTab().setText(R.string.search_tab_collage_disabled))
             binding.searchTabs.addOnTabSelectedListener(
                 object : TabLayout.OnTabSelectedListener {
                     override fun onTabSelected(tab: TabLayout.Tab) {
+                        if (tab.position == 1) {
+                            binding.searchTabs.selectTab(binding.searchTabs.getTabAt(0), true)
+                            return
+                        }
                         syncSearchTabVisibility(tab.position)
                     }
 
@@ -70,6 +75,7 @@ class SearchActivity : AppCompatActivity() {
                     override fun onTabReselected(tab: TabLayout.Tab) {}
                 },
             )
+            binding.searchTabs.post { disableSearchCollageTabView() }
             syncSearchTabVisibility(binding.searchTabs.selectedTabPosition.coerceAtLeast(0))
         }
         binding.buttonRedactedSearch.setOnClickListener {
@@ -87,10 +93,21 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
+    private fun disableSearchCollageTabView() {
+        val strip = binding.searchTabs.getChildAt(0) as? ViewGroup ?: return
+        if (strip.childCount <= 1) return
+        val collageTabView = strip.getChildAt(1)
+        collageTabView.isEnabled = false
+        collageTabView.isClickable = false
+        collageTabView.alpha = 0.38f
+        collageTabView.contentDescription = getString(R.string.search_tab_collage_disabled)
+    }
+
     private fun syncSearchTabVisibility(position: Int) {
-        binding.panelSearchMain.visibility = if (position == 0) View.VISIBLE else View.GONE
-        binding.panelCollageSearch.root.visibility = if (position == 1) View.VISIBLE else View.GONE
-        if (position == 1) {
+        val showCollage = position == 1
+        binding.panelSearchMain.visibility = if (!showCollage) View.VISIBLE else View.GONE
+        binding.panelCollageSearch.root.visibility = if (showCollage) View.VISIBLE else View.GONE
+        if (showCollage) {
             val sec = binding.editSecondarySearchTerms.text?.toString()?.trim().orEmpty()
             val collageTerms = binding.panelCollageSearch.editSearch.text?.toString()?.trim().orEmpty()
             if (sec.isNotEmpty() && collageTerms.isEmpty()) {

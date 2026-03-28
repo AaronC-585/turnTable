@@ -70,6 +70,7 @@
     <string name="save">Save</string>
     <string name="search_pane_title">Search</string>
     <string name="search_tab_collage">Collage</string>
+    <string name="search_tab_collage_disabled">Collage (disabled)</string>
     <string name="search_collage_pane_summary">Open the full collage search screen to filter by tags, category, and sort options, then view results.</string>
     <string name="scanned_code">Scanned code</string>
     <string name="question_notes">Notes (optional)</string>
@@ -180,6 +181,7 @@
     <string name="redacted_torrent_search">Search</string>
     <string name="redacted_browse_header">Torrents</string>
     <string name="redacted_browse_results_title">Results</string>
+    <string name="redacted_browse_group_id_row_title">Torrent group %d</string>
     <string name="redacted_collages_search_title">Collages</string>
     <string name="redacted_collages_search_terms">Search terms</string>
     <string name="redacted_collages_tags_hint">Tags (comma-separated)</string>

@@ -11,6 +11,8 @@ final class RedactedBrowseViewController: UIViewController, UISearchBarDelegate 
     private let modeSeg = UISegmentedControl(items: ["Torrents", "Collage"])
     private let searchBar = UISearchBar()
     private let collagePanel = UIStackView()
+    private let collageFormContainer = UIView()
+    private var embeddedCollageSearch: RedactedCollagesSearchViewController?
     private var torrentContentStack: UIStackView!
     private var searchBarButton: UIBarButtonItem!
 
@@ -55,28 +57,10 @@ final class RedactedBrowseViewController: UIViewController, UISearchBarDelegate 
         torrentContentStack = ts
 
         collagePanel.axis = .vertical
-        collagePanel.spacing = 16
+        collagePanel.spacing = 0
         collagePanel.isHidden = true
-        let collageTitle = UILabel()
-        collageTitle.text = "Collages"
-        collageTitle.textColor = UIColor(white: 0.85, alpha: 1)
-        collageTitle.font = .systemFont(ofSize: 15, weight: .bold)
-        let collageBody = UILabel()
-        collageBody.numberOfLines = 0
-        collageBody.textColor = UIColor(white: 0.6, alpha: 1)
-        collageBody.font = .systemFont(ofSize: 14)
-        collageBody.text = "Open the full collage search screen to filter by tags, category, and sort options, then view results."
-        let openCollages = UIButton(type: .system)
-        openCollages.setTitle("Search collages (Redacted)", for: .normal)
-        openCollages.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        openCollages.backgroundColor = UIColor(red: 0.45, green: 0.35, blue: 0.75, alpha: 1)
-        openCollages.setTitleColor(.white, for: .normal)
-        openCollages.layer.cornerRadius = 10
-        openCollages.heightAnchor.constraint(equalToConstant: 48).isActive = true
-        openCollages.addTarget(self, action: #selector(openCollageSearchFromBrowse), for: .touchUpInside)
-        collagePanel.addArrangedSubview(collageTitle)
-        collagePanel.addArrangedSubview(collageBody)
-        collagePanel.addArrangedSubview(openCollages)
+        collageFormContainer.translatesAutoresizingMaskIntoConstraints = false
+        collagePanel.addArrangedSubview(collageFormContainer)
 
         let outer = UIStackView(arrangedSubviews: [modeSeg, ts, collagePanel])
         outer.axis = .vertical
@@ -89,6 +73,7 @@ final class RedactedBrowseViewController: UIViewController, UISearchBarDelegate 
             outer.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
             outer.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
             outer.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            collageFormContainer.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.62),
         ])
 
         browseModeChanged()
@@ -104,16 +89,31 @@ final class RedactedBrowseViewController: UIViewController, UISearchBarDelegate 
         collagePanel.isHidden = !showCollage
         if showCollage {
             navigationItem.rightBarButtonItem = nil
+            embedCollageSearchFormIfNeeded()
+            let q = searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            embeddedCollageSearch?.applySearchPrefillIfEmpty(q.nilIfEmptyBrowse)
         } else {
             navigationItem.rightBarButtonItem = searchBarButton
         }
     }
 
-    @objc private func openCollageSearchFromBrowse() {
-        let q = searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    private func embedCollageSearchFormIfNeeded() {
+        guard embeddedCollageSearch == nil else { return }
         let vc = RedactedCollagesSearchViewController(apiKey: apiKey)
-        if !q.isEmpty { vc.initialSearchTerms = q }
-        navigationController?.pushViewController(vc, animated: true)
+        vc.isEmbedded = true
+        let q = searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        vc.initialSearchTerms = q.nilIfEmptyBrowse
+        addChild(vc)
+        collageFormContainer.addSubview(vc.view)
+        vc.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            vc.view.topAnchor.constraint(equalTo: collageFormContainer.topAnchor),
+            vc.view.leadingAnchor.constraint(equalTo: collageFormContainer.leadingAnchor),
+            vc.view.trailingAnchor.constraint(equalTo: collageFormContainer.trailingAnchor),
+            vc.view.bottomAnchor.constraint(equalTo: collageFormContainer.bottomAnchor),
+        ])
+        vc.didMove(toParent: self)
+        embeddedCollageSearch = vc
     }
 
     @objc private func goHome() {
@@ -134,6 +134,13 @@ final class RedactedBrowseViewController: UIViewController, UISearchBarDelegate 
 
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         openResults()
+    }
+}
+
+private extension String {
+    var nilIfEmptyBrowse: String? {
+        let s = trimmingCharacters(in: .whitespacesAndNewlines)
+        return s.isEmpty ? nil : s
     }
 }
 
@@ -253,9 +260,18 @@ final class RedactedBrowseResultsViewController: UITableViewController {
     }
 
     private func browseParamsForRequest() -> [(String, String?)] {
-        var p = baseBrowseParams.filter { $0.0 != "page" }
+        var p = baseBrowseParams.filter { $0.0 != "page" && $0.0.lowercased() != "showonlygroups" }
         p.append(("page", "\(currentPage)"))
+        p.append(("showonlygroups", "1"))
         return p
+    }
+
+    /// JSON numbers often decode as `NSNumber`; browse may return `torrentGroupIDList` instead of `results`.
+    private static func jsonInt(_ v: Any?, default def: Int) -> Int {
+        if let i = v as? Int { return i }
+        if let n = v as? NSNumber { return n.intValue }
+        if let s = v as? String { return Int(s) ?? def }
+        return def
     }
 
     private func loadResults() {
@@ -267,15 +283,19 @@ final class RedactedBrowseResultsViewController: UITableViewController {
                 switch r {
                 case .success(let root):
                     let resp = root["response"] as? [String: Any]
-                    self.totalPages = (resp?["pages"] as? Int) ?? 1
-                    self.currentPage = (resp?["currentPage"] as? Int) ?? self.currentPage
+                    self.totalPages = max(1, Self.jsonInt(resp?["pages"], default: 1))
+                    self.currentPage = max(1, Self.jsonInt(resp?["currentPage"], default: self.currentPage))
                     let arr = resp?["results"] as? [[String: Any]] ?? []
-                    self.rows = arr.compactMap { o in
-                        let gid = o["groupId"] as? Int ?? 0
+                    var built: [BrowseResultRow] = arr.compactMap { o in
+                        let gid = Self.jsonInt(o["groupId"], default: 0)
+                        guard gid > 0 else { return nil }
                         let name = o["groupName"] as? String ?? ""
                         let artist = o["artist"] as? String ?? ""
-                        let year = o["groupYear"] as? Int ?? 0
-                        let sub = "\(artist) · \(year) · id \(gid)"
+                        let year = Self.jsonInt(o["groupYear"], default: 0)
+                        var subParts: [String] = []
+                        if !artist.isEmpty { subParts.append(artist) }
+                        if year > 0 { subParts.append("\(year)") }
+                        let sub = subParts.joined(separator: " · ")
                         let cover = (o["cover"] as? String)?
                             .trimmingCharacters(in: .whitespacesAndNewlines)
                             .nilIfEmptyBrowse
@@ -286,6 +306,17 @@ final class RedactedBrowseResultsViewController: UITableViewController {
                             coverRaw: cover
                         )
                     }
+                    if built.isEmpty {
+                        let idList = (resp?["torrentGroupIDList"] as? [Any])
+                            ?? (resp?["torrentGroupIdList"] as? [Any])
+                            ?? []
+                        built = idList.compactMap { el in
+                            let gid = Self.jsonInt(el, default: 0)
+                            guard gid > 0 else { return nil }
+                            return BrowseResultRow(gid: gid, title: "Torrent group \(gid)", subtitle: "", coverRaw: nil)
+                        }
+                    }
+                    self.rows = built
                 case .failure(let msg, _, _):
                     self.rows = []
                     let a = UIAlertController(title: "Browse", message: msg, preferredStyle: .alert)
