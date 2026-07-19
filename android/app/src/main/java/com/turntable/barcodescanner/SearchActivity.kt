@@ -176,6 +176,8 @@ class SearchActivity : AppCompatActivity() {
 
     /**
      * Fills secondary terms from the first Redacted `browse` hit. Never opens a browser.
+     * When [fallbackCover] is missing, looks up Cover Art Archive / primary APIs first so history
+     * and `%cover%` have art even if Redacted returns no cover.
      * @param quietIfNoHit if true, no toast when there are zero results (e.g. scan prefetch).
      */
     private fun fillFromRedactedBrowse(
@@ -191,6 +193,13 @@ class SearchActivity : AppCompatActivity() {
             return
         }
         Thread {
+            var cover = fallbackCover?.trim()?.takeIf { it.isNotEmpty() }
+            if (cover == null) {
+                val bcForCover = barcode.trim().ifEmpty { q }
+                if (bcForCover.isNotEmpty()) {
+                    cover = lookupPrimaryCoverUrl(bcForCover)
+                }
+            }
             val hit = RedactedSearchAssist.firstHit(key, q)
             runOnUiThread {
                 val bcStore = binding.editBarcode.text?.toString()?.trim().orEmpty().ifBlank { barcode }
@@ -200,25 +209,49 @@ class SearchActivity : AppCompatActivity() {
                     if (hit.coverPathOrUrl != null) {
                         applyRedactedCoverAssist(hit.coverPathOrUrl)
                     } else {
-                        applyCoverAssist(fallbackCover)
+                        applyCoverAssist(cover)
                     }
                     val coverHist = hit.coverPathOrUrl?.let { RedactedSearchAssist.absoluteCoverUrl(it) }
-                        ?: fallbackCover
+                        ?: cover
                     SearchHistoryStore.add(this, bcStore, hit.secondaryTerms, coverHist)
                     Toast.makeText(this, R.string.search_filled_from_redacted, Toast.LENGTH_SHORT).show()
                 } else {
                     if (quietIfNoHit) {
                         AppEventLog.log(AppEventLog.Category.REDACTED, "browse assist no hit q=\"$q\" (quiet)")
+                        if (!cover.isNullOrBlank()) {
+                            assistedCoverUrl = cover
+                        }
                         return@runOnUiThread
                     }
                     AppEventLog.log(AppEventLog.Category.REDACTED, "browse assist no hit q=\"$q\"")
                     binding.editSecondarySearchTerms.setText(q)
-                    applyCoverAssist(fallbackCover)
-                    SearchHistoryStore.add(this, bcStore, q, fallbackCover)
+                    applyCoverAssist(cover)
+                    SearchHistoryStore.add(this, bcStore, q, cover)
                     Toast.makeText(this, R.string.search_no_redacted_hit, Toast.LENGTH_SHORT).show()
                 }
             }
         }.start()
+    }
+
+    /** MusicBrainz / TheAudioDB / Discogs cover for a barcode (enabled primary APIs, in order). */
+    private fun lookupPrimaryCoverUrl(barcode: String): String? {
+        val prefs = SearchPrefs(this)
+        PrimarySearchAssist.clearMusicBrainzSearchCache()
+        for (cmd in SearchPresets.primaryApiCmdsOrderedEnabled(this)) {
+            try {
+                val lookup = when (cmd) {
+                    "discogs" -> PrimarySearchAssist.fetchDiscogs(barcode, null)
+                    "theaudiodb" -> PrimarySearchAssist.fetchTheAudioDb(barcode, prefs.theAudioDbApiKey)
+                    "musicbrainz" -> PrimarySearchAssist.fetchMusicBrainz(barcode)
+                    else -> null
+                }
+                val cover = lookup?.coverImageUrl?.trim()?.takeIf { it.isNotEmpty() }
+                if (cover != null) return cover
+            } catch (_: Exception) {
+                // try next provider
+            }
+        }
+        return null
     }
 
     private fun prefetchRedactedFromScan(barcode: String) {

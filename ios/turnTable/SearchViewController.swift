@@ -160,6 +160,7 @@ final class SearchViewController: UIViewController {
     }
 
     /// Fills secondary field from first Redacted `browse` hit; does not open Safari/browser.
+    /// Looks up Cover Art Archive (via MusicBrainz barcode) first when [fallbackCover] is missing.
     private func fillFromRedactedBrowse(searchStr: String, fallbackCover: String?, quietIfNoHit: Bool) {
         guard let apiKey = prefs.redactedApiKey?.trimmingCharacters(in: .whitespacesAndNewlines), !apiKey.isEmpty else { return }
         let bc = barcodeField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? barcode
@@ -169,11 +170,16 @@ final class SearchViewController: UIViewController {
             return
         }
         DispatchQueue.global(qos: .userInitiated).async {
+            var cover = fallbackCover?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptySearchAssist
+            if cover == nil {
+                let bcForCover = bc.isEmpty ? q : bc
+                cover = PrimaryCoverAssistIOS.coverURL(forBarcode: bcForCover)
+            }
             let hit = RedactedSearchAssistIOS.firstBrowseHit(apiKey: apiKey, searchStr: q)
             DispatchQueue.main.async {
                 if let hit = hit {
                     self.secondaryField.text = hit.terms
-                    let coverHist = hit.coverRaw.map { RedactedSearchAssistIOS.absoluteCoverURL($0) } ?? fallbackCover
+                    let coverHist = hit.coverRaw.map { RedactedSearchAssistIOS.absoluteCoverURL($0) } ?? cover
                     SearchHistoryStore.add(barcode: bc, title: hit.terms, coverUrl: coverHist)
                     if !quietIfNoHit {
                         self.showAlert("Filled from Redacted (first match)")
@@ -181,7 +187,7 @@ final class SearchViewController: UIViewController {
                 } else {
                     if quietIfNoHit { return }
                     self.secondaryField.text = q
-                    SearchHistoryStore.add(barcode: bc, title: q, coverUrl: fallbackCover)
+                    SearchHistoryStore.add(barcode: bc, title: q, coverUrl: cover)
                     self.showAlert("No Redacted match; kept your search text")
                 }
             }
@@ -379,6 +385,58 @@ private enum RedactedSearchAssistIOS {
         if t.lowercased().hasPrefix("http") { return t }
         let p = t.hasPrefix("/") ? String(t.dropFirst()) : t
         return "https://redacted.sh/\(p)"
+    }
+}
+
+/// MusicBrainz barcode → Cover Art Archive front cover (mirrors Android [PrimarySearchAssist] cover path).
+private enum PrimaryCoverAssistIOS {
+    private static let ua = "turnTable/1.0 ( https://github.com/turntable )"
+
+    static func coverURL(forBarcode barcode: String) -> String? {
+        let bc = barcode.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !bc.isEmpty,
+              let enc = bc.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let mbURL = URL(string: "https://musicbrainz.org/ws/2/release?query=barcode:\(enc)&fmt=json&limit=1&offset=0")
+        else { return nil }
+        guard let mbData = syncGET(mbURL),
+              let root = try? JSONSerialization.jsonObject(with: mbData) as? [String: Any],
+              let releases = root["releases"] as? [[String: Any]],
+              let first = releases.first,
+              let mbid = (first["id"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !mbid.isEmpty,
+              let caaURL = URL(string: "https://coverartarchive.org/release/\(mbid)/front-500")
+        else { return nil }
+        // CAA may 307 to the actual image; follow redirects and keep final URL if 2xx/3xx image.
+        var req = URLRequest(url: caaURL, timeoutInterval: 20)
+        req.httpMethod = "HEAD"
+        req.setValue(ua, forHTTPHeaderField: "User-Agent")
+        let sem = DispatchSemaphore(value: 0)
+        var finalURL: String?
+        let task = URLSession.shared.dataTask(with: req) { _, resp, _ in
+            defer { sem.signal() }
+            guard let http = resp as? HTTPURLResponse else { return }
+            if (200..<400).contains(http.statusCode) {
+                finalURL = http.url?.absoluteString ?? caaURL.absoluteString
+            }
+        }
+        task.resume()
+        _ = sem.wait(timeout: .now() + 25)
+        return finalURL ?? caaURL.absoluteString
+    }
+
+    private static func syncGET(_ url: URL) -> Data? {
+        var req = URLRequest(url: url, timeoutInterval: 25)
+        req.setValue(ua, forHTTPHeaderField: "User-Agent")
+        req.setValue("application/json", forHTTPHeaderField: "Accept")
+        let sem = DispatchSemaphore(value: 0)
+        var out: Data?
+        URLSession.shared.dataTask(with: req) { data, resp, _ in
+            defer { sem.signal() }
+            guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode) else { return }
+            out = data
+        }.resume()
+        _ = sem.wait(timeout: .now() + 30)
+        return out
     }
 }
 
