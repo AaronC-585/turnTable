@@ -31,7 +31,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let vc = SearchViewController(
             barcode: parsed.barcode,
             prefillSecondaryTerms: parsed.secondaryTerms.nilIfEmpty,
-            skipRedactedPrefetch: parsed.hasResolvedRelease,
+            skipRedactedPrefetch: parsed.hasResolvedRelease
         )
         // Ensure we are past splash when possible.
         if nav.viewControllers.last is SplashViewController {

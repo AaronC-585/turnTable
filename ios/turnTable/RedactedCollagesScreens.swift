@@ -165,7 +165,7 @@ final class RedactedCollagesSearchViewController: UIViewController, UIPickerView
     }
 
     private func buildParams(page: Int) -> [(String, String?)] {
-        var p: [(String, String?)] = [("page", "\(page)"))]
+        var p: [(String, String?)] = [("page", "\(page)")]
         let s = searchField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if !s.isEmpty { p.append(("search", s)) }
         let tags = tagsField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -368,7 +368,7 @@ final class RedactedCollagesSearchResultsViewController: UITableViewController {
                             title: title,
                             subtitle: sub,
                             coverRaw: cover,
-                            usePinPlaceholder: cover == nil,
+                            usePinPlaceholder: cover == nil
                         ))
                         ids.append(cid)
                     }

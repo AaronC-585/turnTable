@@ -172,7 +172,7 @@ final class CompanionScannerViewController: UIViewController {
         guard let url = ScannerRedactedAssist.turnTableSearchURL(
             barcode: barcode,
             artist: artist,
-            album: album,
+            album: album
         ) else {
             resolving = false
             spinner.stopAnimating()
@@ -188,7 +188,7 @@ final class CompanionScannerViewController: UIViewController {
                 let a = UIAlertController(
                     title: "turnTable missing",
                     message: "Install turnTable first, then scan again.",
-                    preferredStyle: .alert,
+                    preferredStyle: .alert
                 )
                 a.addAction(UIAlertAction(title: "OK", style: .default))
                 self.present(a, animated: true)

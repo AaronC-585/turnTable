@@ -353,13 +353,6 @@ final class RedactedBrowseResultsViewController: UITableViewController {
 
 // MARK: - Cover URL + row cell
 
-private extension String {
-    var nilIfEmptyBrowse: String? {
-        let t = trimmingCharacters(in: .whitespacesAndNewlines)
-        return t.isEmpty ? nil : t
-    }
-}
-
 private enum RedactedBrowseCoverURL {
     static func absolute(from raw: String) -> URL? {
         let t = raw.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -133,7 +133,7 @@ enum TurnTableUpdateCoordinator {
         from viewController: UIViewController,
         info: TurnTableGithubUpdate.ReleaseInfo,
         localVersion: String,
-        onSkipThisRelease: @escaping () -> Void,
+        onSkipThisRelease: @escaping () -> Void
     ) {
         let remoteLabel = TurnTableGithubUpdate.displayVersion(from: info)
         var message = "You have \(localVersion). Latest: \(remoteLabel)."

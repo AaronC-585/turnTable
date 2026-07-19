@@ -157,7 +157,7 @@ final class HomeViewController: UIViewController {
         let a = UIAlertController(
             title: "Scanner app",
             message: "Install turnTable Scanner to scan barcodes. Falling back to in-app scanner.",
-            preferredStyle: .alert,
+            preferredStyle: .alert
         )
         a.addAction(UIAlertAction(title: "Use in-app", style: .default) { [weak self] _ in
             let scan = ScannerViewController()
