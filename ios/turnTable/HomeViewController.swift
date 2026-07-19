@@ -150,9 +150,22 @@ final class HomeViewController: UIViewController {
     }
 
     @objc private func openScan() {
-        let scan = ScannerViewController()
-        scan.delegate = self
-        navigationController?.pushViewController(scan, animated: true)
+        if let url = URL(string: "turntablescanner://scan"), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+            return
+        }
+        let a = UIAlertController(
+            title: "Scanner app",
+            message: "Install turnTable Scanner to scan barcodes. Falling back to in-app scanner.",
+            preferredStyle: .alert,
+        )
+        a.addAction(UIAlertAction(title: "Use in-app", style: .default) { [weak self] _ in
+            let scan = ScannerViewController()
+            scan.delegate = self
+            self?.navigationController?.pushViewController(scan, animated: true)
+        })
+        a.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(a, animated: true)
     }
 
     @objc private func openHistory() {

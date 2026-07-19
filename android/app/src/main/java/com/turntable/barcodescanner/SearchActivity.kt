@@ -30,12 +30,11 @@ class SearchActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         setupToolbarHome(binding.toolbar)
 
-        val barcode = intent.getStringExtra(EXTRA_BARCODE).orEmpty()
-        binding.editBarcode.setText(barcode)
-        val prefillTerms = intent.getStringExtra(EXTRA_PREFILL_SECONDARY_TERMS).orEmpty()
-        if (prefillTerms.isNotBlank()) {
-            binding.editSecondarySearchTerms.setText(prefillTerms)
-        }
+        applySearchIntent(intent)
+
+        val barcode = binding.editBarcode.text?.toString()?.orEmpty() ?: ""
+        val prefillTerms = binding.editSecondarySearchTerms.text?.toString()?.orEmpty() ?: ""
+        val skipPrefetch = intent.getBooleanExtra(EXTRA_SKIP_REDACTED_PREFETCH, false)
 
         val prefsEarly = SearchPrefs(this)
         val hasSecondary = !prefsEarly.secondarySearchUrl.isNullOrBlank()
@@ -88,8 +87,40 @@ class SearchActivity : AppCompatActivity() {
             )
         }
 
-        if (barcode.isNotBlank() && hasRedactedEarly) {
+        if (!skipPrefetch && barcode.isNotBlank() && hasRedactedEarly) {
             binding.root.post { prefetchRedactedFromScan(barcode) }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (::binding.isInitialized) {
+            applySearchIntent(intent)
+        }
+    }
+
+    /** Intent extras and `turntable://search` deep link from the Scanner companion. */
+    private fun applySearchIntent(intent: Intent) {
+        val deep = TurnTableSearchDeepLink.parse(intent.data)
+        if (deep != null) {
+            if (deep.barcode.isNotEmpty()) {
+                binding.editBarcode.setText(deep.barcode)
+            }
+            if (deep.secondaryTerms.isNotEmpty()) {
+                binding.editSecondarySearchTerms.setText(deep.secondaryTerms)
+            }
+            intent.putExtra(EXTRA_SKIP_REDACTED_PREFETCH, deep.hasResolvedRelease)
+            return
+        }
+        val barcode = intent.getStringExtra(EXTRA_BARCODE).orEmpty()
+        if (barcode.isNotBlank()) {
+            binding.editBarcode.setText(barcode)
+        }
+        val prefillTerms = intent.getStringExtra(EXTRA_PREFILL_SECONDARY_TERMS).orEmpty()
+        if (prefillTerms.isNotBlank()) {
+            binding.editSecondarySearchTerms.setText(prefillTerms)
+            intent.putExtra(EXTRA_SKIP_REDACTED_PREFETCH, true)
         }
     }
 
@@ -384,5 +415,6 @@ class SearchActivity : AppCompatActivity() {
         const val EXTRA_BARCODE = "barcode"
         const val EXTRA_PREFILL_SECONDARY_TERMS = "prefill_secondary_terms"
         const val EXTRA_AUTOSUBMIT = "autosubmit"
+        const val EXTRA_SKIP_REDACTED_PREFETCH = "skip_redacted_prefetch"
     }
 }

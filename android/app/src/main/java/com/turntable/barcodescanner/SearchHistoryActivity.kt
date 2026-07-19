@@ -53,7 +53,7 @@ class SearchHistoryActivity : AppCompatActivity() {
             }
         }
         binding.buttonScan.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
+            CompanionScannerLauncher.open(this)
             finish()
         }
 

@@ -1,25 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Android 11+: resolve the system installer for ACTION_VIEW on downloaded APKs -->
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <data android:mimeType="application/vnd.android.package-archive" />
-        </intent>
-    </queries>
-
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Lets the app open the system installer for downloaded APKs (update flow). -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <!-- Signature permission: shared prefs for turnTable Scanner companion. -->
+    <permission
+        android:name="com.secondlifetech.turntable.permission.SHARED_PREFS"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.secondlifetech.turntable.permission.SHARED_PREFS" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <!-- Limit to phone and tablet only (exclude TV, watch, auto) -->
     <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
     <uses-feature android:name="android.software.leanback" android:required="false" />
+
+    <queries>
+        <package android:name="com.secondlifetech.turntablescanner" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="turntablescanner" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/vnd.android.package-archive" />
+        </intent>
+    </queries>
 
     <!-- largeHeap: use the device's "large" Dalvik/ART heap limit (ActivityManager.getLargeMemoryClass).
          OEM-defined; often ~2× default heap — Android has no public API for an exact 4× multiplier. -->
@@ -43,6 +52,11 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        <provider
+            android:name=".SharedSearchPrefsProvider"
+            android:authorities="com.secondlifetech.turntable.sharedprefs"
+            android:exported="true"
+            android:permission="com.secondlifetech.turntable.permission.SHARED_PREFS" />
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -89,8 +103,16 @@
             android:theme="@style/Theme.BarcodeScanner" />
         <activity
             android:name=".SearchActivity"
-            android:exported="false"
-            android:theme="@style/Theme.BarcodeScanner" />
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.BarcodeScanner">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="turntable" android:host="search" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".SettingsActivity"
             android:exported="false"

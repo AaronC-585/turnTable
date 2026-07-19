@@ -58,39 +58,54 @@ jobs:
           yes | sdkmanager --licenses >/dev/null
           sdkmanager "ndk;28.0.12433566"
 
-      - name: Build release APK (${{ matrix.abi }})
+      - name: Build release APKs (${{ matrix.abi }}) — turnTable + Scanner
         run: npx --yes npm run build:android -- -PABI_FILTERS=${{ matrix.abi }}
 
-      # turnTable.<abi>.release-<abi>.apk (e.g. turnTable.arm64-v8a.apk)
-      - name: Rename APK with architecture label
+      # turnTable.<abi>.apk + turnTableScanner.<abi>.apk (same signing / ABI)
+      - name: Rename APKs with architecture label
         run: |
           set -euo pipefail
           ABI="${{ matrix.abi }}"
           APK="$(ls android/app/build/outputs/apk/release/turnTable.*.apk | head -n1)"
           if [ -z "$APK" ]; then
-            echo "No APK produced"
+            echo "No turnTable APK produced"
             exit 1
           fi
           DEST="android/app/build/outputs/apk/release/turnTable.${ABI}.apk"
           mv "$APK" "$DEST"
           echo "Renamed to $DEST"
 
+          SCAN="$(ls android/scanner/build/outputs/apk/release/turnTableScanner.*.apk 2>/dev/null | head -n1 || true)"
+          if [ -z "$SCAN" ]; then
+            echo "No turnTableScanner APK produced"
+            exit 1
+          fi
+          SCAN_DEST="android/scanner/build/outputs/apk/release/turnTableScanner.${ABI}.apk"
+          mv "$SCAN" "$SCAN_DEST"
+          echo "Renamed to $SCAN_DEST"
+
       - name: Stage manifest for artifact (see scripts/manual-release.sh)
         run: |
           ABI="${{ matrix.abi }}"
           APK_PATH="android/app/build/outputs/apk/release/turnTable.${ABI}.apk"
+          SCAN_PATH="android/scanner/build/outputs/apk/release/turnTableScanner.${ABI}.apk"
           if [ ! -f "$APK_PATH" ]; then
             echo "No APK produced after rename: $APK_PATH"
             exit 1
           fi
+          if [ ! -f "$SCAN_PATH" ]; then
+            echo "No scanner APK produced after rename: $SCAN_PATH"
+            exit 1
+          fi
           cp CurrentVersion.json "android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json"
 
-      - name: Upload release APK + CurrentVersion manifest
+      - name: Upload release APKs + CurrentVersion manifest
         uses: actions/upload-artifact@v4
         with:
           name: android-release-${{ matrix.abi }}
           path: |
             android/app/build/outputs/apk/release/turnTable.${{ matrix.abi }}.apk
+            android/scanner/build/outputs/apk/release/turnTableScanner.${{ matrix.abi }}.apk
             android/app/build/outputs/apk/release/CurrentVersion-${{ matrix.abi }}.json
 
   build-ios:
@@ -127,23 +142,29 @@ jobs:
           echo "IOS_BUILD_VERSION=$IOS_BUILD_VERSION" >> "$GITHUB_ENV"
           echo "PKG_NAME=turnTable-ios-${ANDROID_VERSION}.zip" >> "$GITHUB_ENV"
 
-      - name: Build iOS app (simulator)
+      - name: Build iOS apps (simulator) — turnTable + Scanner
         run: |
-          xcodebuild \
-            -project ios/turnTable.xcodeproj \
-            -scheme turnTable \
-            -configuration Release \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
-            -derivedDataPath ios/build/DerivedData \
-            MARKETING_VERSION="${IOS_MARKETING_VERSION}" \
-            CURRENT_PROJECT_VERSION="${IOS_BUILD_VERSION}" \
-            CODE_SIGNING_ALLOWED=NO \
-            build
+          for SCHEME in turnTable turnTableScanner; do
+            xcodebuild \
+              -project ios/turnTable.xcodeproj \
+              -scheme "$SCHEME" \
+              -configuration Release \
+              -destination 'platform=iOS Simulator,name=iPhone 15' \
+              -derivedDataPath ios/build/DerivedData \
+              MARKETING_VERSION="${IOS_MARKETING_VERSION}" \
+              CURRENT_PROJECT_VERSION="${IOS_BUILD_VERSION}" \
+              CODE_SIGNING_ALLOWED=NO \
+              build
+          done
 
-      - name: Package simulator app
+      - name: Package simulator apps
         run: |
-          APP_PATH="$(ls -d ios/build/DerivedData/Build/Products/Release-iphonesimulator/*.app | head -n1)"
+          APP_PATH="$(ls -d ios/build/DerivedData/Build/Products/Release-iphonesimulator/turnTable.app | head -n1)"
           ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "ios/build/${PKG_NAME}"
+          SCAN_PATH="$(ls -d ios/build/DerivedData/Build/Products/Release-iphonesimulator/turnTableScanner.app | head -n1)"
+          SCAN_ZIP="turnTableScanner-ios-${ANDROID_VERSION}.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$SCAN_PATH" "ios/build/${SCAN_ZIP}"
+          echo "SCAN_PKG_NAME=${SCAN_ZIP}" >> "$GITHUB_ENV"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -151,6 +172,7 @@ jobs:
           name: turnTable-ios-${{ env.ANDROID_VERSION }}
           path: |
             ios/build/${{ env.PKG_NAME }}
+            ios/build/${{ env.SCAN_PKG_NAME }}
             ios/build/Release-iphoneos/libbarcode_scanner_core.a
             ios/build/Release-iphonesimulator/libbarcode_scanner_core.a
 
@@ -232,7 +254,7 @@ jobs:
           set -euo pipefail
           TAG="v${{ steps.ver.outputs.app_version }}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          mapfile -t RELEASE_FILES < <(find rel-assets -type f \( -name '*.apk' -o -name 'turnTable-ios-*.zip' \) | sort)
+          mapfile -t RELEASE_FILES < <(find rel-assets -type f \( -name '*.apk' -o -name 'turnTable-ios-*.zip' -o -name 'turnTableScanner-ios-*.zip' \) | sort)
           if [ "${#RELEASE_FILES[@]}" -eq 0 ]; then
             echo "No APK or iOS zip files under rel-assets — nothing to attach (all compile jobs may have failed)."
             find rel-assets -type f 2>/dev/null | head -50 || true

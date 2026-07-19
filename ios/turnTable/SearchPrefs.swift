@@ -1,8 +1,24 @@
 import Foundation
 
-/// Mirrors Android `SearchPrefs` — uses suite `search_prefs` like SharedPreferences name.
+/// Mirrors Android `SearchPrefs`. Shared with turnTable Scanner via App Group.
 final class SearchPrefs {
-    private let d: UserDefaults = UserDefaults(suiteName: Keys.prefsName) ?? .standard
+    private static let suite: UserDefaults = {
+        let group = UserDefaults(suiteName: Keys.appGroup) ?? .standard
+        let legacy = UserDefaults(suiteName: Keys.legacyPrefsName)
+        // One-time migrate API key + beep from the old non-group suite.
+        if group.string(forKey: Key.redactedKey) == nil,
+           let v = legacy?.string(forKey: Key.redactedKey)?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !v.isEmpty {
+            group.set(v, forKey: Key.redactedKey)
+        }
+        if group.object(forKey: Key.beepOnScan) == nil,
+           let beep = legacy?.object(forKey: Key.beepOnScan) {
+            group.set(beep, forKey: Key.beepOnScan)
+        }
+        return group
+    }()
+
+    private let d: UserDefaults = SearchPrefs.suite
 
     var primaryApiListText: String? {
         get { str(Key.primaryApiList) }
@@ -80,7 +96,10 @@ final class SearchPrefs {
     }
 
     enum Keys {
-        static let prefsName = "search_prefs"
+        /// App Group shared with turnTable Scanner.
+        static let appGroup = "group.com.2ndlifetech.turntable"
+        static let legacyPrefsName = "search_prefs"
+        static let prefsName = appGroup
     }
 
     private enum Key {

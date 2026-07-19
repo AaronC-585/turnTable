@@ -1,9 +1,9 @@
 # turnTable — release checklist (Android + iOS)
 
-Every **GitHub release** should attach **both**:
+Every **GitHub release** should attach:
 
-- **Android:** `turnTable.release-<version>.apk` (release build)
-- **iOS:** `turnTable-ios-<version>.ipa` (exported from Xcode)
+- **Android:** `turnTable.<abi>.apk` and `turnTableScanner.<abi>.apk` (same signing; see [SCANNER.md](SCANNER.md))
+- **iOS:** `turnTable-ios-<version>` archive/zip (and optionally `turnTableScanner-ios-<version>`)
 
 `<version>` should match **`./gradlew printAppVersion`** (Android `versionName`) and the iOS **Marketing Version** in Xcode.
 

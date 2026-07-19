@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.TurnTableScanner" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/app_accent</item>
+        <item name="android:statusBarColor">@color/app_bg_main</item>
+        <item name="android:navigationBarColor">@color/app_bg_main</item>
+        <item name="android:windowBackground">@color/app_bg_main</item>
+    </style>
+</resources>

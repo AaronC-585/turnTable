@@ -37,7 +37,7 @@ You **cannot** compile the iOS app or its native C++ library on Linux or Windows
 ## Build steps (summary)
 
 1. **Native library:** from repo root, `make ios` or `./ios/scripts/build_lib.sh` (produces `ios/build/Release-iphoneos/` and `.../Release-iphonesimulator/`).
-2. **App:** `open ios/turnTable.xcodeproj` → select a simulator or device → **Product → Build** (⌘B).
+2. **App:** `open ios/turnTable.xcodeproj` → select scheme **turnTable** or **turnTableScanner** → simulator or device → **Product → Build** (⌘B). Both targets share App Group `group.com.2ndlifetech.turntable` for the Redacted API key (see [SCANNER.md](../SCANNER.md)).
 
 **Signing:** For a **physical device**, set a **Team** under **Signing & Capabilities**. Simulator builds do not require a paid Apple Developer account.
 

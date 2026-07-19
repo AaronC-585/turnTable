@@ -4,6 +4,8 @@ import UIKit
 final class SearchViewController: UIViewController {
 
     private let barcode: String
+    private let prefillSecondaryTerms: String?
+    private let skipRedactedPrefetch: Bool
     private let prefs = SearchPrefs()
 
     private let scroll = UIScrollView()
@@ -14,8 +16,10 @@ final class SearchViewController: UIViewController {
     private let barcodeField = UITextField()
     private let secondaryField = UITextField()
 
-    init(barcode: String) {
+    init(barcode: String, prefillSecondaryTerms: String? = nil, skipRedactedPrefetch: Bool = false) {
         self.barcode = barcode
+        self.prefillSecondaryTerms = prefillSecondaryTerms
+        self.skipRedactedPrefetch = skipRedactedPrefetch
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -59,6 +63,7 @@ final class SearchViewController: UIViewController {
         barcodeField.keyboardType = .asciiCapable
 
         secondaryField.placeholder = "Secondary search terms (artist - title)"
+        secondaryField.text = prefillSecondaryTerms
         secondaryField.textColor = .white
         secondaryField.borderStyle = .roundedRect
 
@@ -106,7 +111,7 @@ final class SearchViewController: UIViewController {
         }
         searchModeChanged()
 
-        if !barcode.isEmpty, preferRedactedOverBrowser() {
+        if !skipRedactedPrefetch, !barcode.isEmpty, preferRedactedOverBrowser() {
             DispatchQueue.main.async { [weak self] in self?.prefetchRedactedFromScan() }
         }
     }

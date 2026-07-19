@@ -24,6 +24,10 @@ final class SearchHistoryViewController: UITableViewController {
     }
 
     @objc private func openScan() {
+        if let url = URL(string: "turntablescanner://scan"), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+            return
+        }
         let scan = ScannerViewController()
         scan.delegate = self
         navigationController?.pushViewController(scan, animated: true)

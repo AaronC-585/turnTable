@@ -71,6 +71,7 @@
     <string name="search_pane_title">Search</string>
     <string name="search_tab_collage">Collage</string>
     <string name="search_tab_collage_disabled">Collage (disabled)</string>
+    <string name="scanner_companion_missing">Install turnTable Scanner to scan barcodes.</string>
     <string name="search_collage_pane_summary">Open the full collage search screen to filter by tags, category, and sort options, then view results.</string>
     <string name="scanned_code">Scanned code</string>
     <string name="question_notes">Notes (optional)</string>

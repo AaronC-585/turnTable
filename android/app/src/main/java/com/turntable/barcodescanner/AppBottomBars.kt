@@ -146,7 +146,7 @@ object AppBottomBars {
             activity.navigateToHome()
         }
         dock.findViewById<View>(R.id.buttonHomeScan).setOnClickListener {
-            activity.startActivity(Intent(activity, MainActivity::class.java))
+            CompanionScannerLauncher.open(activity)
         }
         dock.findViewById<View>(R.id.buttonHomeHistory).setOnClickListener {
             activity.startActivity(Intent(activity, SearchHistoryActivity::class.java))

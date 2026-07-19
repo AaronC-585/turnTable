@@ -1,0 +1,128 @@
+import java.time.ZoneId
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+def buildCal = Calendar.getInstance()
+buildCal.setTime(new Date())
+def vYear = buildCal.get(Calendar.YEAR)
+def vMonth = buildCal.get(Calendar.MONTH) + 1
+def vDay = buildCal.get(Calendar.DAY_OF_MONTH)
+def vMinutesFromMidnight = buildCal.get(Calendar.HOUR_OF_DAY) * 60 + buildCal.get(Calendar.MINUTE)
+def versionNameAuto = "${vYear}.${vMonth}.${vDay}.${vMinutesFromMidnight}"
+def epochDay = buildCal.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().toEpochDay()
+def versionCodeAuto = (epochDay * 10000L + vMinutesFromMidnight) as int
+def abiFiltersProp = (project.findProperty("ABI_FILTERS") ?: "").toString().trim()
+def defaultAbiFilters = ['arm64-v8a', 'x86_64']
+def resolvedAbiFilters = abiFiltersProp
+    ? abiFiltersProp.split(',').collect { it.trim() }.findAll { !it.isEmpty() }
+    : defaultAbiFilters
+
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file("keystore.properties")
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
+def releaseStoreFile = (keystoreProps["storeFile"] ?: System.getenv("ANDROID_KEYSTORE_FILE"))?.toString()?.trim()
+def releaseStorePassword = (keystoreProps["storePassword"] ?: System.getenv("ANDROID_KEYSTORE_PASSWORD"))?.toString()?.trim()
+def releaseKeyAlias = (keystoreProps["keyAlias"] ?: System.getenv("ANDROID_KEY_ALIAS"))?.toString()?.trim()
+def releaseKeyPassword = (keystoreProps["keyPassword"] ?: System.getenv("ANDROID_KEY_PASSWORD"))?.toString()?.trim()
+def releaseKeyPasswordEffective = releaseKeyPassword ?: releaseStorePassword
+
+android {
+    namespace = "com.secondlifetech.turntablescanner"
+    compileSdk = 34
+    ndkVersion = "28.0.12433566"
+
+    defaultConfig {
+        applicationId = "com.secondlifetech.turntablescanner"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = versionCodeAuto
+        versionName = versionNameAuto
+        ndk {
+            abiFilters.clear()
+            abiFilters += resolvedAbiFilters
+        }
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-std=c++20"
+                arguments += "-DANDROID_STL=c++_shared"
+                arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+
+    signingConfigs {
+        if (releaseStoreFile) {
+            release {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPasswordEffective
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig(signingConfigs.findByName("release") ?: signingConfigs.debug)
+            minifyEnabled = false
+        }
+    }
+
+    androidComponents {
+        onVariants(selector().all()) { variant ->
+            def bt = variant.buildType
+            variant.outputs.each { output ->
+                def outName = (bt == "release")
+                    ? "turnTableScanner.release-${versionNameAuto}.apk"
+                    : "turnTableScanner.${bt}-${versionNameAuto}.apk"
+                output.outputFileName.set(outName)
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildFeatures {
+        viewBinding = true
+    }
+}
+
+dependencies {
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+
+    def cameraxVersion = "1.4.0"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+}

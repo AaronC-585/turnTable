@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">turnTable Scanner</string>
+    <string name="flashlight_cd_off">Flashlight off</string>
+    <string name="flashlight_cd_on">Flashlight on</string>
+    <string name="flashlight_unavailable">Flashlight unavailable</string>
+    <string name="resolving_release">Looking up release…</string>
+    <string name="opening_turntable">Opening turnTable…</string>
+    <string name="turntable_missing">Install turnTable to open search results.</string>
+</resources>
