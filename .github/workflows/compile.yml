@@ -149,8 +149,11 @@ jobs:
               -project ios/turnTable.xcodeproj \
               -scheme "$SCHEME" \
               -configuration Release \
-              -destination 'platform=iOS Simulator,name=iPhone 15' \
+              -destination 'platform=iOS Simulator,name=iPhone 15,arch=arm64' \
               -derivedDataPath ios/build/DerivedData \
+              ARCHS=arm64 \
+              ONLY_ACTIVE_ARCH=YES \
+              EXCLUDED_ARCHS=x86_64 \
               MARKETING_VERSION="${IOS_MARKETING_VERSION}" \
               CURRENT_PROJECT_VERSION="${IOS_BUILD_VERSION}" \
               CODE_SIGNING_ALLOWED=NO \
@@ -271,7 +274,11 @@ jobs:
           fi
 
   sync-current-version-json:
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: >-
+      always() && !cancelled() &&
+      needs.github-release.result == 'success' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: [github-release]
     runs-on: ubuntu-latest
     timeout-minutes: 10
