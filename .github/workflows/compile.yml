@@ -149,11 +149,12 @@ jobs:
               -project ios/turnTable.xcodeproj \
               -scheme "$SCHEME" \
               -configuration Release \
-              -destination 'platform=iOS Simulator,name=iPhone 15,arch=arm64' \
+              -sdk iphonesimulator \
+              -destination 'generic/platform=iOS Simulator' \
               -derivedDataPath ios/build/DerivedData \
               ARCHS=arm64 \
               ONLY_ACTIVE_ARCH=YES \
-              EXCLUDED_ARCHS=x86_64 \
+              "EXCLUDED_ARCHS[sdk=iphonesimulator*]=x86_64" \
               MARKETING_VERSION="${IOS_MARKETING_VERSION}" \
               CURRENT_PROJECT_VERSION="${IOS_BUILD_VERSION}" \
               CODE_SIGNING_ALLOWED=NO \
@@ -162,9 +163,16 @@ jobs:
 
       - name: Package simulator apps
         run: |
-          APP_PATH="$(ls -d ios/build/DerivedData/Build/Products/Release-iphonesimulator/turnTable.app | head -n1)"
+          set -euo pipefail
+          APP_PATH="$(find ios/build/DerivedData/Build/Products -type d -name 'turnTable.app' | head -n1)"
+          SCAN_PATH="$(find ios/build/DerivedData/Build/Products -type d -name 'turnTableScanner.app' | head -n1)"
+          if [ -z "$APP_PATH" ] || [ -z "$SCAN_PATH" ]; then
+            echo "Missing built apps under DerivedData/Build/Products:"
+            find ios/build/DerivedData/Build/Products -maxdepth 3 -type d -name '*.app' 2>/dev/null || true
+            exit 1
+          fi
+          echo "Packaging $APP_PATH and $SCAN_PATH"
           ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "ios/build/${PKG_NAME}"
-          SCAN_PATH="$(ls -d ios/build/DerivedData/Build/Products/Release-iphonesimulator/turnTableScanner.app | head -n1)"
           SCAN_ZIP="turnTableScanner-ios-${ANDROID_VERSION}.zip"
           ditto -c -k --sequesterRsrc --keepParent "$SCAN_PATH" "ios/build/${SCAN_ZIP}"
           echo "SCAN_PKG_NAME=${SCAN_ZIP}" >> "$GITHUB_ENV"
